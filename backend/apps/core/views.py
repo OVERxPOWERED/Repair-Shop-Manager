@@ -1,6 +1,7 @@
 """
 Core views including system health check.
 """
+
 from django.db import DatabaseError, connection
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -15,19 +16,13 @@ class HealthCheckView(APIView):
     Public health check endpoint.
     Verifies service liveness and database connectivity.
     """
+
     permission_classes = (AllowAny,)
 
     @extend_schema(
         summary="Service Health Check",
         description="Returns system liveness, version, and database connection status.",
-        responses={
-            200: inline_serializer(
-                name='HealthCheckResponse',
-                fields={
-                    'data': serializers.DictField()
-                }
-            )
-        }
+        responses={200: inline_serializer(name="HealthCheckResponse", fields={"data": serializers.DictField()})},
     )
     def get(self, request):
         db_status = "connected"
@@ -47,7 +42,7 @@ class HealthCheckView(APIView):
                 "version": "1.0.0",
                 "service": "fixpro-api",
                 "timestamp": timezone.now().isoformat(),
-                "database": db_status
+                "database": db_status,
             }
         }
         return Response(payload, status=http_status)

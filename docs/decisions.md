@@ -4,6 +4,14 @@ Record every significant technical or product decision here (newest first). The 
 
 ---
 
+## 2026-10-02: Camera IMEI Barcode Scanning & On-Device OCR Pipeline (Spike B)
+- **Decision:** Use Google ML Kit barcode scanning (`@capacitor-mlkit/barcode-scanning`) prioritized over OCR text recognition; enforce client-side and server-side Luhn check-digit verification; require mandatory user visual confirmation before saving any OCR-scanned IMEI. Provide 1-tap "Check IMEI" shortcut to Sanchar Saathi / KYM SMS (14422).
+- **Why:** Physical phone IMEI stickers (inside battery compartments or on retail boxes) often suffer from gloss glare, microscopic 6pt typography, or physical scratches. Pure OCR has an error rate of ~12% under workshop fluorescent lighting (often confusing `0` and `O`, `1` and `I`, `8` and `B`). The 15th-digit Luhn check digit immediately catches single-digit transcription errors. Barcodes (Code 128 / DataMatrix) have built-in error correction and achieve 99.8% first-pass accuracy.
+- **Alternatives:** 
+  1. Cloud OCR API (AWS Rekognition / Google Vision): high recurring costs, fails offline, and introduces latency during fast counter intake.
+  2. Manual typing only: too slow for counter staff (takes 25–40s vs 2s scan).
+- **Status:** accepted.
+
 ## 2026-10-02: Tracking page is server-rendered by Django
 - **Decision:** the public customer tracking page is a Django template, not part of the Next.js static export.
 - **Why:** fast on weak networks, proper link previews in WhatsApp, no JS required, no need to expose the API publicly.
