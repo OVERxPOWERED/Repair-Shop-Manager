@@ -120,6 +120,12 @@
 
 ---
 
+## 🗺️ Master Development Roadmap
+
+For the comprehensive week-by-week engineering milestones, visual design system, screen catalog, and delivery phases, consult [**ROADMAP.md**](ROADMAP.md).
+
+---
+
 ## 🚀 Quickstart & Local Development
 
 ### Prerequisites

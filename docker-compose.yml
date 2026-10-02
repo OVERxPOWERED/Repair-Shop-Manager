@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fixpro_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-fixpro_db}
+      POSTGRES_USER: ${DB_USER:-fixpro_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fixpro_dev_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fixpro_user} -d ${DB_NAME:-fixpro_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fixpro_backend
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=${SECRET_KEY:-fixpro-dev-insecure-key-12345}
+      - DB_NAME=${DB_NAME:-fixpro_db}
+      - DB_USER=${DB_USER:-fixpro_user}
+      - DB_PASSWORD=${DB_PASSWORD:-fixpro_dev_password}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
