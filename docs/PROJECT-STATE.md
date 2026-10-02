@@ -2,10 +2,10 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.2 (Test toolkit)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.3 (Core models)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphase 0.1 (Tooling, settings and CI repair) completed and verified on PostgreSQL 16.
+> Subphases 0.1 (Tooling, settings and CI repair) and 0.2 (Test toolkit) completed and verified on PostgreSQL 16.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
@@ -16,6 +16,11 @@
   - CORS: Configured origins including `https://localhost` (Android WebView) and allowed headers (`x-shop-id`, `idempotency-key`, `if-match`, etc.).
   - Frontend: Upgraded to Next.js 14.2.35, Capacitor 8.5.2 (`@capacitor/core`, `@capacitor/android`, `@capacitor/haptics`, `@capacitor/share`), `packageManager: pnpm@11.26.0`, Node engines >= 22.
   - CI: GitHub Actions workflow with PostgreSQL 16 service, ruff, migration dry-run, deploy check, pytest, pip-audit, and frontend lint/typecheck/test/build.
+- **Test Toolkit (Subphase 0.2):**
+  - Shared fixtures in `backend/conftest.py`: autouse `_clear_cache`, `world` fixture with 2 organizations, 2 shops, and all 4 canonical roles (`Owner`, `Manager`, `Front Desk`, `Engineer`) in Shop A, plus `client_for` client builder.
+  - Cross-tenant isolation verification helper `assert_other_shop_hidden` in `apps.core.testing` enforcing 404 behavior across GET/PATCH/DELETE.
+  - Factory-Boy definitions for `User`, `Organization`, `Shop`, and `Membership`.
+  - Smoke tests in `apps/core/tests/test_toolkit.py` passing (20/20 total backend tests passing).
 - **Backend Foundations (Week 1):** Django 5.2, DRF, split settings, `core` app with UUID/soft-delete base models, `/api/v1/health/`.
 - **Frontend App Shell & Mobile (Week 1):** Next.js App Router static export, Tailwind design tokens, 5-tab shell, Capacitor Android project.
 - **Accounts & Authentication (Week 2):**
@@ -36,11 +41,11 @@
   - **Spike B (IMEI Scanning & Luhn Algorithm):** Mathematical 15-digit Luhn check-digit verification in backend and frontend with Vitest tests passing 5/5. Redo on real hardware in 0.8.
 
 ## In progress
-- (none - Subphase 0.1 complete)
+- (none - Subphase 0.2 complete)
 
 ## Next
-1. ROADMAP 0.2: Test toolkit (fixtures, factories, isolation helper).
-2. ROADMAP 0.3–0.7: Core models, API contract, idempotency, auth hardening, tenancy repair.
+1. ROADMAP 0.3: Core models: real shop FK and safe soft delete (fixes audit items 2, 12).
+2. ROADMAP 0.4–0.7: API contract, idempotency, auth hardening, tenancy repair.
 3. ROADMAP 0.8: Redo hardware spikes on real devices.
 Track progress in COMPLETION.md.
 

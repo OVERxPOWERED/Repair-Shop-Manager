@@ -37,7 +37,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | Phase | Subphase | Title | Status | Completed |
 |---|---|---|---|---|
 | 0 | [0.1](#01-tooling-settings-and-ci-repair) | Tooling, settings and CI repair | ✅ Done | 2026-10-02 |
-| 0 | [0.2](#02-test-toolkit-fixtures-factories-isolation-helper) | Test toolkit (fixtures, factories, isolation helper) | ⬜ Not started | — |
+| 0 | [0.2](#02-test-toolkit-fixtures-factories-isolation-helper) | Test toolkit (fixtures, factories, isolation helper) | ✅ Done | 2026-10-02 |
 | 0 | [0.3](#03-core-models-real-shop-fk-and-safe-soft-delete) | Core models: real shop FK and safe soft delete | ⬜ Not started | — |
 | 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ⬜ Not started | — |
 | 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ⬜ Not started | — |
@@ -159,19 +159,21 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | fd7d115 |
 
-- [ ] 0.2.1 Shared fixtures
-- [ ] 0.2.2 Isolation helper
-- [ ] 0.2.3 Factories
-- [ ] 0.2.4 Smoke test for the toolkit
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.2.1 Shared fixtures
+- [x] 0.2.2 Isolation helper
+- [x] 0.2.3 Factories
+- [x] 0.2.4 Smoke test for the toolkit
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest: 20 passed in 2.72s (18 existing + 2 smoke tests for toolkit)
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 45 files already formatted
 ```
-**Notes:** —
+**Notes:** `world` fixture provides two isolated shops with all four canonical roles seeded. `assert_other_shop_hidden` helper ready for tenant isolation tests.
 
 ## 0.3 Core models: real shop FK and safe soft delete
 
