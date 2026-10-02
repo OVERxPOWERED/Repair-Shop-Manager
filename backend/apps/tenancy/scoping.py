@@ -9,18 +9,7 @@ import uuid
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework import exceptions, viewsets
 
-from apps.core.models import ShopScopedBaseModel
 from apps.tenancy.models import Membership, Shop
-
-
-class ShopScopedModel(ShopScopedBaseModel):
-    """
-    Standard base model for all tenant-scoped business entities.
-    Inherits shop_id, optimistic locking version, created_by_id, and soft delete.
-    """
-
-    class Meta(ShopScopedBaseModel.Meta):
-        abstract = True
 
 
 class TenantScopingMiddleware(MiddlewareMixin):

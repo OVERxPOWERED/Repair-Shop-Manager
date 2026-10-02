@@ -38,7 +38,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 |---|---|---|---|---|
 | 0 | [0.1](#01-tooling-settings-and-ci-repair) | Tooling, settings and CI repair | ✅ Done | 2026-10-02 |
 | 0 | [0.2](#02-test-toolkit-fixtures-factories-isolation-helper) | Test toolkit (fixtures, factories, isolation helper) | ✅ Done | 2026-10-02 |
-| 0 | [0.3](#03-core-models-real-shop-fk-and-safe-soft-delete) | Core models: real shop FK and safe soft delete | ⬜ Not started | — |
+| 0 | [0.3](#03-core-models-real-shop-fk-and-safe-soft-delete) | Core models: real shop FK and safe soft delete | ✅ Done | 2026-10-02 |
 | 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ⬜ Not started | — |
 | 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ⬜ Not started | — |
 | 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ⬜ Not started | — |
@@ -179,18 +179,22 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | 915965f |
 
-- [ ] 0.3.1 Rewrite `backend/apps/core/models.py`
-- [ ] 0.3.2 Remove the duplicate base class
-- [ ] 0.3.3 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.3.1 Rewrite `backend/apps/core/models.py`
+- [x] 0.3.2 Remove the duplicate base class
+- [x] 0.3.3 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest: 24 passed in 3.02s (20 existing + 4 soft delete tests)
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 46 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+- grep -rn "ShopScopedBaseModel" backend/: 0 references
 ```
-**Notes:** —
+**Notes:** `ShopScopedModel` uses real FK `shop = models.ForeignKey("tenancy.Shop", on_delete=models.PROTECT)`. `SoftDeletableModel.delete()` performs soft delete; `hard_delete()` for permanent removal. Duplicate base class removed from tenancy.scoping.
 
 ## 0.4 API contract layer (envelope, errors, request ID, pagination, throttling)
 

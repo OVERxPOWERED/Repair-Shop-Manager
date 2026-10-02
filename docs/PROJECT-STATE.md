@@ -2,10 +2,10 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.3 (Core models)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.4 (API contract layer)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 (Tooling, settings and CI repair) and 0.2 (Test toolkit) completed and verified on PostgreSQL 16.
+> Subphases 0.1, 0.2, and 0.3 completed and verified on PostgreSQL 16.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
@@ -21,6 +21,11 @@
   - Cross-tenant isolation verification helper `assert_other_shop_hidden` in `apps.core.testing` enforcing 404 behavior across GET/PATCH/DELETE.
   - Factory-Boy definitions for `User`, `Organization`, `Shop`, and `Membership`.
   - Smoke tests in `apps/core/tests/test_toolkit.py` passing (20/20 total backend tests passing).
+- **Core Models: Real Shop FK & Safe Soft Delete (Subphase 0.3):**
+  - `SoftDeletableModel.delete()` performs soft delete (`deleted_at=timezone.now()`); `hard_delete()` performs permanent deletion.
+  - `ShopScopedModel` uses real FK `shop = models.ForeignKey("tenancy.Shop", on_delete=models.PROTECT)`, `created_by` user FK, and integer `version` field for optimistic locking.
+  - Duplicate base class in `apps/tenancy/scoping.py` removed; zero references to old `ShopScopedBaseModel`.
+  - 4 soft delete tests in `apps/core/tests/test_soft_delete.py` passing (24/24 total backend tests passing).
 - **Backend Foundations (Week 1):** Django 5.2, DRF, split settings, `core` app with UUID/soft-delete base models, `/api/v1/health/`.
 - **Frontend App Shell & Mobile (Week 1):** Next.js App Router static export, Tailwind design tokens, 5-tab shell, Capacitor Android project.
 - **Accounts & Authentication (Week 2):**
@@ -41,11 +46,11 @@
   - **Spike B (IMEI Scanning & Luhn Algorithm):** Mathematical 15-digit Luhn check-digit verification in backend and frontend with Vitest tests passing 5/5. Redo on real hardware in 0.8.
 
 ## In progress
-- (none - Subphase 0.2 complete)
+- (none - Subphase 0.3 complete)
 
 ## Next
-1. ROADMAP 0.3: Core models: real shop FK and safe soft delete (fixes audit items 2, 12).
-2. ROADMAP 0.4–0.7: API contract, idempotency, auth hardening, tenancy repair.
+1. ROADMAP 0.4: API contract layer (envelope, errors, request ID, pagination, throttling).
+2. ROADMAP 0.5–0.7: Idempotency keys, auth hardening, tenancy repair.
 3. ROADMAP 0.8: Redo hardware spikes on real devices.
 Track progress in COMPLETION.md.
 
@@ -53,7 +58,7 @@ Track progress in COMPLETION.md.
 - DLT registration (external approval for commercial SMS in India)
 
 ## Known issues
-- Any shop member (even Engineer) can edit or **hard-delete** their shop via `/api/v1/shops/{id}/` (fix: 0.3, 0.7).
+- Any shop member (even Engineer) can edit their shop via `/api/v1/shops/{id}/` (fix: 0.7).
 - Front Desk can suspend or delete the Owner's membership; `POST /staff/` returns 201 without saving (fix: 0.7).
 - OTP codes are printed/logged in all environments; weak OTP hashing; attempt counter has no row lock; fixed test OTP active whenever DEBUG (fix: 0.6).
 - Users can deactivate themselves via `PATCH /auth/me/`; no logout / logout-all; refresh reuse detection not implemented (fix: 0.6).
