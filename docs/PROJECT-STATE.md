@@ -2,13 +2,22 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.4 (API contract layer)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.5 (Idempotency keys and optimistic concurrency)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1, 0.2, and 0.3 completed and verified on PostgreSQL 16.
+> Subphases 0.1, 0.2, 0.3, and 0.4 completed and verified on PostgreSQL 16.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **API Contract Layer (Subphase 0.4):**
+  - Standard JSON response envelope: `{ data: ... }` for detail, `{ data: [...], meta: { count, next, previous } }` for list responses.
+  - Standard error format: `{ error: { code, message, fields, request_id } }` with registered error codes in `docs/error-codes.md`.
+  - Custom `api_exception_handler` translating DRF, Django validation, and custom `DomainError`, `ConflictError`, `NotFoundError`.
+  - `RequestIdMiddleware` accepting or generating safe UUIDs, setting `X-Request-Id` response header, and populating `request_id` in logs via filter.
+  - Rate limiting configured with burst/sustained limits (`anon`: 60/min, `user`: 600/min, plus endpoint-specific rates).
+  - Indian Standard Time (IST) time utilities (`now_ist`, `today_ist`, `financial_year_start`, `financial_year_label`).
+  - OpenAPI schema post-processor wrapping responses in envelopes in `drf-spectacular`.
+  - 10 contract tests in `apps/core/tests/test_api_contract.py` (34/34 total backend tests passing).
 - **Tooling, Settings & CI Repair (Subphase 0.1):**
   - Python 3.12 with `backend/.python-version` and `uv` virtual environment.
   - Upgraded dependencies: Django 5.2 LTS, psycopg2-binary, split runtime & dev requirements (`requirements.txt`, `requirements-dev.txt`).
@@ -46,11 +55,11 @@
   - **Spike B (IMEI Scanning & Luhn Algorithm):** Mathematical 15-digit Luhn check-digit verification in backend and frontend with Vitest tests passing 5/5. Redo on real hardware in 0.8.
 
 ## In progress
-- (none - Subphase 0.3 complete)
+- (none - Subphase 0.4 complete)
 
 ## Next
-1. ROADMAP 0.4: API contract layer (envelope, errors, request ID, pagination, throttling).
-2. ROADMAP 0.5–0.7: Idempotency keys, auth hardening, tenancy repair.
+1. ROADMAP 0.5: Idempotency keys and optimistic concurrency.
+2. ROADMAP 0.6–0.7: Auth hardening, tenancy repair.
 3. ROADMAP 0.8: Redo hardware spikes on real devices.
 Track progress in COMPLETION.md.
 
@@ -62,7 +71,7 @@ Track progress in COMPLETION.md.
 - Front Desk can suspend or delete the Owner's membership; `POST /staff/` returns 201 without saving (fix: 0.7).
 - OTP codes are printed/logged in all environments; weak OTP hashing; attempt counter has no row lock; fixed test OTP active whenever DEBUG (fix: 0.6).
 - Users can deactivate themselves via `PATCH /auth/me/`; no logout / logout-all; refresh reuse detection not implemented (fix: 0.6).
-- No API envelope, error handler, idempotency, If-Match or throttling (fix: 0.4, 0.5).
+- No idempotency or If-Match optimistic concurrency on mutating endpoints (fix: 0.5).
 - Hardware spike results in `docs/printers.md` and `docs/decisions.md` are not backed by any device test (fix: 0.8).
 
 ## Lessons / notes

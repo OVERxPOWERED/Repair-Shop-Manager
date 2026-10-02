@@ -24,14 +24,14 @@ List (cursor or page pagination, one style per endpoint family, documented in Op
 ```
 
 ## Errors
-Always this shape; the client maps `code` to translated text.
+Always this shape; the client maps `code` to translated text. Codes are listed in `docs/error-codes.md`.
 ```json
 { "error": { "code": "invoice.already_issued", "message": "Invoice already issued.", "fields": { "items": ["required"] }, "request_id": "…" } }
 ```
 | HTTP | When |
 |---|---|
 | 400 | Validation failed (`fields` filled) |
-| 401 | Missing/expired token (`auth.token_expired`) |
+| 401 | Missing/expired token (`auth.token_invalid`) |
 | 403 | Authenticated but lacking permission (`permission.denied`) |
 | 404 | Not found **or** belongs to another shop |
 | 409 | State conflict (`job.invalid_transition`, `sync.conflict`) |

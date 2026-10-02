@@ -26,8 +26,9 @@ class TestAuthenticationFlow:
             "/api/v1/auth/otp/send/", {"phone": self.phone, "device_id": "test-device-1", "platform": "android"}
         )
         assert response.status_code == 200
-        assert "OTP successfully sent" in response.data["data"]["message"]
-        assert response.data["data"]["cooldown_seconds"] == 30
+        data = response.json()["data"]
+        assert "OTP successfully sent" in data["message"]
+        assert data["cooldown_seconds"] == 30
 
         # Verify challenge exists in DB
         challenge = OTPChallenge.objects.filter(phone=self.phone).first()
@@ -42,7 +43,7 @@ class TestAuthenticationFlow:
         # Immediate second send should fail due to cooldown
         response = self.client.post("/api/v1/auth/otp/send/", {"phone": self.phone})
         assert response.status_code == 400
-        assert "Please wait" in response.data["error"]["message"]
+        assert "Please wait" in response.json()["error"]["message"]
 
     def test_verify_otp_success_provisions_user(self):
         # Create known OTP challenge
@@ -62,7 +63,7 @@ class TestAuthenticationFlow:
         )
 
         assert response.status_code == 200
-        data = response.data["data"]
+        data = response.json()["data"]
         assert "tokens" in data
         assert "access" in data["tokens"]
         assert "refresh" in data["tokens"]
@@ -86,7 +87,7 @@ class TestAuthenticationFlow:
         response = self.client.post("/api/v1/auth/otp/verify/", {"phone": self.phone, "code": "111111"})
 
         assert response.status_code == 400
-        assert "attempt(s) remaining" in response.data["error"]["message"]
+        assert "attempt(s) remaining" in response.json()["error"]["message"]
 
         challenge.refresh_from_db()
         assert challenge.attempts == 1
@@ -99,7 +100,7 @@ class TestAuthenticationFlow:
         response = self.client.post("/api/v1/auth/otp/verify/", {"phone": self.phone, "code": "123456"})
 
         assert response.status_code == 400
-        assert "expired" in response.data["error"]["message"]
+        assert "expired" in response.json()["error"]["message"]
 
     def test_user_profile_authenticated_access(self):
         user = User.objects.create_user(phone=self.phone, name="Burhanuddin")
@@ -107,5 +108,5 @@ class TestAuthenticationFlow:
 
         response = self.client.get("/api/v1/auth/me/")
         assert response.status_code == 200
-        assert response.data["data"]["name"] == "Burhanuddin"
-        assert response.data["data"]["phone"] == self.phone
+        assert response.json()["data"]["name"] == "Burhanuddin"
+        assert response.json()["data"]["phone"] == self.phone

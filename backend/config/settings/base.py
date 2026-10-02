@@ -60,6 +60,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
+    "apps.core.middleware.RequestIdMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -110,14 +111,35 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_RENDERER_CLASSES": ("apps.core.api.renderers.EnvelopeJSONRenderer",),
+    "DEFAULT_PARSER_CLASSES": (
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.MultiPartParser",
+        "rest_framework.parsers.FormParser",
+    ),
+    "EXCEPTION_HANDLER": "apps.core.api.exceptions.api_exception_handler",
+    "DEFAULT_PAGINATION_CLASS": "apps.core.api.pagination.EnvelopePagination",
+    "PAGE_SIZE": 25,
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 25,
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/min",
+        "user": "600/min",
+        "otp_send": "10/hour",  # per IP; per-phone limits live in the OTP service
+        "otp_verify": "30/hour",
+        "token_refresh": "120/hour",
+        "tracking": "60/min",
+    },
+    # Number of trusted reverse proxies in front of Django (Render = 1? TODO(verify)). 0 locally.
+    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")) or None,
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 # DRF Spectacular OpenAPI documentation
@@ -127,6 +149,11 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+        "apps.core.api.schema.wrap_responses_in_envelope",
+    ],
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 # CORS Configuration

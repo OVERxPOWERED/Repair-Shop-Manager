@@ -7,8 +7,9 @@ Rule 1: Never write a raw unscoped query for business data.
 import uuid
 
 from django.utils.deprecation import MiddlewareMixin
-from rest_framework import exceptions, viewsets
+from rest_framework import viewsets
 
+from apps.core.api.errors import DomainError, NotFoundError
 from apps.tenancy.models import Membership, Shop
 
 
@@ -68,41 +69,19 @@ class ShopScopedViewSet(viewsets.ModelViewSet):
         # 1. Require X-Shop-Id header
         shop_id_raw = request.headers.get("X-Shop-Id") or request.META.get("HTTP_X_SHOP_ID")
         if not shop_id_raw:
-            raise exceptions.ValidationError(
-                {
-                    "error": {
-                        "code": "MISSING_SHOP_ID",
-                        "message": "Header 'X-Shop-Id' is required for shop-scoped endpoints.",
-                    }
-                }
-            )
+            raise DomainError("Header 'X-Shop-Id' is required.", code="shop.header_missing", status=400)
 
         try:
             shop_uuid = uuid.UUID(str(shop_id_raw).strip())
         except (ValueError, TypeError) as err:
-            raise exceptions.ValidationError(
-                {"error": {"code": "INVALID_SHOP_ID", "message": "Header 'X-Shop-Id' must be a valid UUID."}}
-            ) from err
+            raise DomainError("Header 'X-Shop-Id' must be a UUID.", code="shop.header_invalid", status=400) from err
 
         # 2. Resolve shop
         try:
             shop = Shop.objects.get(id=shop_uuid, deleted_at__isnull=True)
             request.shop = shop
         except Shop.DoesNotExist as err:
-            raise exceptions.NotFound(
-                {
-                    "error": {
-                        "code": "SHOP_NOT_FOUND",
-                        "message": f"Shop with ID '{shop_uuid}' does not exist or has been deleted.",
-                    }
-                }
-            ) from err
-
-        # 3. Verify user membership
-        if not request.user or not request.user.is_authenticated:
-            raise exceptions.NotAuthenticated(
-                {"error": {"code": "UNAUTHENTICATED", "message": "Authentication credentials were not provided."}}
-            )
+            raise NotFoundError("Shop not found.", code="shop.not_found") from err
 
         # Platform admins bypass membership check
         if getattr(request.user, "is_platform_admin", False):
@@ -116,14 +95,7 @@ class ShopScopedViewSet(viewsets.ModelViewSet):
         )
 
         if not membership:
-            raise exceptions.PermissionDenied(
-                {
-                    "error": {
-                        "code": "CROSS_TENANT_ACCESS_DENIED",
-                        "message": "You are not an active member of this shop.",
-                    }
-                }
-            )
+            raise NotFoundError("Shop not found.", code="shop.not_found")
 
         request.membership = membership
 
@@ -133,14 +105,7 @@ class ShopScopedViewSet(viewsets.ModelViewSet):
             and membership.role.name != "Owner"
             and self.required_permission not in membership.role.permissions
         ):
-            raise exceptions.PermissionDenied(
-                {
-                    "error": {
-                        "code": "INSUFFICIENT_PERMISSION",
-                        "message": f"Permission '{self.required_permission}' is required for this action.",
-                    }
-                }
-            )
+            raise DomainError("You do not have permission to do this.", code="permission.denied", status=403)
 
     def get_queryset(self):
         """

@@ -54,11 +54,9 @@ class OnboardShopView(APIView):
 
         return Response(
             {
-                "data": {
-                    "organization_id": str(org.id),
-                    "shop": ShopSerializer(shop).data,
-                    "membership": MembershipSerializer(membership).data,
-                }
+                "organization_id": str(org.id),
+                "shop": ShopSerializer(shop).data,
+                "membership": MembershipSerializer(membership).data,
             },
             status=status.HTTP_201_CREATED,
         )

@@ -39,7 +39,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.1](#01-tooling-settings-and-ci-repair) | Tooling, settings and CI repair | ✅ Done | 2026-10-02 |
 | 0 | [0.2](#02-test-toolkit-fixtures-factories-isolation-helper) | Test toolkit (fixtures, factories, isolation helper) | ✅ Done | 2026-10-02 |
 | 0 | [0.3](#03-core-models-real-shop-fk-and-safe-soft-delete) | Core models: real shop FK and safe soft delete | ✅ Done | 2026-10-02 |
-| 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ⬜ Not started | — |
+| 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ✅ Done | 2026-10-02 |
 | 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ⬜ Not started | — |
 | 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ⬜ Not started | — |
 | 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ⬜ Not started | — |
@@ -200,21 +200,24 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | 0ad527a |
 
-- [ ] 0.4.1 Create the package `backend/apps/core/api/`
-- [ ] 0.4.2 Wire it into settings
-- [ ] 0.4.3 Remove hand-made envelopes and ad-hoc error codes
-- [ ] 0.4.4 Fix the health endpoint
-- [ ] 0.4.5 Error code registry
-- [ ] 0.4.6 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.4.1 Create the package `backend/apps/core/api/`
+- [x] 0.4.2 Wire it into settings
+- [x] 0.4.3 Remove hand-made envelopes and ad-hoc error codes
+- [x] 0.4.4 Fix the health endpoint
+- [x] 0.4.5 Error code registry
+- [x] 0.4.6 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest: 34 passed (24 existing + 10 API contract tests)
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 55 files already formatted
+- python manage.py spectacular --file /tmp/schema.yml --validate: 0 errors, 0 warnings
 ```
-**Notes:** —
+**Notes:** Implemented EnvelopeJSONRenderer, EnvelopePagination, api_exception_handler with stable error codes, RequestIdMiddleware with header validation and log injection, IST time utilities, and error-codes.md registry. Hand-made envelopes removed from accounts and tenancy views.
 
 ## 0.5 Idempotency keys and optimistic concurrency
 

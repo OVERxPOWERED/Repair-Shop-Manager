@@ -48,14 +48,14 @@ class TestTenantIsolation:
         self.client.force_authenticate(user=self.user_a)
         response = self.client.get("/api/v1/staff/")
         assert response.status_code == 400
-        assert response.data["error"]["code"] == "MISSING_SHOP_ID"
+        assert response.json()["error"]["code"] == "shop.header_missing"
 
     def test_invalid_shop_uuid_rejected(self):
         """Malformed shop header must return 400 Bad Request."""
         self.client.force_authenticate(user=self.user_a)
         response = self.client.get("/api/v1/staff/", HTTP_X_SHOP_ID="invalid-uuid-123")
         assert response.status_code == 400
-        assert response.data["error"]["code"] == "INVALID_SHOP_ID"
+        assert response.json()["error"]["code"] == "shop.header_invalid"
 
     def test_nonexistent_shop_returns_404(self):
         """Querying a non-existent shop UUID returns 404 Not Found."""
@@ -63,14 +63,14 @@ class TestTenantIsolation:
         random_uuid = "00000000-0000-0000-0000-000000000000"
         response = self.client.get("/api/v1/staff/", HTTP_X_SHOP_ID=random_uuid)
         assert response.status_code == 404
-        assert response.data["error"]["code"] == "SHOP_NOT_FOUND"
+        assert response.json()["error"]["code"] == "shop.not_found"
 
     def test_cross_tenant_access_strictly_forbidden(self):
-        """User A must NOT be able to access Shop B resources, returning 403 Forbidden."""
+        """User A must NOT be able to access Shop B resources, returning 404 Not Found."""
         self.client.force_authenticate(user=self.user_a)
         response = self.client.get("/api/v1/staff/", HTTP_X_SHOP_ID=str(self.shop_b.id))
-        assert response.status_code == 403
-        assert response.data["error"]["code"] == "CROSS_TENANT_ACCESS_DENIED"
+        assert response.status_code == 404
+        assert response.json()["error"]["code"] == "shop.not_found"
 
     def test_same_tenant_access_permitted_and_scoped(self):
         """User A accessing Shop A sees only Shop A members, not Shop B members."""
@@ -78,20 +78,20 @@ class TestTenantIsolation:
         response = self.client.get("/api/v1/staff/", HTTP_X_SHOP_ID=str(self.shop_a.id))
         assert response.status_code == 200
 
-        member_ids = [m["user_phone"] for m in response.data["results"]]
+        member_ids = [m["user_phone"] for m in response.json()["data"]]
         assert self.user_a.phone in member_ids
         assert self.tech_a.phone in member_ids
         assert self.user_b.phone not in member_ids
 
     def test_suspended_membership_denied_access(self):
-        """Suspended staff members must be denied access with 403 Forbidden."""
+        """Suspended staff members must be denied access with 404 Not Found."""
         self.mem_tech_a.status = Membership.StatusChoices.SUSPENDED
         self.mem_tech_a.save()
 
         self.client.force_authenticate(user=self.tech_a)
         response = self.client.get("/api/v1/staff/", HTTP_X_SHOP_ID=str(self.shop_a.id))
-        assert response.status_code == 403
-        assert response.data["error"]["code"] == "CROSS_TENANT_ACCESS_DENIED"
+        assert response.status_code == 404
+        assert response.json()["error"]["code"] == "shop.not_found"
 
     def test_role_permission_enforcement(self):
         """Technician lacking 'staff.view' or higher permission cannot access restricted views."""
@@ -103,7 +103,7 @@ class TestTenantIsolation:
         self.client.force_authenticate(user=self.tech_a)
         response = self.client.get("/api/v1/staff/", HTTP_X_SHOP_ID=str(self.shop_a.id))
         assert response.status_code == 403
-        assert response.data["error"]["code"] == "INSUFFICIENT_PERMISSION"
+        assert response.json()["error"]["code"] == "permission.denied"
 
     def test_onboard_shop_creates_organization_and_owner_membership(self):
         """User can onboard a new shop and automatically become Owner."""
@@ -123,7 +123,7 @@ class TestTenantIsolation:
         )
 
         assert response.status_code == 201
-        data = response.data["data"]
+        data = response.json()["data"]
         assert data["shop"]["name"] == "Super Fix Indiranagar"
         assert data["shop"]["gst_enabled"] is True
         assert data["membership"]["role_name"] == "Owner"
@@ -131,5 +131,5 @@ class TestTenantIsolation:
         # Verify shop exists in user's shops list
         shops_response = self.client.get("/api/v1/shops/")
         assert shops_response.status_code == 200
-        shop_names = [s["name"] for s in shops_response.data["results"]]
+        shop_names = [s["name"] for s in shops_response.json()["data"]]
         assert "Super Fix Indiranagar" in shop_names

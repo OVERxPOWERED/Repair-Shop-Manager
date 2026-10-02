@@ -2,6 +2,9 @@
 Core views including system health check.
 """
 
+import logging
+
+from django.conf import settings
 from django.db import DatabaseError, connection
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -9,6 +12,8 @@ from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+logger = logging.getLogger(__name__)
 
 
 class HealthCheckView(APIView):
@@ -18,6 +23,7 @@ class HealthCheckView(APIView):
     """
 
     permission_classes = (AllowAny,)
+    throttle_classes = ()
 
     @extend_schema(
         summary="Service Health Check",
@@ -25,24 +31,21 @@ class HealthCheckView(APIView):
         responses={200: inline_serializer(name="HealthCheckResponse", fields={"data": serializers.DictField()})},
     )
     def get(self, request):
-        db_status = "connected"
-        http_status = status.HTTP_200_OK
-
+        database = "connected"
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT 1;")
-                cursor.fetchone()
-        except DatabaseError as e:
-            db_status = f"unhealthy: {e!s}"
-            http_status = status.HTTP_503_SERVICE_UNAVAILABLE
-
-        payload = {
-            "data": {
-                "status": "healthy" if http_status == status.HTTP_200_OK else "degraded",
-                "version": "1.0.0",
+                cursor.execute("SELECT 1")
+        except DatabaseError:
+            logger.exception("Health check: database unavailable")
+            database = "unavailable"  # never leak driver error text publicly
+        healthy = database == "connected"
+        return Response(
+            {
+                "status": "healthy" if healthy else "degraded",
                 "service": "fixpro-api",
+                "version": settings.APP_VERSION,
                 "timestamp": timezone.now().isoformat(),
-                "database": db_status,
-            }
-        }
-        return Response(payload, status=http_status)
+                "database": database,
+            },
+            status=status.HTTP_200_OK if healthy else status.HTTP_503_SERVICE_UNAVAILABLE,
+        )

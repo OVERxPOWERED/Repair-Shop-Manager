@@ -1,4 +1,5 @@
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -13,10 +14,11 @@ def test_health_check_endpoint():
     response = client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert "data" in response.data
-    data = response.data["data"]
+    body = response.json()
+    assert "data" in body
+    data = body["data"]
     assert data["status"] == "healthy"
     assert data["service"] == "fixpro-api"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == settings.APP_VERSION
     assert "timestamp" in data
-    assert "database" in data
+    assert data["database"] == "connected"

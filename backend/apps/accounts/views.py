@@ -14,6 +14,7 @@ from apps.accounts.serializers import (
     VerifyOTPSerializer,
 )
 from apps.accounts.services import send_otp_challenge, verify_otp_challenge
+from apps.core.api.errors import DomainError
 
 
 class SendOTPView(APIView):
@@ -42,17 +43,13 @@ class SendOTPView(APIView):
             challenge, cooldown = send_otp_challenge(phone=phone, device_id=device_id, ip=ip)
         except ValidationError as e:
             msg = str(e.message if hasattr(e, "message") else e)
-            return Response(
-                {"error": {"code": "RATE_LIMITED_OR_INVALID", "message": msg}}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise DomainError(msg, code="otp.request_failed", status=400) from e
 
         return Response(
             {
-                "data": {
-                    "message": f"OTP successfully sent to {phone}",
-                    "cooldown_seconds": cooldown,
-                    "expires_at": challenge.expires_at.isoformat(),
-                }
+                "message": f"OTP successfully sent to {phone}",
+                "cooldown_seconds": cooldown,
+                "expires_at": challenge.expires_at.isoformat(),
             },
             status=status.HTTP_200_OK,
         )
@@ -88,9 +85,7 @@ class VerifyOTPView(APIView):
             )
         except ValidationError as e:
             msg = str(e.message if hasattr(e, "message") else e)
-            return Response(
-                {"error": {"code": "OTP_VERIFICATION_FAILED", "message": msg}}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise DomainError(msg, code="otp.verification_failed", status=400) from e
 
         # Fetch active memberships for user
         memberships_data = []
@@ -108,11 +103,9 @@ class VerifyOTPView(APIView):
 
         return Response(
             {
-                "data": {
-                    "user": UserSerializer(user).data,
-                    "tokens": {"access": access_token, "refresh": refresh_token, "token_type": "Bearer"},
-                    "shops": memberships_data,
-                }
+                "user": UserSerializer(user).data,
+                "tokens": {"access": access_token, "refresh": refresh_token, "token_type": "Bearer"},
+                "shops": memberships_data,
             },
             status=status.HTTP_200_OK,
         )
@@ -127,11 +120,11 @@ class UserProfileView(APIView):
 
     @extend_schema(summary="Get Current User Profile", responses={200: UserSerializer})
     def get(self, request):
-        return Response({"data": UserSerializer(request.user).data})
+        return Response(UserSerializer(request.user).data)
 
     @extend_schema(summary="Update Current User Profile", request=UserSerializer, responses={200: UserSerializer})
     def patch(self, request):
         serializer = UserSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"data": serializer.data})
+        return Response(serializer.data)
