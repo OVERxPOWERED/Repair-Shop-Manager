@@ -1,130 +1,123 @@
-"""
-Authentication and user account views.
-"""
-
-from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenRefreshView
 
+from apps.accounts.models import UserDevice
 from apps.accounts.serializers import (
+    DeviceSerializer,
+    ProfileUpdateSerializer,
     SendOTPSerializer,
     UserSerializer,
     VerifyOTPSerializer,
+    my_shops,
 )
-from apps.accounts.services import send_otp_challenge, verify_otp_challenge
-from apps.core.api.errors import DomainError
+from apps.accounts.services import (
+    OTP_COOLDOWN_SECONDS,
+    logout_everywhere,
+    revoke_device,
+    send_otp,
+    verify_otp_and_login,
+)
+from apps.accounts.tokens import DeviceAwareTokenRefreshSerializer
+from apps.core.api.errors import NotFoundError
+from apps.core.net import get_client_ip
 
 
 class SendOTPView(APIView):
-    """
-    Public endpoint to initiate phone number login / registration.
-    Issues a 6-digit OTP code and records a challenge.
-    """
-
     permission_classes = (permissions.AllowAny,)
+    authentication_classes = ()
+    throttle_classes = (ScopedRateThrottle,)
+    throttle_scope = "otp_send"
 
-    @extend_schema(
-        summary="Request SMS OTP",
-        description="Generates a 6-digit OTP challenge for the given phone number with rate limiting.",
-        request=SendOTPSerializer,
-        responses={200: dict, 400: dict},
-    )
+    @extend_schema(request=SendOTPSerializer, responses={200: dict}, summary="Request a login OTP")
     def post(self, request):
-        serializer = SendOTPSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        phone = serializer.validated_data["phone"]
-        device_id = serializer.validated_data.get("device_id")
-        ip = request.META.get("REMOTE_ADDR")
-
-        try:
-            challenge, cooldown = send_otp_challenge(phone=phone, device_id=device_id, ip=ip)
-        except ValidationError as e:
-            msg = str(e.message if hasattr(e, "message") else e)
-            raise DomainError(msg, code="otp.request_failed", status=400) from e
-
-        return Response(
-            {
-                "message": f"OTP successfully sent to {phone}",
-                "cooldown_seconds": cooldown,
-                "expires_at": challenge.expires_at.isoformat(),
-            },
-            status=status.HTTP_200_OK,
+        s = SendOTPSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        challenge = send_otp(
+            phone=s.validated_data["phone"],
+            device_id=s.validated_data.get("device_id"),
+            ip=get_client_ip(request),
         )
+        return Response({"cooldown_seconds": OTP_COOLDOWN_SECONDS, "expires_at": challenge.expires_at})
 
 
 class VerifyOTPView(APIView):
-    """
-    Public endpoint to verify OTP code and obtain JWT authentication tokens.
-    Automatically provisions new user accounts on first successful login.
-    """
-
     permission_classes = (permissions.AllowAny,)
+    authentication_classes = ()
+    throttle_classes = (ScopedRateThrottle,)
+    throttle_scope = "otp_verify"
 
-    @extend_schema(
-        summary="Verify SMS OTP & Authenticate",
-        description="Validates OTP and returns rotating JWT access & refresh tokens.",
-        request=VerifyOTPSerializer,
-        responses={200: dict, 400: dict},
-    )
+    @extend_schema(request=VerifyOTPSerializer, responses={200: dict}, summary="Verify OTP and sign in")
     def post(self, request):
-        serializer = VerifyOTPSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        phone = serializer.validated_data["phone"]
-        code = serializer.validated_data["code"]
-        device_id = serializer.validated_data.get("device_id")
-        platform = serializer.validated_data.get("platform", "web")
-        app_version = serializer.validated_data.get("app_version", "")
-
-        try:
-            user, access_token, refresh_token = verify_otp_challenge(
-                phone=phone, code=code, device_id=device_id, platform=platform, app_version=app_version
-            )
-        except ValidationError as e:
-            msg = str(e.message if hasattr(e, "message") else e)
-            raise DomainError(msg, code="otp.verification_failed", status=400) from e
-
-        # Fetch active memberships for user
-        memberships_data = []
-        if hasattr(user, "memberships"):
-            for m in user.memberships.filter(status="active").select_related("shop", "role"):
-                memberships_data.append(
-                    {
-                        "membership_id": str(m.id),
-                        "shop_id": str(m.shop.id),
-                        "shop_name": m.shop.name,
-                        "role_name": m.role.name,
-                        "permissions": m.role.permissions,
-                    }
-                )
-
-        return Response(
-            {
-                "user": UserSerializer(user).data,
-                "tokens": {"access": access_token, "refresh": refresh_token, "token_type": "Bearer"},
-                "shops": memberships_data,
-            },
-            status=status.HTTP_200_OK,
+        s = VerifyOTPSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        d = s.validated_data
+        user, _device, tokens, _is_new_device = verify_otp_and_login(
+            phone=d["phone"],
+            code=d["code"],
+            device_id=d["device_id"],
+            platform=d["platform"],
+            app_version=d.get("app_version", ""),
         )
+        return Response({"user": UserSerializer(user).data, "tokens": tokens, "shops": my_shops(user)})
 
 
-class UserProfileView(APIView):
-    """
-    Authenticated endpoint to view or update current user profile.
-    """
+class RefreshView(TokenRefreshView):
+    serializer_class = DeviceAwareTokenRefreshSerializer
+    throttle_classes = (ScopedRateThrottle,)
+    throttle_scope = "token_refresh"
 
-    permission_classes = (permissions.IsAuthenticated,)
 
-    @extend_schema(summary="Get Current User Profile", responses={200: UserSerializer})
+class MeView(APIView):
+    @extend_schema(responses={200: dict}, summary="Current user and their shops")
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        return Response({"user": UserSerializer(request.user).data, "shops": my_shops(request.user)})
 
-    @extend_schema(summary="Update Current User Profile", request=UserSerializer, responses={200: UserSerializer})
+    @extend_schema(request=ProfileUpdateSerializer, responses={200: dict}, summary="Update profile")
     def patch(self, request):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        s = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        s.is_valid(raise_exception=True)
+        s.save()
+        return Response({"user": UserSerializer(request.user).data, "shops": my_shops(request.user)})
+
+
+def _current_device(request):
+    token = request.auth
+    return UserDevice.objects.filter(user=request.user, device_id=token.get("did") if token else None).first()
+
+
+class LogoutView(APIView):
+    @extend_schema(request=None, responses={204: None}, summary="Log out current device")
+    def post(self, request):
+        device = _current_device(request)
+        if device is not None:
+            revoke_device(device)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class LogoutAllView(APIView):
+    @extend_schema(request=None, responses={204: None}, summary="Log out all devices")
+    def post(self, request):
+        logout_everywhere(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DeviceListView(APIView):
+    @extend_schema(responses={200: DeviceSerializer(many=True)}, summary="List active devices")
+    def get(self, request):
+        devices = UserDevice.objects.filter(user=request.user, revoked_at__isnull=True).order_by("-last_seen_at")
+        current = request.auth.get("did") if request.auth else None
+        return Response(DeviceSerializer(devices, many=True, context={"current_device_id": current}).data)
+
+
+class DeviceRevokeView(APIView):
+    @extend_schema(responses={204: None}, summary="Revoke a device")
+    def delete(self, request, pk):
+        device = UserDevice.objects.filter(user=request.user, pk=pk, revoked_at__isnull=True).first()
+        if device is None:
+            raise NotFoundError()
+        revoke_device(device)
+        return Response(status=status.HTTP_204_NO_CONTENT)

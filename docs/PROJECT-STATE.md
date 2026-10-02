@@ -2,13 +2,24 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.6 (Authentication hardening)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.7 (Tenancy and permissions repair)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1, 0.2, 0.3, 0.4, and 0.5 completed and verified on PostgreSQL 16.
+> Subphases 0.1, 0.2, 0.3, 0.4, 0.5, and 0.6 completed and verified on PostgreSQL 16.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Authentication Hardening (Subphase 0.6):**
+  - E.164 phone normalization and privacy masking (`normalize_phone`, `mask_phone`) in `apps.core.phone`.
+  - SMS provider abstraction (`SmsProvider`, `ConsoleSmsProvider`, `get_sms_provider`) with secure hidden logging outside `DEBUG`.
+  - Secure HMAC-SHA256 OTP hashing keyed with `SECRET_KEY`; row-locked attempt counting with 3-attempt lock, 30s cooldown, and 6/hour rate limiting.
+  - Test OTP numbers (`OTP_TEST_NUMBERS`) strictly scoped to test/dev environments.
+  - `DeviceJWTAuthentication` and `DeviceAwareTokenRefreshSerializer` tracking session platform, app version, and refresh token families with automatic theft/reuse detection and device revocation.
+  - `ProfileUpdateSerializer` preventing users from deactivating themselves via `PATCH /auth/me/`.
+  - Added endpoints: `POST /auth/logout/`, `POST /auth/logout-all/`, `GET /auth/devices/`, `DELETE /auth/devices/<id>/`.
+  - `purge_otp_challenges` management command for housekeeping.
+  - Registered 7 error codes in `docs/error-codes.md`.
+  - All 15 auth tests passing in `apps/accounts/tests/test_auth.py` (54/54 total backend tests passing).
 - **Idempotency Keys & Optimistic Concurrency (Subphase 0.5):**
   - `IdempotencyRecord` model and migration (`core.0001_initial`) storing request hash, status code, response body, and user+key uniqueness.
   - `@idempotent(required=True/False)` decorator handling duplicate requests with replay (`Idempotent-Replayed: true`), key reuse conflict checks (422), and in-flight conflicts (409).
@@ -63,12 +74,12 @@
   - **Spike B (IMEI Scanning & Luhn Algorithm):** Mathematical 15-digit Luhn check-digit verification in backend and frontend with Vitest tests passing 5/5. Redo on real hardware in 0.8.
 
 ## In progress
-- (none - Subphase 0.5 complete)
+- (none - Subphase 0.6 complete)
 
 ## Next
-1. ROADMAP 0.6: Authentication hardening (phone helpers, SMS provider, rotating JWTs, logout).
-2. ROADMAP 0.7: Tenancy and permissions repair.
-3. ROADMAP 0.8: Redo hardware spikes on real devices.
+1. ROADMAP 0.7: Tenancy and permissions repair (models, resolve_shop_context, permissions, views, roles).
+2. ROADMAP 0.8: Redo hardware spikes on real devices.
+3. ROADMAP 0.9: Frontend foundation (design tokens, offline store, query provider, envelope client).
 Track progress in COMPLETION.md.
 
 ## Blocked / waiting on
@@ -77,8 +88,6 @@ Track progress in COMPLETION.md.
 ## Known issues
 - Any shop member (even Engineer) can edit their shop via `/api/v1/shops/{id}/` (fix: 0.7).
 - Front Desk can suspend or delete the Owner's membership; `POST /staff/` returns 201 without saving (fix: 0.7).
-- OTP codes are printed/logged in all environments; weak OTP hashing; attempt counter has no row lock; fixed test OTP active whenever DEBUG (fix: 0.6).
-- Users can deactivate themselves via `PATCH /auth/me/`; no logout / logout-all; refresh reuse detection not implemented (fix: 0.6).
 - Hardware spike results in `docs/printers.md` and `docs/decisions.md` are not backed by any device test (fix: 0.8).
 
 ## Lessons / notes

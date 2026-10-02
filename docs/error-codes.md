@@ -23,4 +23,11 @@ Add a row in the same commit that introduces a code (ROADMAP Recipe R8).
 | concurrency.if_match_required | 428 | If-Match header with version loaded is required |
 | concurrency.if_match_invalid | 400 | If-Match must be an integer version |
 | concurrency.version_mismatch | 409 | Record version changed concurrently; reload and try again |
+| otp.cooldown | 429 | Please wait before requesting another OTP; see `Retry-After` |
+| otp.too_many_requests | 429 | Hourly OTP limit reached; try again later |
+| otp.not_found | 400 | No pending OTP challenge found; request a new one |
+| otp.expired | 400 | OTP has expired; request a new one |
+| otp.locked | 400 | Too many incorrect attempts; request a new OTP |
+| otp.invalid | 400 | Incorrect OTP code; attempts remaining indicated in fields |
+| auth.account_disabled | 403 | User account has been deactivated or disabled |
 | server.error | 500 | Unexpected; quote `request_id` to support |

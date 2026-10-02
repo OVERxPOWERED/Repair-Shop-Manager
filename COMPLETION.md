@@ -41,7 +41,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.3](#03-core-models-real-shop-fk-and-safe-soft-delete) | Core models: real shop FK and safe soft delete | ✅ Done | 2026-10-02 |
 | 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ✅ Done | 2026-10-02 |
 | 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ✅ Done | 2026-10-02 |
-| 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ⬜ Not started | — |
+| 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ✅ Done | 2026-10-02 |
 | 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ⬜ Not started | — |
 | 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ⬜ Not started | — |
 | 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ⬜ Not started | — |
@@ -248,23 +248,29 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | ef05f15 |
 
-- [ ] 0.6.1 Phone helpers (shared by every app)
-- [ ] 0.6.2 SMS provider abstraction
-- [ ] 0.6.3 Rewrite `backend/apps/accounts/services.py`
-- [ ] 0.6.4 Device-aware tokens
-- [ ] 0.6.5 Serializers
-- [ ] 0.6.6 Views and URLs
-- [ ] 0.6.7 Error codes
-- [ ] 0.6.8 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.6.1 Phone helpers (shared by every app)
+- [x] 0.6.2 SMS provider abstraction
+- [x] 0.6.3 Rewrite `backend/apps/accounts/services.py`
+- [x] 0.6.4 Device-aware tokens
+- [x] 0.6.5 Serializers
+- [x] 0.6.6 Views and URLs
+- [x] 0.6.7 Error codes
+- [x] 0.6.8 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest apps/accounts -q: 16 passed
+- pytest: 54 passed (44 existing + 10 accounts/auth hardening tests)
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 70 files already formatted
+- grep -rn "print(" apps/: OK: no print()
+- python manage.py makemigrations --check --dry-run: No changes detected
+- python manage.py spectacular --file /tmp/schema.yml --validate: 0 errors, 0 warnings
 ```
-**Notes:** —
+**Notes:** Implemented E.164 phone normalization and masking in apps.core.phone, SMS provider abstraction (ConsoleSmsProvider, get_sms_provider) in apps.core.sms, HMAC-SHA256 OTP hashing with SECRET_KEY, cooldown and hourly rate limits, DeviceJWTAuthentication and DeviceAwareTokenRefreshSerializer with token family rotation and refresh reuse detection revoking sessions, logout and logout-all endpoints, DeviceListView and DeviceRevokeView, purge_otp_challenges command, registered 7 error codes in error-codes.md, and all 15 roadmap tests passed.
 
 ## 0.7 Tenancy and permissions repair
 

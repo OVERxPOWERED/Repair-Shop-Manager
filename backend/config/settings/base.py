@@ -109,7 +109,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # REST Framework Configuration
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("apps.accounts.authentication.DeviceJWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_RENDERER_CLASSES": ("apps.core.api.renderers.EnvelopeJSONRenderer",),
     "DEFAULT_PARSER_CLASSES": (
@@ -180,17 +180,28 @@ CORS_EXPOSE_HEADERS = ["X-Request-Id", "Retry-After"]
 
 # SimpleJWT Authentication Configuration
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
+    "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
 }
+
+SMS_PROVIDER = os.environ.get("SMS_PROVIDER", "apps.core.sms.ConsoleSmsProvider")
+
+
+def _parse_otp_test_numbers(raw: str) -> dict[str, str]:
+    """'+919999999999:123456,+919888888888:654321' -> {phone: code}. Reviewer/dev accounts only."""
+    pairs = (item.split(":", 1) for item in raw.split(",") if ":" in item)
+    return {phone.strip(): code.strip() for phone, code in pairs}
+
+
+OTP_TEST_NUMBERS = _parse_otp_test_numbers(os.environ.get("OTP_TEST_NUMBERS", ""))
 
 LOGGING = {
     "version": 1,

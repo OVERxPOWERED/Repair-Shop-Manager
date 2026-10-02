@@ -1,157 +1,148 @@
-"""
-Authentication and OTP lifecycle services for FixPro.
-Handles OTP generation, hashing, rate limiting, and token issuance.
-"""
+"""OTP and session lifecycle."""
 
 import hashlib
+import hmac
 import logging
-import os
 import secrets
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils import timezone
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.accounts.models import OTPChallenge, UserDevice
+from apps.accounts.models import OTPChallenge, User, UserDevice
+from apps.core.api.errors import DomainError
+from apps.core.sms import get_sms_provider
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
 
-OTP_EXPIRY_MINUTES = 5
+OTP_EXPIRY = timedelta(minutes=5)
 OTP_COOLDOWN_SECONDS = 30
-MAX_HOURLY_CHALLENGES = 6
+MAX_CHALLENGES_PER_HOUR = 6
+LOGIN = OTPChallenge.PurposeChoices.LOGIN
 
 
-def _hash_otp(code: str, salt: str = "fixpro-otp") -> str:
-    """Hash OTP using SHA-256 with salt."""
-    return hashlib.sha256(f"{salt}:{code}".encode()).hexdigest()
+def hash_otp(phone: str, code: str) -> str:
+    """Keyed hash: without SECRET_KEY a leaked table cannot be brute-forced offline."""
+    return hmac.new(settings.SECRET_KEY.encode(), f"otp:{phone}:{code}".encode(), hashlib.sha256).hexdigest()
 
 
-def send_otp_challenge(
-    phone: str, purpose: str = OTPChallenge.PurposeChoices.LOGIN, device_id: str | None = None, ip: str | None = None
-) -> tuple[OTPChallenge, int]:
-    """
-    Generate and deliver a 6-digit OTP challenge.
-    Enforces cooldown and hourly rate limits.
-    Returns (challenge_instance, cooldown_seconds).
-    """
-    phone = phone.strip()
+def send_otp(*, phone: str, purpose: str = LOGIN, device_id: str | None = None, ip: str | None = None) -> OTPChallenge:
     now = timezone.now()
-
-    # 1. Check cooldown (minimum 30 seconds since last challenge)
-    latest_challenge = OTPChallenge.objects.filter(phone=phone).order_by("-created_at").first()
-    if latest_challenge:
-        elapsed = (now - latest_challenge.created_at).total_seconds()
-        if elapsed < OTP_COOLDOWN_SECONDS:
-            remaining = int(OTP_COOLDOWN_SECONDS - elapsed)
-            raise ValidationError(f"Please wait {remaining} seconds before requesting a new OTP.")
-
-    # 2. Check hourly rate limit
-    one_hour_ago = now - timedelta(hours=1)
-    challenges_in_last_hour = OTPChallenge.objects.filter(phone=phone, created_at__gte=one_hour_ago).count()
-    if challenges_in_last_hour >= MAX_HOURLY_CHALLENGES:
-        raise ValidationError("Too many OTP requests for this phone number. Please try again in an hour.")
-
-    # 3. Generate 6-digit code
-    # Allow fixed OTP '123456' for test phone numbers in dev/test mode
-    is_dev_or_test = settings.DEBUG or os.environ.get("TESTING") == "true"
-    if is_dev_or_test and phone in ("+919999999999", "+919876543210", "+919111111111", "+919222222222"):
-        code = "123456"
-    else:
-        code = str(secrets.randbelow(900000) + 100000)
-
-    # 4. Save challenge record
-    expires_at = now + timedelta(minutes=OTP_EXPIRY_MINUTES)
-    challenge = OTPChallenge.objects.create(
-        phone=phone, code_hash=_hash_otp(code), purpose=purpose, expires_at=expires_at, ip=ip, device_id=device_id
-    )
-
-    # 5. Deliver OTP (Console logger during dev/pilot, SMS gateway in production)
-    logger.info(f"[SMS CONSOLE PROVIDER] To: {phone} | Code: {code} | Expires: {expires_at.isoformat()}")
-    print("\n==========================================")
-    print(f" [FixPro SMS Gateway (Dev)] To: {phone}")
-    print(f" OTP Code: {code} (Valid for {OTP_EXPIRY_MINUTES} mins)")
-    print("==========================================\n")
-
-    return challenge, OTP_COOLDOWN_SECONDS
+    fixed_code = settings.OTP_TEST_NUMBERS.get(phone)
+    with transaction.atomic():
+        latest = OTPChallenge.objects.select_for_update().filter(phone=phone).order_by("-created_at").first()
+        if latest is not None:
+            elapsed = (now - latest.created_at).total_seconds()
+            if elapsed < OTP_COOLDOWN_SECONDS:
+                wait = int(OTP_COOLDOWN_SECONDS - elapsed) + 1
+                raise DomainError(
+                    f"Please wait {wait} seconds before requesting a new OTP.",
+                    code="otp.cooldown",
+                    status=429,
+                    wait=wait,
+                )
+        sent_last_hour = OTPChallenge.objects.filter(phone=phone, created_at__gte=now - timedelta(hours=1)).count()
+        if sent_last_hour >= MAX_CHALLENGES_PER_HOUR:
+            raise DomainError(
+                "Too many OTP requests. Try again later.", code="otp.too_many_requests", status=429, wait=3600
+            )
+        code = fixed_code or f"{secrets.randbelow(1_000_000):06d}"
+        challenge = OTPChallenge.objects.create(
+            phone=phone,
+            code_hash=hash_otp(phone, code),
+            purpose=purpose,
+            expires_at=now + OTP_EXPIRY,
+            ip=ip,
+            device_id=device_id,
+        )
+    if fixed_code is None:
+        get_sms_provider().send_otp(phone=phone, code=code)
+    return challenge
 
 
-def verify_otp_challenge(
-    phone: str,
-    code: str,
-    purpose: str = OTPChallenge.PurposeChoices.LOGIN,
-    device_id: str | None = None,
-    platform: str = "web",
-    app_version: str = "",
-) -> tuple[User, str, str]:
-    """
-    Verify OTP code and authenticate user.
-    Creates user and user device record if they don't exist yet.
-    Returns (user, access_token, refresh_token).
-    """
-    phone = phone.strip()
-    code = code.strip()
-    now = timezone.now()
+def _check_code(*, phone: str, code: str, purpose: str) -> None:
+    """Raises DomainError unless the code matches the newest open challenge. Counts failed attempts."""
+    with transaction.atomic():
+        challenge = (
+            OTPChallenge.objects.select_for_update()
+            .filter(phone=phone, purpose=purpose, consumed_at__isnull=True)
+            .order_by("-created_at")
+            .first()
+        )
+        if challenge is None:
+            raise DomainError("Request a new OTP.", code="otp.not_found", status=400)
+        if challenge.is_expired:
+            raise DomainError("This OTP has expired. Request a new one.", code="otp.expired", status=400)
+        if challenge.is_blocked:
+            raise DomainError("Too many wrong attempts. Request a new OTP.", code="otp.locked", status=400)
+        matched = hmac.compare_digest(challenge.code_hash, hash_otp(phone, code))
+        if matched:
+            challenge.consumed_at = timezone.now()
+            challenge.save(update_fields=["consumed_at"])
+        else:
+            challenge.attempts += 1
+            challenge.save(update_fields=["attempts"])
+    # Raise only after the transaction commits, so the failed attempt is stored.
+    if not matched:
+        remaining = max(challenge.max_attempts - challenge.attempts, 0)
+        if remaining == 0:
+            raise DomainError("Too many wrong attempts. Request a new OTP.", code="otp.locked", status=400)
+        raise DomainError(
+            "Incorrect OTP.", code="otp.invalid", status=400, fields={"code": [f"{remaining} attempt(s) left"]}
+        )
 
-    # Find active unconsumed challenge
-    challenge = (
-        OTPChallenge.objects.filter(phone=phone, purpose=purpose, consumed_at__isnull=True)
-        .order_by("-created_at")
-        .first()
-    )
 
-    if not challenge:
-        raise ValidationError("No active OTP challenge found for this phone number.")
-
-    if challenge.is_expired:
-        raise ValidationError("OTP has expired. Please request a new one.")
-
-    if challenge.is_blocked:
-        raise ValidationError("Too many incorrect attempts. Please request a new OTP.")
-
-    # Validate code hash
-    if challenge.code_hash != _hash_otp(code):
-        challenge.attempts += 1
-        challenge.save(update_fields=["attempts"])
-        remaining = challenge.max_attempts - challenge.attempts
-        if remaining <= 0:
-            raise ValidationError("Incorrect OTP. Challenge locked. Request a new OTP.")
-        raise ValidationError(f"Incorrect OTP. {remaining} attempt(s) remaining.")
-
-    # Mark consumed
-    challenge.consumed_at = now
-    challenge.save(update_fields=["consumed_at"])
-
-    # Get or create user
-    user, created = User.objects.get_or_create(phone=phone, defaults={"is_active": True})
-
-    user.last_login_at = now
-    user.save(update_fields=["last_login_at"])
-
-    # Register or update device
-    resolved_device_id = device_id or f"web-{phone}-{user.id}"
-    device, _ = UserDevice.objects.get_or_create(
-        user=user,
-        device_id=resolved_device_id,
-        defaults={
-            "platform": platform if platform in ("android", "ios", "web") else "web",
-            "app_version": app_version,
-            "last_seen_at": now,
-        },
-    )
-    device.last_seen_at = now
-    device.app_version = app_version or device.app_version
-    device.save(update_fields=["last_seen_at", "app_version"])
-
-    # Generate JWT tokens
+def issue_tokens(user: User, device: UserDevice) -> dict:
     refresh = RefreshToken.for_user(user)
-    refresh["phone"] = user.phone
-    refresh["device_id"] = resolved_device_id
+    refresh["did"] = device.device_id
+    refresh["fam"] = str(device.refresh_family)
+    return {"access": str(refresh.access_token), "refresh": str(refresh), "token_type": "Bearer"}
 
-    access_token = str(refresh.access_token)
-    refresh_token = str(refresh)
 
-    return user, access_token, refresh_token
+def verify_otp_and_login(
+    *, phone: str, code: str, device_id: str, platform: str, app_version: str = "", purpose: str = LOGIN
+) -> tuple[User, UserDevice, dict, bool]:
+    """Returns (user, device, tokens, is_new_device)."""
+    _check_code(phone=phone, code=code, purpose=purpose)
+    now = timezone.now()
+    with transaction.atomic():
+        user = User.objects.select_for_update().filter(phone=phone).first()
+        if user is None:
+            user = User.objects.create_user(phone=phone)
+        elif user.deleted_at is not None or not user.is_active:
+            raise DomainError("This account is disabled.", code="auth.account_disabled", status=403)
+        user.last_login_at = now
+        user.save(update_fields=["last_login_at"])
+
+        device, created = UserDevice.objects.select_for_update().get_or_create(
+            user=user, device_id=device_id, defaults={"platform": platform}
+        )
+        device.platform = platform
+        device.app_version = app_version or device.app_version
+        device.last_seen_at = now
+        device.revoked_at = None
+        device.refresh_family = uuid.uuid4()  # new login = new token family
+        device.save()
+    return user, device, issue_tokens(user, device), created
+
+
+def revoke_device(device: UserDevice) -> None:
+    device.revoked_at = timezone.now()
+    device.refresh_family = uuid.uuid4()
+    device.save(update_fields=["revoked_at", "refresh_family"])
+
+
+def logout_everywhere(user: User) -> None:
+    for device in UserDevice.objects.filter(user=user, revoked_at__isnull=True):
+        revoke_device(device)
+    for token in OutstandingToken.objects.filter(user=user, blacklistedtoken__isnull=True):
+        BlacklistedToken.objects.get_or_create(token=token)
+
+
+def purge_old_otp_challenges(days: int = 7) -> int:
+    deleted, _ = OTPChallenge.objects.filter(created_at__lt=timezone.now() - timedelta(days=days)).delete()
+    return deleted
