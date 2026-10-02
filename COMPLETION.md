@@ -40,7 +40,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.2](#02-test-toolkit-fixtures-factories-isolation-helper) | Test toolkit (fixtures, factories, isolation helper) | ✅ Done | 2026-10-02 |
 | 0 | [0.3](#03-core-models-real-shop-fk-and-safe-soft-delete) | Core models: real shop FK and safe soft delete | ✅ Done | 2026-10-02 |
 | 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ✅ Done | 2026-10-02 |
-| 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ⬜ Not started | — |
+| 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ✅ Done | 2026-10-02 |
 | 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ⬜ Not started | — |
 | 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ⬜ Not started | — |
 | 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ⬜ Not started | — |
@@ -223,22 +223,26 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | ebedb8f |
 
-- [ ] 0.5.1 Model
-- [ ] 0.5.2 Decorator
-- [ ] 0.5.3 Optimistic concurrency
-- [ ] 0.5.4 Apply to onboarding
-- [ ] 0.5.5 Housekeeping command
-- [ ] 0.5.6 Error codes
-- [ ] 0.5.7 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.5.1 Model
+- [x] 0.5.2 Decorator
+- [x] 0.5.3 Optimistic concurrency
+- [x] 0.5.4 Apply to onboarding
+- [x] 0.5.5 Housekeeping command
+- [x] 0.5.6 Error codes
+- [x] 0.5.7 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest: 44 passed (34 existing + 10 idempotency/concurrency tests)
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 62 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+- python manage.py spectacular --file /tmp/schema.yml --validate: 0 errors, 0 warnings
 ```
-**Notes:** —
+**Notes:** Created IdempotencyRecord model and core.0001_initial migration, @idempotent decorator with SHA-256 payload verification and replay headers, optimistic concurrency version checking and VersionedUpdateMixin, purge_idempotency_records management command, registered 7 error codes, and protected OnboardShopView.post.
 
 ## 0.6 Authentication hardening
 

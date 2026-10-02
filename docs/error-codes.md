@@ -16,4 +16,11 @@ Add a row in the same commit that introduces a code (ROADMAP Recipe R8).
 | shop.not_found | 404 | Shop missing, deleted, or the user is not an active member |
 | request.method_not_allowed | 405 | HTTP method not supported |
 | rate.limited | 429 | Throttled; see `Retry-After` |
+| idempotency.key_required | 400 | Idempotency-Key header is required on this POST endpoint |
+| idempotency.key_invalid | 400 | Idempotency-Key must be a valid UUID |
+| idempotency.key_reused | 422 | Idempotency-Key already used for a different request |
+| idempotency.in_progress | 409 | The original request with this Idempotency-Key is still processing |
+| concurrency.if_match_required | 428 | If-Match header with version loaded is required |
+| concurrency.if_match_invalid | 400 | If-Match must be an integer version |
+| concurrency.version_mismatch | 409 | Record version changed concurrently; reload and try again |
 | server.error | 500 | Unexpected; quote `request_id` to support |

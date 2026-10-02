@@ -131,3 +131,19 @@ class ShopScopedModel(UUIDModel, TimeStampedModel, SoftDeletableModel):
 
     class Meta:
         abstract = True
+
+
+class IdempotencyRecord(UUIDModel):
+    """Remembers the response to a POST so a retried request (same Idempotency-Key) gets the same answer."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    key = models.UUIDField()
+    method = models.CharField(max_length=8)
+    path = models.CharField(max_length=255)
+    request_hash = models.CharField(max_length=64)
+    status_code = models.PositiveSmallIntegerField(null=True, blank=True)  # null = still processing
+    response_body = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "key"], name="idem_uniq_user_key")]

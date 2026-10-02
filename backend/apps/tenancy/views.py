@@ -7,6 +7,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.api.idempotency import idempotent
 from apps.tenancy.models import Membership, Role, Shop
 from apps.tenancy.scoping import ShopScopedViewSet
 from apps.tenancy.serializers import (
@@ -32,6 +33,7 @@ class OnboardShopView(APIView):
         request=OnboardShopSerializer,
         responses={201: dict, 400: dict},
     )
+    @idempotent(required=False)
     def post(self, request):
         serializer = OnboardShopSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
