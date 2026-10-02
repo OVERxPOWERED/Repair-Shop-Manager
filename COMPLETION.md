@@ -48,7 +48,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ✅ Done | 2026-10-02 |
 | 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ✅ Done | 2026-10-02 |
 | 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ✅ Done | 2026-10-02 |
-| 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ⬜ Not started | — |
+| 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ✅ Done | 2026-10-02 |
 | 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ⬜ Not started | — |
 | 0 | [0.15](#015-audit-log) | Audit log | ⬜ Not started | — |
 | 0 | [0.16](#016-staff-invites-and-the-staff--roles-screens) | Staff invites and the Staff / Roles screens | ⬜ Not started | — |
@@ -443,22 +443,29 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | 4522738 |
 
-- [ ] 0.13.1 GSTIN validator (TS) + tests
-- [ ] 0.13.2 GST state code list
-- [ ] 0.13.3 UPI ID validator + tests
-- [ ] 0.13.4 Onboarding Zod schema mirroring backend rules
-- [ ] 0.13.5 3-step wizard with StepProgressBar and one idempotency key
-- [ ] 0.13.6 Success screen and shop selection
-- [ ] 0.13.7 i18n keys in 3 locales
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.13.1 GSTIN validator (TS) + tests
+- [x] 0.13.2 GST state code list
+- [x] 0.13.3 UPI ID validator + tests
+- [x] 0.13.4 Onboarding Zod schema mirroring backend rules
+- [x] 0.13.5 3-step wizard with StepProgressBar and one idempotency key
+- [x] 0.13.6 Success screen and shop selection
+- [x] 0.13.7 i18n keys in 3 locales
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors (153 i18n keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 52 passed across 11 test files (gstin, upi, onboarding/schema, route, auth/schemas, client, money, date, phone, rasterizer, imei)
+- pnpm build: next build static export generated (10/10 pages: /, /_not-found, /dev/spikes, /login, /onboarding, /profile-setup, /verify, /welcome)
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Ported backend `validate_gstin` (regex, state code lookup, and check character algorithm) to `src/lib/validation/gstin.ts` with 4 unit tests; created sorted GST state codes map in `src/lib/constants/gst-states.ts`; ported backend UPI ID regex to `src/lib/validation/upi.ts` with 3 unit tests; created Zod validation schema in `src/features/onboarding/schema.ts` mirroring backend tenancy rules (GSTIN mandatory and state-code matching when GST is enabled) with 3 unit tests; created `StepProgressBar` component with progress line and step pills; implemented 3-step wizard in `src/app/onboarding/page.tsx` (Step 1: name & category, Step 2: phone, address, city, pincode, state, Step 3: GSTIN toggle & state auto-linkage, optional UPI ID) with one-time idempotency key `useState(newIdempotencyKey)`, submit to `POST /tenancy/onboard/`, session update & shop selection, and welcome celebration screen linking to `/home/`; added 49 onboarding i18n keys across `en`, `hi`, and `hi-Latn` with 100% key parity.
 
 ## 0.14 App shell, navigation and shared states (+ iPhone)
 

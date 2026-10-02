@@ -2,13 +2,22 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.13 (Shop onboarding wizard)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.14 (App shell, navigation and shared states (+ iPhone))  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.12 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.13 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Shop Onboarding Wizard (Subphase 0.13):**
+  - Ported backend `validate_gstin` (regex, state code lookup, and check character algorithm) to `src/lib/validation/gstin.ts` with 4 unit tests.
+  - Created sorted GST state codes constant in `src/lib/constants/gst-states.ts`.
+  - Ported backend UPI ID regex to `src/lib/validation/upi.ts` with 3 unit tests.
+  - Created Zod validation schema in `src/features/onboarding/schema.ts` mirroring backend tenancy rules (GSTIN mandatory and state-code matching when GST is enabled) with 3 unit tests.
+  - Created `StepProgressBar` component with progress line and step pills.
+  - Implemented 3-step wizard in `src/app/onboarding/page.tsx` (Step 1: name & category, Step 2: phone, address, city, pincode, state, Step 3: GSTIN toggle & state auto-linkage, optional UPI ID) with one-time idempotency key `useState(newIdempotencyKey)`, submit to `POST /tenancy/onboard/`, session update & shop selection, and welcome celebration screen linking to `/home/`.
+  - Added 49 onboarding i18n keys across `en`, `hi`, and `hi-Latn` with 100% key parity (153 keys).
+  - All 52 frontend tests passing; 71 backend tests passing; static export (10/10 pages) and lint passing with 0 errors.
 - **Auth Screens (Subphase 0.12):**
   - Saved previous HomePage JSX mock to `src/features/home/HomeMock.tsx` for reuse in 0.14.
   - Pure routing rule `nextRoute` in `src/lib/auth/route.ts` with 6 unit tests covering all status branches (booting, signedOut, no name, no shops, pending invites, home).
