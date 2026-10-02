@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { BleClient, ScanResult } from "@capacitor-community/bluetooth-le";
-import { BarcodeScanner } from "@capacitor-mlkit/barcode-scanning";
-import { TextRecognition } from "@capacitor-mlkit/text-recognition";
-import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { BleClient, ScanResult } from "@/native/bluetooth";
+import { BarcodeScanner } from "@/native/barcode";
+import { Camera, CameraResultType, CameraSource, TextRecognition } from "@/native/ocr";
 import {
   canvasToEscPosRaster,
   chunkBytes,

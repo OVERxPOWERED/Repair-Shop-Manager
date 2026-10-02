@@ -44,7 +44,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ✅ Done | 2026-10-02 |
 | 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ✅ Done | 2026-10-02 |
 | 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ✅ Done | 2026-10-02 |
-| 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ⬜ Not started | — |
+| 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ✅ Done | 2026-10-02 |
 | 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ⬜ Not started | — |
 | 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ⬜ Not started | — |
 | 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ⬜ Not started | — |
@@ -335,21 +335,29 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | 9289127 |
 
-- [ ] 0.9.1 Folder structure
-- [ ] 0.9.2 shadcn/ui
-- [ ] 0.9.3 Fonts, viewport, manifest
-- [ ] 0.9.4 Vitest + Testing Library
-- [ ] 0.9.5 Guard rails in ESLint
-- [ ] 0.9.6 Environment access
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.9.1 Folder structure
+- [x] 0.9.2 shadcn/ui
+- [x] 0.9.3 Fonts, viewport, manifest
+- [x] 0.9.4 Vitest + Testing Library
+- [x] 0.9.5 Guard rails in ESLint
+- [x] 0.9.6 Environment access
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 9 passed across 2 test files (rasterizer.test.ts, imei.test.ts)
+- pnpm build: next build static export generated (5/5 pages)
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Established frontend directory architecture (`components/{ui,shell,states,forms}`, `features`, `i18n`, `lib/{api,auth,format,validation,constants}`, `native`, `scripts`, `e2e`); initialized shadcn/ui and installed 15 primitives (button, input, label, sheet, dialog, skeleton, badge, separator, switch, select, checkbox, radio-group, tabs, sonner, textarea); restyled button.tsx to FixPro specification (h-[54px] rounded-2xl active:scale-[0.98] and outline h-12 rounded-2xl); configured Plus Jakarta Sans with Noto Sans Devanagari fallback and safe-area insets in layout.tsx; created Providers shell in providers.tsx; configured Vitest with JSDOM and Testing Library matchers in vitest.config.ts and vitest.setup.ts; added ESLint R7 guard rail enforcing native plugin isolation inside src/native/*; typed runtime environment config in src/lib/env.ts with android.allowMixedContent in capacitor.config.ts.
+
 
 ## 0.10 i18n and Indian formatters
 

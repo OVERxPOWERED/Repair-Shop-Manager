@@ -1,3 +1,14 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-imports": ["error", {
+      "patterns": [{
+        "group": ["@capacitor/*", "!@capacitor/core", "@capacitor-community/*", "@capacitor-mlkit/*", "@aparajita/*"],
+        "message": "Import native plugins only inside src/native/* (ROADMAP R7)."
+      }]
+    }]
+  },
+  "overrides": [
+    { "files": ["src/native/**/*.ts", "capacitor.config.ts"], "rules": { "no-restricted-imports": "off" } }
+  ]
 }

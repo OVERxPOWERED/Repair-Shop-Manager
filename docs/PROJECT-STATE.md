@@ -2,13 +2,22 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.9 (Frontend foundation)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.10 (i18n and Indian formatters)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.8 completed and verified on PostgreSQL 16 & Capacitor 8.
+> Subphases 0.1 through 0.9 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Frontend Foundation (Subphase 0.9):**
+  - Standard directory architecture established (`components/{ui,shell,states,forms}`, `features`, `i18n`, `lib/{api,auth,format,validation,constants}`, `native`, `scripts`, `e2e`).
+  - Initialized shadcn/ui and installed 15 primitives (`button`, `input`, `label`, `sheet`, `dialog`, `skeleton`, `badge`, `separator`, `switch`, `select`, `checkbox`, `radio-group`, `tabs`, `sonner`, `textarea`).
+  - Restyled `button.tsx` to FixPro design specifications (`h-[54px] rounded-2xl active:scale-[0.98]` and `h-12 rounded-2xl border-neutral-200`).
+  - Configured Plus Jakarta Sans with Noto Sans Devanagari fallback in `layout.tsx` and `tailwind.config.ts`, added safe-area padding and `Providers` shell component.
+  - Setup Vitest with JSDOM and Testing Library matchers in `vitest.config.ts` and `vitest.setup.ts`.
+  - Configured ESLint R7 guard rail against unabstracted native plugin imports outside `src/native/*`.
+  - Typed environment access module in `src/lib/env.ts` with `android.allowMixedContent` in `capacitor.config.ts`.
+  - Full frontend verification passed (lint, typecheck, 9 vitest tests, next static export).
 - **Hardware Spikes, Done Honestly (Subphase 0.8):**
   - Corrected `docs/printers.md` (untested matrix & unverified checklist) and `docs/decisions.md` (Spike B status to `proposed` pending physical hardware runs).
   - Upgraded rasterizer in `frontend/src/lib/printer/rasterizer.ts` to accept generic `RasterSource`, slice print output into bands of <= 128 rows with individual `GS v 0` headers, pad width to multiple of 8 with white pixels, optional cut, and added `chunkBytes` helper for BLE MTU writes.

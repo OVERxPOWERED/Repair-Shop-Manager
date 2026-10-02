@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Noto_Sans_Devanagari, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -8,32 +9,32 @@ const fontSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+// Plus Jakarta Sans has no Devanagari glyphs; the browser falls back to this font per character.
+const fontDeva = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-deva",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "FixPro — Repair Shop Management",
-  description: "All-in-one management platform for mobile and electronics repair shops.",
-  manifest: "/manifest.json",
+  title: "FixPro",
+  description: "Repair shop management",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: "#09090B",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={fontSans.variable}>
-      <body className="min-h-screen bg-neutral-100 flex justify-center font-sans">
-        {/* Mobile Viewport Wrapper */}
-        <div className="w-full max-w-md min-h-screen bg-white shadow-xl relative flex flex-col pt-safe pb-safe">
-          {children}
+    <html lang="en" className={`${fontSans.variable} ${fontDeva.variable}`}>
+      <body className="flex min-h-screen justify-center bg-neutral-100 font-sans">
+        <div className="pt-safe pb-safe relative flex min-h-screen w-full max-w-md flex-col bg-white shadow-xl">
+          <Providers>{children}</Providers>
         </div>
       </body>
     </html>
