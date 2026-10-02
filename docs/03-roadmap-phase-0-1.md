@@ -1,7 +1,7 @@
 # Roadmap: Phase 0 and Phase 1 (Week by Week)
 
 *Document 3 of 3 · Version 1.0 · 2 October 2026*  
-> 📢 **Consolidated Master Roadmap:** The unified engineering, visual design, and product roadmap lives in [ROADMAP.md](../ROADMAP.md). This file remains as the detailed Phase 0–1 weekly companion.
+> 📢 **Superseded:** [ROADMAP.md](../ROADMAP.md) v3.0 (2 October 2026) is the authoritative plan, with step-by-step subphases tracked in [COMPLETION.md](../COMPLETION.md). This file is kept for history; where the two differ, ROADMAP.md wins.
 
 Assumes one developer at roughly 25 to 30 focused hours per week, using Antigravity with the files in `.agents/`. Durations are rough. If a week slips, use the "if behind" note instead of adding hours.
 

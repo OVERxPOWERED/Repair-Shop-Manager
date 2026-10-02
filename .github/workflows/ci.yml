@@ -7,61 +7,65 @@ on:
     branches: [main]
 
 jobs:
-  backend-test:
-    name: Backend Lint & Tests
+  backend:
+    name: Backend (ruff, migrations, deploy check, pytest)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: fixpro_db
+          POSTGRES_USER: fixpro_user
+          POSTGRES_PASSWORD: fixpro_dev_password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U fixpro_user -d fixpro_db"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://fixpro_user:fixpro_dev_password@localhost:5432/fixpro_db
+      SECRET_KEY: ci-only-not-secret
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: "pip"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Lint with Ruff
-        run: ruff check .
-
-      - name: Run Pytest
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: python manage.py makemigrations --check --dry-run
+      - name: Django deploy checklist (prod settings)
         env:
-          USE_SQLITE: "true"
-          SECRET_KEY: "ci-secret-key-12345"
-        run: pytest
+          DJANGO_SETTINGS_MODULE: config.settings.prod
+          SECRET_KEY: ci-deploy-check-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
+          ALLOWED_HOSTS: api.example.com
+          DATABASE_URL: postgres://fixpro_user:fixpro_dev_password@localhost:5432/fixpro_db
+        run: python manage.py check --deploy --fail-level WARNING
+      - run: pytest
+      - run: pip-audit -r requirements.txt
 
-  frontend-test:
-    name: Frontend Lint, Typecheck & Static Export
+  frontend:
+    name: Frontend (lint, typecheck, test, build)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
-          version: 9
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "pnpm"
+          node-version: 22
+          cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck TypeScript
-        run: pnpm typecheck
-
-      - name: Build Next.js Static Export
-        run: pnpm build
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build

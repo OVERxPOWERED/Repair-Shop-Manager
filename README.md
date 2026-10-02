@@ -135,17 +135,13 @@ For the comprehensive week-by-week engineering milestones, visual design system,
 
 ### 1. Backend Setup
 ```bash
+docker compose up -d db                      # Postgres 16 on localhost:5432
 cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# Run migrations & seed system roles
-python manage.py migrate
-python manage.py seed_roles
-
-# Start local server
+uv venv --python 3.12 .venv && source .venv/bin/activate   # or python3.12 -m venv .venv
+pip install -r requirements-dev.txt
+python manage.py migrate                     # also seeds system roles (from 0.7)
 python manage.py runserver 0.0.0.0:8000
+pytest                                       # needs the db container running
 ```
 
 ### 2. Frontend Setup

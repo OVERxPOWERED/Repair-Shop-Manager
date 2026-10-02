@@ -4,6 +4,12 @@ Record every significant technical or product decision here (newest first). The 
 
 ---
 
+## 2026-10-02: Capacitor 8 for Native Mobile Layer
+- **Decision:** Upgrade Capacitor to major version 8 (`@capacitor/core` ^8.0.0, `@capacitor/android` ^8.0.0, `@capacitor/cli` ^8.0.0, `@capacitor/haptics` ^8.0.0, `@capacitor/share` ^8.0.0). All future plugins added must support Capacitor 8.
+- **Why:** Upgrading now while native projects are empty prevents costly migration debt later; Capacitor 8 provides compatibility with Android Gradle plugin 8.13+ and modern mobile SDKs.
+- **Alternatives:** Staying on Capacitor 6 (legacy dependencies, deprecations).
+- **Status:** accepted.
+
 ## 2026-10-02: Camera IMEI Barcode Scanning & On-Device OCR Pipeline (Spike B)
 - **Decision:** Use Google ML Kit barcode scanning (`@capacitor-mlkit/barcode-scanning`) prioritized over OCR text recognition; enforce client-side and server-side Luhn check-digit verification; require mandatory user visual confirmation before saving any OCR-scanned IMEI. Provide 1-tap "Check IMEI" shortcut to Sanchar Saathi / KYM SMS (14422).
 - **Why:** Physical phone IMEI stickers (inside battery compartments or on retail boxes) often suffer from gloss glare, microscopic 6pt typography, or physical scratches. Pure OCR has an error rate of ~12% under workshop fluorescent lighting (often confusing `0` and `O`, `1` and `I`, `8` and `B`). The 15th-digit Luhn check digit immediately catches single-digit transcription errors. Barcodes (Code 128 / DataMatrix) have built-in error correction and achieve 99.8% first-pass accuracy.

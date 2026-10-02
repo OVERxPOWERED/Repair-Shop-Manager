@@ -6,6 +6,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import dj_database_url
+from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,6 +21,14 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "fixpro-insecure-base-key-change-me")
 DEBUG = False
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
+DATABASES = {
+    "default": dj_database_url.config(
+        default="postgres://fixpro_user:fixpro_dev_password@localhost:5432/fixpro_db",
+        conn_max_age=0,
+    )
+}
+APP_VERSION = os.environ.get("APP_VERSION", "0.0.0-dev")
+
 # Application definition
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -27,6 +37,7 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
 ]
 
 THIRD_PARTY_APPS = [
@@ -51,6 +62,7 @@ AUTH_USER_MODEL = "accounts.User"
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -122,11 +134,22 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
-        "CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,capacitor://localhost,http://localhost"
+        "CORS_ALLOWED_ORIGINS",
+        # https://localhost = Android WebView (androidScheme https); capacitor://localhost = iOS
+        "http://localhost:3000,http://127.0.0.1:3000,https://localhost,capacitor://localhost",
     ).split(",")
     if origin.strip()
 ]
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = False  # we use Authorization headers, not cookies
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "x-shop-id",
+    "idempotency-key",
+    "if-match",
+    "x-app-version",
+    "x-request-id",
+)
+CORS_EXPOSE_HEADERS = ["X-Request-Id", "Retry-After"]
 
 # SimpleJWT Authentication Configuration
 SIMPLE_JWT = {
@@ -140,4 +163,12 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
 }

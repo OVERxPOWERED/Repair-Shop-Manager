@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+!.env.example
 *.pem
 *.key
 
@@ -52,12 +53,13 @@ pnpm-debug.log*
 .turbo
 
 # Mobile / Capacitor
-android/.gradle
-android/build
-android/app/build
-android/captures
-ios/App/build
-ios/App/Pods
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/captures/
+frontend/ios/App/build/
+frontend/ios/App/Pods/
+*.tsbuildinfo
 
 # IDEs & System
 .DS_Store
@@ -68,4 +70,4 @@ Thumbs.db
 *.swo
 
 # User specific temporary folders
-./Feature
+/Feature/

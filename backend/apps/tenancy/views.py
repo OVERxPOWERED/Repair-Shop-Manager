@@ -71,10 +71,13 @@ class ShopViewSet(viewsets.ModelViewSet):
     Detail retrieval and updates require active membership in that specific shop.
     """
 
+    queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Shop.objects.none()
         if getattr(self.request.user, "is_platform_admin", False):
             return Shop.objects.alive()
         # Return only shops where user is an active member
@@ -88,10 +91,13 @@ class RoleViewSet(viewsets.ReadOnlyModelViewSet):
     List available roles (system defaults and organization custom roles).
     """
 
+    queryset = Role.objects.all()
     serializer_class = RoleSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Role.objects.none()
         seed_system_roles()
         return Role.objects.filter(is_system=True)
 
@@ -102,10 +108,13 @@ class StaffMembershipViewSet(ShopScopedViewSet):
     Requires 'staff.view' for reading and 'staff.manage' for editing.
     """
 
+    queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
     required_permission = "staff.view"
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Membership.objects.none()
         # In ShopScopedViewSet, request.shop is verified
         return (
             Membership.objects.filter(shop=self.request.shop, status__in=["active", "suspended", "invited"])

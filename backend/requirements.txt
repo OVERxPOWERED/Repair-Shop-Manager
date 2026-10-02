@@ -1,23 +1,13 @@
-# FixPro Backend Dependencies
-
-# Core Framework
-Django>=5.0,<5.2
-djangorestframework>=3.15.0
-django-cors-headers>=4.3.0
+# Runtime dependencies (production image installs only this file)
+Django>=5.2,<5.3                 # 5.2 is the LTS release; 5.1 is out of support
+djangorestframework>=3.15,<4
+djangorestframework-simplejwt>=5.3,<6
+django-cors-headers>=4.3,<5
 django-filter>=24.2
-drf-spectacular>=0.27.0
-djangorestframework-simplejwt>=5.3.0
-
-# Database & Environment
+drf-spectacular>=0.27
+dj-database-url>=2.2             # DATABASE_URL parsing (Render/Neon give a URL)
 psycopg2-binary>=2.9.9
-python-dotenv>=1.0.0
-
-# Production & Monitoring
-gunicorn>=21.2.0
-sentry-sdk>=2.0.0
-
-# Testing & Quality
-pytest>=8.0.0
-pytest-django>=4.8.0
-factory-boy>=3.3.0
-ruff>=0.3.0
+python-dotenv>=1.0
+whitenoise>=6.7                  # serves Django admin static files on Render
+gunicorn>=22
+sentry-sdk>=2.0
