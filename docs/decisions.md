@@ -4,6 +4,12 @@ Record every significant technical or product decision here (newest first). The 
 
 ---
 
+## 2026-10-02: Secure Storage Plugin for Auth Tokens
+- **Decision:** Use `@aparajita/capacitor-secure-storage` (v8.0.1) for hardware-backed secure storage of authentication tokens (Keychain on iOS, Keystore/EncryptedSharedPreferences on Android).
+- **Why:** Full compatibility with Capacitor 8 (`@capacitor/core` ^8.0.0), actively maintained, stores tokens in hardware security modules without plaintext leaks. Web uses fallback with explicit comment.
+- **Alternatives:** `@capacitor/preferences` (unencrypted plaintext SharedPreferences / UserDefaults), rolling custom native bridge.
+- **Status:** accepted.
+
 ## 2026-10-02: Capacitor 8 for Native Mobile Layer
 - **Decision:** Upgrade Capacitor to major version 8 (`@capacitor/core` ^8.0.0, `@capacitor/android` ^8.0.0, `@capacitor/cli` ^8.0.0, `@capacitor/haptics` ^8.0.0, `@capacitor/share` ^8.0.0). All future plugins added must support Capacitor 8.
 - **Why:** Upgrading now while native projects are empty prevents costly migration debt later; Capacitor 8 provides compatibility with Android Gradle plugin 8.13+ and modern mobile SDKs.

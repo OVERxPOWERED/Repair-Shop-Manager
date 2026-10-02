@@ -2,13 +2,21 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.11 (API client, session store, secure storage and native layer)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.12 (Auth screens: splash, welcome, phone, OTP, profile)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.10 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.11 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **API Client, Session Store, Secure Storage & Native Layer (Subphase 0.11):**
+  - Native service layer in `src/native/` (`platform.ts`, `secure-storage.ts`, `preferences.ts`, `device.ts`, `network.ts`) with `@aparajita/capacitor-secure-storage` on native and `localStorage` fallback on web with explicit security comment. Choice documented in `docs/decisions.md`.
+  - Session Zustand store in `src/lib/auth/store.ts` (`useAuthStore`, `useCurrentShop`, `usePermission`).
+  - API client in `src/lib/api/client.ts` with `api`, `apiList`, `ApiError`, `request`, single-flight refresh token rotation on parallel 401s via `refreshTokens`, idempotency keys (`Idempotency-Key`), optimistic concurrency (`If-Match`), language (`Accept-Language`), and tenant (`X-Shop-Id`) headers.
+  - Query client and session boot in `src/app/providers.tsx` with `SessionBoot.tsx` splash and token validation (`/auth/me/`), `QueryClientProvider` with 30s stale time, `IntlProvider`, and `Toaster`.
+  - Generated full TypeScript API schema types from backend OpenAPI spec into `src/lib/api/schema.d.ts` and added `gen:api` npm script.
+  - Comprehensive unit test suite in `src/lib/api/client.test.ts` (7 tests covering `api()`, `apiList()`, `ApiError`, offline handling, single-flight refresh, 401 signOut, and headers).
+  - All 29 frontend tests passing; 71 backend tests passing; static export build and lint passing with 0 errors.
 - **i18n & Indian Formatters (Subphase 0.10):**
   - Locale config and Zustand persisted store for `en` (English), `hi` (Hindi), and `hi-Latn` (Hinglish).
   - Complete message catalogs across 9 namespaces (`common`, `nav`, `states`, `errors`, `auth`, `onboarding`, `home`, `more`, `settings`) with all 33 error codes from `docs/error-codes.md`.

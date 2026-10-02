@@ -3,3 +3,5 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@capacitor/camera@8.2.5'
+  - '@capacitor/app@8.1.2'
+  - '@capacitor/status-bar@8.0.4'

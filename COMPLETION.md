@@ -46,7 +46,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ✅ Done | 2026-10-02 |
 | 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ✅ Done | 2026-10-02 |
 | 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ✅ Done | 2026-10-02 |
-| 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ⬜ Not started | — |
+| 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ✅ Done | 2026-10-02 |
 | 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ⬜ Not started | — |
 | 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ⬜ Not started | — |
 | 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ⬜ Not started | — |
@@ -390,20 +390,29 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | a152020 |
 
-- [ ] 0.11.1 Native service layer
-- [ ] 0.11.2 Session store
-- [ ] 0.11.3 API client
-- [ ] 0.11.4 Query client, boot and generated types
-- [ ] 0.11.5 Tests (`src/lib/api/client.test.ts`, mock `fetch` with `vi.fn()`)
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.11.1 Native service layer
+- [x] 0.11.2 Session store
+- [x] 0.11.3 API client
+- [x] 0.11.4 Query client, boot and generated types
+- [x] 0.11.5 Tests (`src/lib/api/client.test.ts`, mock `fetch` with `vi.fn()`)
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors (including check-i18n: 76 keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 29 passed across 6 test files (client, money, date, phone, rasterizer, imei)
+- pnpm build: next build static export generated (5/5 pages)
+- grep -rn "localStorage" src | grep -v "src/native/\|src/i18n/store.ts": 0 matches (clean)
+- openapi-typescript: generated src/lib/api/schema.d.ts from spectacular OpenAPI spec
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Installed native plugins (`@capacitor/preferences`, `@capacitor/device`, `@capacitor/network`, `@capacitor/app`, `@capacitor/status-bar`, `@aparajita/capacitor-secure-storage`); created native abstraction layer in `src/native/` (`platform.ts`, `secure-storage.ts`, `preferences.ts`, `device.ts`, `network.ts`) with web fallbacks and documented secure-storage choice in `docs/decisions.md`; created Zustand auth store in `src/lib/auth/store.ts` (`useAuthStore`, `useCurrentShop`, `usePermission`); implemented API client in `src/lib/api/client.ts` (`api`, `apiList`, `ApiError`, `request`, single-flight token rotation via `refreshTokens`, idempotency and tenancy headers); created `SessionBoot.tsx` splash and token check and wired `QueryClientProvider`, `IntlProvider`, `SessionBoot`, and `Toaster` in `src/app/providers.tsx`; generated full OpenAPI types in `src/lib/api/schema.d.ts` and added `gen:api` script to `package.json`; added comprehensive unit tests in `src/lib/api/client.test.ts`.
 
 ## 0.12 Auth screens (splash, welcome, phone, OTP, profile)
 
