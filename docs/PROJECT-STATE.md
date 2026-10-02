@@ -2,13 +2,26 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.12 (Auth screens: splash, welcome, phone, OTP, profile)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.13 (Shop onboarding wizard)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.11 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.12 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Auth Screens (Subphase 0.12):**
+  - Saved previous HomePage JSX mock to `src/features/home/HomeMock.tsx` for reuse in 0.14.
+  - Pure routing rule `nextRoute` in `src/lib/auth/route.ts` with 6 unit tests covering all status branches (booting, signedOut, no name, no shops, pending invites, home).
+  - Wrapped `@capacitor/haptics` with web fallback in `src/native/haptics.ts`.
+  - Form validation Zod schemas (`phoneSchema`, `otpSchema`, `profileSchema`) in `src/features/auth/schemas.ts` with 7 unit tests.
+  - Tactile `NumericKeypad` (3x4 grid, 64px keys, backspace, haptic tick) and `OtpInput` (6 auto-advancing boxes, paste support, backspace navigation, auto-focus).
+  - Added 28 auth and error strings across `en`, `hi`, and `hi-Latn` catalogs with 100% key parity (104 keys).
+  - Implemented `/` (splash with logo, pulse animation, and 3 feature pills, auto-routing via nextRoute).
+  - Implemented `/welcome/` (hero illustration, title, subtitle, trust badge, language switcher, "Continue with phone" button).
+  - Implemented `/login/` (+91 country chip, 10-digit display, keypad, SendOTP integration, 429 rate-limit handling).
+  - Implemented `/verify/` (OtpInput, 30s resend countdown timer, VerifyOTP integration, attempt countdown warning, session persistence, nextRoute navigation).
+  - Implemented `/profile-setup/` (React Hook Form + Zod, name input, optional email input, language switcher, PatchMe integration, nextRoute navigation).
+  - All 42 frontend tests passing; 71 backend tests passing; static export (9/9 pages) and lint passing with 0 errors.
 - **API Client, Session Store, Secure Storage & Native Layer (Subphase 0.11):**
   - Native service layer in `src/native/` (`platform.ts`, `secure-storage.ts`, `preferences.ts`, `device.ts`, `network.ts`) with `@aparajita/capacitor-secure-storage` on native and `localStorage` fallback on web with explicit security comment. Choice documented in `docs/decisions.md`.
   - Session Zustand store in `src/lib/auth/store.ts` (`useAuthStore`, `useCurrentShop`, `usePermission`).

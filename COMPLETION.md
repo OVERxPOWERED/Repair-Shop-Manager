@@ -47,7 +47,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ✅ Done | 2026-10-02 |
 | 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ✅ Done | 2026-10-02 |
 | 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ✅ Done | 2026-10-02 |
-| 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ⬜ Not started | — |
+| 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ✅ Done | 2026-10-02 |
 | 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ⬜ Not started | — |
 | 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ⬜ Not started | — |
 | 0 | [0.15](#015-audit-log) | Audit log | ⬜ Not started | — |
@@ -418,19 +418,26 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | 2ff3fdb |
 
-- [ ] 0.12.1 Routing rule (pure function + test)
-- [ ] 0.12.2 Screens
-- [ ] 0.12.3 i18n
-- [ ] 0.12.4 🧑‍🔧 Manual check
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.12.1 Routing rule (pure function + test)
+- [x] 0.12.2 Screens
+- [x] 0.12.3 i18n
+- [x] 0.12.4 🧑‍🔧 Manual check
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors (104 i18n keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 42 passed across 8 test files (route, schemas, client, money, date, phone, rasterizer, imei)
+- pnpm build: next build static export generated (9/9 pages: /, /_not-found, /dev/spikes, /login, /profile-setup, /verify, /welcome)
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Saved previous HomePage JSX mock to `src/features/home/HomeMock.tsx` for reuse in 0.14; implemented pure routing rule `nextRoute` in `src/lib/auth/route.ts` with 6 unit tests covering all status branches; wrapped `@capacitor/haptics` with web fallback in `src/native/haptics.ts`; implemented Zod validation schemas for phone, OTP, and profile in `src/features/auth/schemas.ts` with 7 unit tests; implemented tactile `NumericKeypad` (3x4 grid, 64px keys, backspace, haptic tick) and `OtpInput` (6 auto-advancing boxes, paste support, backspace navigation); added 28 auth and error i18n strings across `en`, `hi`, and `hi-Latn` with 100% key parity; implemented `/` (splash with logo, pulsing status, and 3 feature pills), `/welcome/` (branding, illustration, language switcher, phone CTA), `/login/` (+91 country chip, 10-digit display, keypad, SendOTP call), `/verify/` (OtpInput, 30s resend countdown timer, VerifyOTP call, attempt countdown warning, session persistence, nextRoute navigation), and `/profile-setup/` (React Hook Form + Zod, name, optional email, language switcher, PatchMe call, nextRoute navigation).
 
 ## 0.13 Shop onboarding wizard
 
