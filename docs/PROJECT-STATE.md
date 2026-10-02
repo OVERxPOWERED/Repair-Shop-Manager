@@ -2,13 +2,21 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.10 (i18n and Indian formatters)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.11 (API client, session store, secure storage and native layer)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.9 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.10 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **i18n & Indian Formatters (Subphase 0.10):**
+  - Locale config and Zustand persisted store for `en` (English), `hi` (Hindi), and `hi-Latn` (Hinglish).
+  - Complete message catalogs across 9 namespaces (`common`, `nav`, `states`, `errors`, `auth`, `onboarding`, `home`, `more`, `settings`) with all 33 error codes from `docs/error-codes.md`.
+  - NextIntlClientProvider integration via `IntlProvider` in `app/providers.tsx`.
+  - `LanguageSwitcher` radio selection component.
+  - Translation key checker in `scripts/check-i18n.mjs` verifying 100% key parity across all 3 locales, wired into `pnpm lint`.
+  - Indian currency formatters in `src/lib/format/money.ts` (`formatPaise`, `formatPaiseCompact`, `rupeesToPaise`, `paiseToRupeesInput`), date/time formatters in `src/lib/format/date.ts` (`formatDate`, `formatDateTime`, `todayIst`), and phone formatters in `src/lib/format/phone.ts` (`formatPhone`, `toWhatsAppDigits`).
+  - 13 formatter unit tests (22/22 total frontend vitest tests passing).
 - **Frontend Foundation (Subphase 0.9):**
   - Standard directory architecture established (`components/{ui,shell,states,forms}`, `features`, `i18n`, `lib/{api,auth,format,validation,constants}`, `native`, `scripts`, `e2e`).
   - Initialized shadcn/ui and installed 15 primitives (`button`, `input`, `label`, `sheet`, `dialog`, `skeleton`, `badge`, `separator`, `switch`, `select`, `checkbox`, `radio-group`, `tabs`, `sonner`, `textarea`).

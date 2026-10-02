@@ -1,0 +1,120 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "loading": "Loading...",
+    "close": "Close",
+    "appName": "FixPro"
+  },
+  "nav": {
+    "home": "Home",
+    "jobs": "Jobs",
+    "customers": "Customers",
+    "inventory": "Inventory",
+    "more": "More"
+  },
+  "states": {
+    "empty": "No records found",
+    "error": "Something went wrong",
+    "offline": "You are currently offline",
+    "permissionDenied": "Access Denied"
+  },
+  "errors": {
+    "generic": "An unexpected error occurred. Please try again.",
+    "network": {
+      "offline": "No internet connection. Please check your network."
+    },
+    "validation": {
+      "failed": "Field validation failed; please check the entered values."
+    },
+    "request": {
+      "malformed": "Body is not valid JSON.",
+      "method_not_allowed": "HTTP method not supported."
+    },
+    "auth": {
+      "not_authenticated": "Authentication required. Please sign in.",
+      "token_invalid": "Session expired or token invalid. Please sign in again.",
+      "account_disabled": "User account has been deactivated or disabled."
+    },
+    "permission": {
+      "denied": "You do not have permission to perform this action."
+    },
+    "not_found": "Object missing or belongs to another shop.",
+    "shop": {
+      "header_missing": "X-Shop-Id header missing on a shop-scoped endpoint.",
+      "header_invalid": "X-Shop-Id is not a valid UUID.",
+      "not_found": "Shop missing, deleted, or access denied."
+    },
+    "rate": {
+      "limited": "Too many requests. Please wait a moment."
+    },
+    "idempotency": {
+      "key_required": "Idempotency-Key header is required.",
+      "key_invalid": "Idempotency-Key must be a valid UUID.",
+      "key_reused": "Idempotency-Key already used for a different request.",
+      "in_progress": "The original request with this Idempotency-Key is still processing."
+    },
+    "concurrency": {
+      "if_match_required": "If-Match header with version loaded is required.",
+      "if_match_invalid": "If-Match must be an integer version.",
+      "version_mismatch": "Record version changed concurrently; reload and try again."
+    },
+    "otp": {
+      "cooldown": "Please wait before requesting another OTP.",
+      "too_many_requests": "Hourly OTP limit reached; try again later.",
+      "not_found": "No pending OTP challenge found; request a new one.",
+      "expired": "OTP has expired; request a new one.",
+      "locked": "Too many incorrect attempts; request a new OTP.",
+      "invalid": "Incorrect OTP code."
+    },
+    "staff": {
+      "cannot_modify_self": "You cannot change your own membership.",
+      "cannot_modify_owner": "The shop owner cannot be changed.",
+      "insufficient_rank": "Only the owner can change or grant this role.",
+      "role_invalid": "Unknown or invalid role.",
+      "role_not_assignable": "The Owner role cannot be assigned.",
+      "invalid_status_change": "This status change is not allowed."
+    },
+    "server": {
+      "error": "Unexpected server error; please try again."
+    }
+  },
+  "auth": {
+    "welcome": "Welcome to FixPro",
+    "phonePrompt": "Enter your mobile number",
+    "sendOtp": "Send OTP",
+    "verifyOtp": "Verify OTP",
+    "resendOtp": "Resend OTP",
+    "logout": "Log Out"
+  },
+  "onboarding": {
+    "title": "Setup Your Repair Shop",
+    "shopName": "Shop Name",
+    "address": "Address",
+    "createShop": "Create Shop"
+  },
+  "home": {
+    "greeting": "Good Day",
+    "todaysJobs": "Today's Jobs",
+    "revenue": "Revenue",
+    "quickActions": "Quick Actions",
+    "addJob": "Add Job Sheet"
+  },
+  "more": {
+    "title": "More",
+    "staff": "Staff & Team",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "App Language",
+    "theme": "Theme"
+  }
+}

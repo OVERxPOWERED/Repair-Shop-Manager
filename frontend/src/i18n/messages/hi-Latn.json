@@ -1,0 +1,120 @@
+{
+  "common": {
+    "save": "Save karein",
+    "cancel": "Cancel karein",
+    "back": "Wapas",
+    "continue": "Aage badhein",
+    "confirm": "Confirm karein",
+    "delete": "Delete karein",
+    "edit": "Edit karein",
+    "search": "Search karein",
+    "loading": "Loading ho raha hai...",
+    "close": "Band karein",
+    "appName": "FixPro"
+  },
+  "nav": {
+    "home": "Home",
+    "jobs": "Jobs",
+    "customers": "Customers",
+    "inventory": "Inventory",
+    "more": "More"
+  },
+  "states": {
+    "empty": "Koi record nahi mila",
+    "error": "Kuch galat ho gaya",
+    "offline": "Aap abhi offline hain",
+    "permissionDenied": "Access Denied"
+  },
+  "errors": {
+    "generic": "Ek unexpected error aayi. Kripya dobara try karein.",
+    "network": {
+      "offline": "Internet connection nahi hai. Kripya apna network check karein."
+    },
+    "validation": {
+      "failed": "Field validation fail ho gaya; enter kiye gaye values check karein."
+    },
+    "request": {
+      "malformed": "Request data valid JSON nahi hai.",
+      "method_not_allowed": "Yeh HTTP method allowed nahi hai."
+    },
+    "auth": {
+      "not_authenticated": "Sign in zaroori hai.",
+      "token_invalid": "Session expire ho gaya ya token invalid hai. Dobara sign in karein.",
+      "account_disabled": "User account deactivate kar diya gaya hai."
+    },
+    "permission": {
+      "denied": "Aapke paas yeh action perform karne ki permission nahi hai."
+    },
+    "not_found": "Object missing hai ya kisi doosri shop ka hai.",
+    "shop": {
+      "header_missing": "Shop-scoped endpoint par X-Shop-Id header missing hai.",
+      "header_invalid": "X-Shop-Id valid UUID nahi hai.",
+      "not_found": "Shop missing hai, delete ho chuki hai, ya access denied hai."
+    },
+    "rate": {
+      "limited": "Bahut saari requests aayi hain. Thoda wait karein."
+    },
+    "idempotency": {
+      "key_required": "Idempotency-Key header zaroori hai.",
+      "key_invalid": "Idempotency-Key valid UUID hona chahiye.",
+      "key_reused": "Idempotency-Key pehle se kisi doosri request ke liye use ho chuki hai.",
+      "in_progress": "Is Idempotency-Key ke sath original request abhi process ho rahi hai."
+    },
+    "concurrency": {
+      "if_match_required": "If-Match version header zaroori hai.",
+      "if_match_invalid": "If-Match integer version hona chahiye.",
+      "version_mismatch": "Record ka version kisi aur ne change kar diya; refresh karke try karein."
+    },
+    "otp": {
+      "cooldown": "Kripya naya OTP request karne se pehle thoda wait karein.",
+      "too_many_requests": "Hourly OTP limit khatam ho gayi hai; baad mein try karein.",
+      "not_found": "Koi pending OTP challenge nahi mila; naya OTP request karein.",
+      "expired": "OTP expire ho gaya hai; naya OTP request karein.",
+      "locked": "Bahut saare incorrect attempts; naya OTP request karein.",
+      "invalid": "Incorrect OTP code."
+    },
+    "staff": {
+      "cannot_modify_self": "Aap apni khud ki membership change nahi kar sakte.",
+      "cannot_modify_owner": "Shop owner ko change ya remove nahi kiya ja sakta.",
+      "insufficient_rank": "Sirf shop owner hi yeh role change ya grant kar sakta hai.",
+      "role_invalid": "Unknown ya invalid role.",
+      "role_not_assignable": "Owner role kisi ko assign nahi kiya ja sakta.",
+      "invalid_status_change": "Yeh status change allowed nahi hai."
+    },
+    "server": {
+      "error": "Unexpected server error; kripya dobara try karein."
+    }
+  },
+  "auth": {
+    "welcome": "FixPro mein aapka swagat hai",
+    "phonePrompt": "Apna mobile number enter karein",
+    "sendOtp": "OTP Bhejein",
+    "verifyOtp": "OTP Verify Karein",
+    "resendOtp": "Dobara OTP Bhejein",
+    "logout": "Log Out Karein"
+  },
+  "onboarding": {
+    "title": "Apni Repair Shop Setup Karein",
+    "shopName": "Shop Ka Naam",
+    "address": "Pata",
+    "createShop": "Shop Banayein"
+  },
+  "home": {
+    "greeting": "Namaste",
+    "todaysJobs": "Aaj ke Jobs",
+    "revenue": "Revenue",
+    "quickActions": "Quick Actions",
+    "addJob": "Naya Job Sheet Add Karein"
+  },
+  "more": {
+    "title": "More",
+    "staff": "Staff & Team",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "App ki Bhasha",
+    "theme": "Theme"
+  }
+}

@@ -10,9 +10,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "next lint",
+    "lint": "next lint && pnpm i18n:check",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "i18n:check": "node scripts/check-i18n.mjs",
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap run android",
     "cap:ios": "npx cap run ios"

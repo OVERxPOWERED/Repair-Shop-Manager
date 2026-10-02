@@ -45,7 +45,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ✅ Done | 2026-10-02 |
 | 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ✅ Done | 2026-10-02 |
 | 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ✅ Done | 2026-10-02 |
-| 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ⬜ Not started | — |
+| 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ✅ Done | 2026-10-02 |
 | 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ⬜ Not started | — |
 | 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ⬜ Not started | — |
 | 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ⬜ Not started | — |
@@ -363,19 +363,28 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | fb6ccbd |
 
-- [ ] 0.10.1 Config and store
-- [ ] 0.10.2 Messages and provider
-- [ ] 0.10.3 Translation key checker
-- [ ] 0.10.4 Formatters (with tests)
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.10.1 Config and store
+- [x] 0.10.2 Messages and provider
+- [x] 0.10.3 Translation key checker
+- [x] 0.10.4 Formatters (with tests)
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors
+- pnpm i18n:check: i18n OK: 76 keys in 3 locales (100% parity across en, hi, hi-Latn)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 22 passed across 5 test files (money, date, phone, rasterizer, imei)
+- pnpm build: next build static export generated (5/5 pages)
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Implemented i18n config and Zustand persisted store supporting `en`, `hi`, and `hi-Latn` (Hinglish); created message catalogs in `en.json`, `hi.json`, and `hi-Latn.json` across 9 namespaces (`common`, `nav`, `states`, `errors`, `auth`, `onboarding`, `home`, `more`, `settings`) including all 33 error codes from `docs/error-codes.md`; implemented `IntlProvider` with `NextIntlClientProvider` and wrapped `Providers`; created `LanguageSwitcher` radio selector component; created `errorMessage` translation helper for `ApiError`; created automated parity checker `scripts/check-i18n.mjs` and hooked into `pnpm lint`; implemented Indian monetary formatters in `src/lib/format/money.ts` (`formatPaise`, `formatPaiseCompact`, `rupeesToPaise`, `paiseToRupeesInput`), date/time formatters in `src/lib/format/date.ts` (`formatDate`, `formatDateTime`, `todayIst`), and phone formatters in `src/lib/format/phone.ts` (`formatPhone`, `toWhatsAppDigits`) with 13 unit tests.
+
 
 ## 0.11 API client, session store, secure storage and native layer
 
