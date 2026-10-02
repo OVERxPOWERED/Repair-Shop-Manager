@@ -39,18 +39,20 @@ Standard Bluetooth Low Energy (BLE 4.0/4.2) characteristics have a default ATT M
 
 | Brand / Model | Paper | Connection | Android | iOS | Protocol | Notes |
 |---|---|---|---|---|---|---|
-| **Everycom EC-58** | 58mm (384px) | Bluetooth Classic / BLE | Yes | Yes | ESC/POS Raster | Ultra-popular ₹1,800 market printer. Crisp Hindi output. |
-| **HoIN HOP-E58** | 58mm (384px) | BLE | Yes | Yes | ESC/POS Raster | Reliable BLE handshake. Requires 20ms packet pacing. |
-| **TVS RP-3150 Star** | 80mm (576px) | Bluetooth Classic / USB | Yes | Untested | ESC/POS Raster | Heavy-duty counter printer with auto-cutter. |
-| **Generic POS-58** | 58mm (384px) | BLE 4.0 | Yes | Yes | ESC/POS Raster | Common white-label device. Fast print with Floyd-Steinberg. |
+| **Everycom EC-58** | 58mm (384px) | Bluetooth Classic / BLE | Untested | Untested | ESC/POS Raster | — |
+| **HoIN HOP-E58** | 58mm (384px) | BLE | Untested | Untested | ESC/POS Raster | — |
+| **TVS RP-3150 Star** | 80mm (576px) | Bluetooth Classic / USB | Untested | Untested | ESC/POS Raster | — |
+| **Generic POS-58** | 58mm (384px) | BLE 4.0 | Untested | Untested | ESC/POS Raster | — |
 
 ---
 
 ## 4. Standard Quality Verification Checklist
+Results below are filled in only after a real-device test (spike 0.8).
+
 For every printer certified for FixPro:
-1. [x] Pair/scan and connect over BLE without PIN prompt lockup.
-2. [x] English receipt rendering with sharp monospace alignments.
-3. [x] Bilingual Hindi receipt (`एम सॉल्यूशन - मोबाइल रिपेयर`) without clipped ascenders/descenders.
-4. [x] Dynamic UPI QR code (`upi://pay?pa=...`) readable by PhonePe, Google Pay, and Paytm within 1 second.
-5. [x] 20 consecutive prints without buffer drops or BLE timeouts.
-6. [x] Reconnect automatically after printer sleeps or power cycles.
+1. [ ] Pair/scan and connect over BLE without PIN prompt lockup.
+2. [ ] English receipt rendering with sharp monospace alignments.
+3. [ ] Bilingual Hindi receipt (`एम सॉल्यूशन - मोबाइल रिपेयर`) without clipped ascenders/descenders.
+4. [ ] Dynamic UPI QR code (`upi://pay?pa=...`) readable by PhonePe, Google Pay, and Paytm within 1 second.
+5. [ ] 20 consecutive prints without buffer drops or BLE timeouts.
+6. [ ] Reconnect automatically after printer sleeps or power cycles.

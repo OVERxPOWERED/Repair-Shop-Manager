@@ -11,12 +11,12 @@ Record every significant technical or product decision here (newest first). The 
 - **Status:** accepted.
 
 ## 2026-10-02: Camera IMEI Barcode Scanning & On-Device OCR Pipeline (Spike B)
-- **Decision:** Use Google ML Kit barcode scanning (`@capacitor-mlkit/barcode-scanning`) prioritized over OCR text recognition; enforce client-side and server-side Luhn check-digit verification; require mandatory user visual confirmation before saving any OCR-scanned IMEI. Provide 1-tap "Check IMEI" shortcut to Sanchar Saathi / KYM SMS (14422).
-- **Why:** Physical phone IMEI stickers (inside battery compartments or on retail boxes) often suffer from gloss glare, microscopic 6pt typography, or physical scratches. Pure OCR has an error rate of ~12% under workshop fluorescent lighting (often confusing `0` and `O`, `1` and `I`, `8` and `B`). The 15th-digit Luhn check digit immediately catches single-digit transcription errors. Barcodes (Code 128 / DataMatrix) have built-in error correction and achieve 99.8% first-pass accuracy.
+- **Decision:** Use Google ML Kit barcode scanning (`@capacitor-mlkit/barcode-scanning` v8.2.1) prioritized over OCR text recognition (`@capacitor-mlkit/text-recognition` v8.2.1 and `@capacitor/camera` v8.2.5); enforce client-side and server-side Luhn check-digit verification; require mandatory user visual confirmation before saving any OCR-scanned IMEI. Provide 1-tap "Check IMEI" shortcut to Sanchar Saathi / KYM SMS (14422). BLE printing supported via `@capacitor-community/bluetooth-le` v8.3.0 with rasterizer chunking in 128-row bands and 20-byte MTU packets.
+- **Why:** Physical phone IMEI stickers (inside battery compartments or on retail boxes) often suffer from gloss glare, microscopic 6pt typography, or physical scratches. Pure OCR error rate to be measured in spike 0.8 on real shop stickers under workshop fluorescent lighting (often confusing `0` and `O`, `1` and `I`, `8` and `B`). The 15th-digit Luhn check digit immediately catches single-digit transcription errors. Barcode accuracy to be measured in spike 0.8. Dev spike test harness provided at `/dev/spikes`.
 - **Alternatives:** 
   1. Cloud OCR API (AWS Rekognition / Google Vision): high recurring costs, fails offline, and introduces latency during fast counter intake.
   2. Manual typing only: too slow for counter staff (takes 25–40s vs 2s scan).
-- **Status:** accepted.
+- **Status:** proposed (plugins chosen: `@capacitor-community/bluetooth-le`, `@capacitor-mlkit/barcode-scanning`, `@capacitor-mlkit/text-recognition`, `@capacitor/camera`; hardware measurements pending on physical devices).
 
 ## 2026-10-02: Tracking page is server-rendered by Django
 - **Decision:** the public customer tracking page is a Django template, not part of the Next.js static export.

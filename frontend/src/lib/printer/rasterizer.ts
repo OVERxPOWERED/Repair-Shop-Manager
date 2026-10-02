@@ -1,56 +1,88 @@
 /**
- * FixPro Thermal Printing Rasterizer (Week 2 Spike A)
- * 
- * Converts HTML Canvas / RGBA pixel arrays into 1-bit monochrome ESC/POS raster bitmaps.
+ * FixPro Thermal Printing Rasterizer (Spike 0.8)
+ *
+ * Converts Canvas / RGBA pixel arrays into 1-bit monochrome ESC/POS raster bitmaps.
  * Solves the critical Indian workshop requirement: Printing Hindi / Devanagari script
  * and dynamic UPI QR codes on thermal Bluetooth printers without corrupt font ROM chips.
+ * Emits in bands of at most 128 rows to protect small printer buffers.
  */
 
+export interface RasterSource {
+  width: number;
+  height: number;
+  data: Uint8ClampedArray | Uint8Array;
+}
+
 export interface RasterOptions {
-  width: number; // 384 px for 58mm paper, 576 px for 80mm paper
+  width?: number; // Optional override for 58mm (384) or 80mm (576)
   dithering?: boolean;
+  cut?: boolean; // Default true (partial auto-cut)
+}
+
+export const MAX_BAND_HEIGHT = 128;
+
+/**
+ * Splits a byte buffer into chunks of specified size (e.g. 20-byte BLE MTU packets).
+ */
+export function chunkBytes(bytes: Uint8Array, size: number): Uint8Array[] {
+  if (size <= 0) {
+    throw new Error("Chunk size must be greater than 0");
+  }
+  const chunks: Uint8Array[] = [];
+  for (let i = 0; i < bytes.length; i += size) {
+    chunks.push(bytes.subarray(i, Math.min(i + size, bytes.length)));
+  }
+  return chunks;
 }
 
 /**
- * Converts ImageData to 1-bit monochrome ESC/POS raster bytes using 'GS v 0' command.
- * Command structure:
- * GS v 0 m xL xH yL yH d1...dk
- * 0x1D 0x76 0x30 0x00 (xL xH) (yL yH) [raster bytes]
+ * Converts RasterSource (ImageData or custom pixel buffer) to 1-bit monochrome ESC/POS
+ * raster bytes using 'GS v 0' command emitted in bands of at most 128 rows.
  */
-export function canvasToEscPosRaster(imageData: ImageData, options?: RasterOptions): Uint8Array {
-  const width = imageData.width;
-  const height = imageData.height;
-  const data = imageData.data;
-  const bytesPerLine = Math.ceil(width / 8);
+export function canvasToEscPosRaster(source: RasterSource, options?: RasterOptions): Uint8Array {
+  const { width, height, data } = source;
+  const paddedWidth = Math.ceil(width / 8) * 8;
+  const bytesPerLine = paddedWidth / 8;
 
   // Convert to grayscale luminance
-  const grayscale = new Float32Array(width * height);
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const a = data[i + 3];
-    // Standard sRGB luminance weighting. Alpha transparency blends with white.
-    const alphaNorm = a / 255;
-    const lum = (0.299 * r + 0.587 * g + 0.114 * b) * alphaNorm + 255 * (1 - alphaNorm);
-    grayscale[i / 4] = lum;
+  const grayscale = new Float32Array(paddedWidth * height);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < paddedWidth; x++) {
+      const grayIdx = y * paddedWidth + x;
+      if (x < width) {
+        const srcIdx = (y * width + x) * 4;
+        const r = data[srcIdx];
+        const g = data[srcIdx + 1];
+        const b = data[srcIdx + 2];
+        const a = data[srcIdx + 3];
+
+        // Standard sRGB luminance weighting. Alpha transparency blends with white.
+        const alphaNorm = a / 255;
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) * alphaNorm + 255 * (1 - alphaNorm);
+        grayscale[grayIdx] = lum;
+      } else {
+        // Pad with white pixels beyond source width
+        grayscale[grayIdx] = 255;
+      }
+    }
   }
 
   // Apply Floyd-Steinberg Dithering for smooth photo/logo reproduction
   if (options?.dithering) {
     for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = y * width + x;
+      for (let x = 0; x < paddedWidth; x++) {
+        const idx = y * paddedWidth + x;
         const oldVal = grayscale[idx];
         const newVal = oldVal < 128 ? 0 : 255;
         grayscale[idx] = newVal;
         const err = oldVal - newVal;
 
-        if (x + 1 < width) grayscale[idx + 1] += (err * 7) / 16;
+        if (x + 1 < paddedWidth) grayscale[idx + 1] += (err * 7) / 16;
         if (y + 1 < height) {
-          if (x - 1 >= 0) grayscale[(y + 1) * width + (x - 1)] += (err * 3) / 16;
-          grayscale[(y + 1) * width + x] += (err * 5) / 16;
-          if (x + 1 < width) grayscale[(y + 1) * width + (x + 1)] += (err * 1) / 16;
+          if (x - 1 >= 0) grayscale[(y + 1) * paddedWidth + (x - 1)] += (err * 3) / 16;
+          grayscale[(y + 1) * paddedWidth + x] += (err * 5) / 16;
+          if (x + 1 < paddedWidth) grayscale[(y + 1) * paddedWidth + (x + 1)] += (err * 1) / 16;
         }
       }
     }
@@ -59,8 +91,8 @@ export function canvasToEscPosRaster(imageData: ImageData, options?: RasterOptio
   // Pack 8 pixels per byte (1 = black dot, 0 = white paper)
   const rasterBytes = new Uint8Array(bytesPerLine * height);
   for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const isBlack = grayscale[y * width + x] < 128;
+    for (let x = 0; x < paddedWidth; x++) {
+      const isBlack = grayscale[y * paddedWidth + x] < 128;
       if (isBlack) {
         const byteIndex = y * bytesPerLine + Math.floor(x / 8);
         const bitOffset = 7 - (x % 8);
@@ -69,33 +101,57 @@ export function canvasToEscPosRaster(imageData: ImageData, options?: RasterOptio
     }
   }
 
-  // Build ESC/POS raster header
-  // xL = (width / 8) % 256, xH = (width / 8) / 256
-  // yL = height % 256, yH = height / 256
+  // Calculate bands
+  const numBands = Math.ceil(height / MAX_BAND_HEIGHT);
+  const prefix = new Uint8Array([0x1b, 0x40]); // ESC @: Initialize printer
+
+  const shouldCut = options?.cut ?? true;
+  const feed = [0x0a, 0x0a, 0x0a]; // Feed 3 lines
+  const cutCmd = [0x1d, 0x56, 0x01]; // GS V 1: Partial cut
+  const suffix = new Uint8Array(shouldCut ? [...feed, ...cutCmd] : feed);
+
   const xL = bytesPerLine % 256;
   const xH = Math.floor(bytesPerLine / 256);
-  const yL = height % 256;
-  const yH = Math.floor(height / 256);
 
-  const header = new Uint8Array([
-    0x1b, 0x40,             // ESC @: Initialize printer
-    0x1b, 0x61, 0x01,       // ESC a 1: Center alignment
-    0x1d, 0x76, 0x30, 0x00, // GS v 0 0: Print raster bit image (normal mode)
-    xL, xH,
-    yL, yH,
-  ]);
+  // Total buffer calculation: prefix + (8 bytes header per band + band bytes) + suffix
+  const totalLength =
+    prefix.length +
+    numBands * 8 +
+    rasterBytes.length +
+    suffix.length;
 
-  const footer = new Uint8Array([
-    0x0a, 0x0a, 0x0a,       // Line feeds (advance paper past tear bar)
-    0x1d, 0x56, 0x01,       // GS V 1: Partial cut (if hardware cutter present)
-  ]);
-
-  // Concatenate buffer
-  const totalLength = header.length + rasterBytes.length + footer.length;
   const commandStream = new Uint8Array(totalLength);
-  commandStream.set(header, 0);
-  commandStream.set(rasterBytes, header.length);
-  commandStream.set(footer, header.length + rasterBytes.length);
+  let offset = 0;
+
+  commandStream.set(prefix, offset);
+  offset += prefix.length;
+
+  for (let b = 0; b < numBands; b++) {
+    const startRow = b * MAX_BAND_HEIGHT;
+    const bandHeight = Math.min(MAX_BAND_HEIGHT, height - startRow);
+    const bandRasterStart = startRow * bytesPerLine;
+    const bandRasterLen = bandHeight * bytesPerLine;
+
+    const yL = bandHeight % 256;
+    const yH = Math.floor(bandHeight / 256);
+
+    const bandHeader = new Uint8Array([
+      0x1d, 0x76, 0x30, 0x00, // GS v 0 0: Print raster bit image
+      xL, xH,
+      yL, yH,
+    ]);
+
+    commandStream.set(bandHeader, offset);
+    offset += bandHeader.length;
+
+    commandStream.set(
+      rasterBytes.subarray(bandRasterStart, bandRasterStart + bandRasterLen),
+      offset
+    );
+    offset += bandRasterLen;
+  }
+
+  commandStream.set(suffix, offset);
 
   return commandStream;
 }

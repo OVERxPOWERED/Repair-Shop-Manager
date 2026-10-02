@@ -2,13 +2,21 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.8 (🧑‍🔧 Hardware spikes, done honestly: printer + IMEI)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.9 (Frontend foundation)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.7 completed and verified on PostgreSQL 16.
+> Subphases 0.1 through 0.8 completed and verified on PostgreSQL 16 & Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Hardware Spikes, Done Honestly (Subphase 0.8):**
+  - Corrected `docs/printers.md` (untested matrix & unverified checklist) and `docs/decisions.md` (Spike B status to `proposed` pending physical hardware runs).
+  - Upgraded rasterizer in `frontend/src/lib/printer/rasterizer.ts` to accept generic `RasterSource`, slice print output into bands of <= 128 rows with individual `GS v 0` headers, pad width to multiple of 8 with white pixels, optional cut, and added `chunkBytes` helper for BLE MTU writes.
+  - Added 4 rasterizer unit tests in `rasterizer.test.ts` (9/9 vitest tests passing).
+  - Added `@capacitor/ios@^8.5.2` and created iOS native project with `npx cap add ios`.
+  - Configured Android and iOS permissions for Bluetooth LE and Camera.
+  - Installed and verified Capacitor 8 plugins: `@capacitor-community/bluetooth-le`, `@capacitor-mlkit/barcode-scanning`, `@capacitor-mlkit/text-recognition`, `@capacitor/camera`.
+  - Created dev spike harness screen at `frontend/src/app/dev/spikes/page.tsx` for real-device BLE scanning/printing, camera barcode scanning with Luhn validation, and ML Kit OCR photo scanning.
 - **Tenancy and Permissions Repair (Subphase 0.7):**
   - Replaced thread-local `TenantScopingMiddleware` with explicit `resolve_shop_context(request)` setting `request.shop` and `request.membership`.
   - Implemented `ShopScopedMixin`, `ShopScopedViewSet`, `ShopScopedAPIView`, and `ShopScopedPKField` with automated permission map checking and 404 isolation for cross-tenant or missing shops.

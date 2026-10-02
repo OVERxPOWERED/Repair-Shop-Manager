@@ -43,7 +43,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ✅ Done | 2026-10-02 |
 | 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ✅ Done | 2026-10-02 |
 | 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ✅ Done | 2026-10-02 |
-| 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ⬜ Not started | — |
+| 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ✅ Done | 2026-10-02 |
 | 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ⬜ Not started | — |
 | 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ⬜ Not started | — |
 | 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ⬜ Not started | — |
@@ -307,20 +307,29 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | 1734217 |
 
-- [ ] 0.8.1 Correct the documents first
-- [ ] 0.8.2 Make the rasterizer safe for small printer buffers
-- [ ] 0.8.3 iOS project
-- [ ] 0.8.4 Spike screen (development builds only)
-- [ ] 0.8.5 🧑‍🔧 Run the tests and record results
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.8.1 Correct the documents first
+- [x] 0.8.2 Make the rasterizer safe for small printer buffers
+- [x] 0.8.3 iOS project
+- [x] 0.8.4 Spike screen (development builds only)
+- [x] 0.8.5 🧑‍🔧 Run the tests and record results
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 9 passed across 2 test files (rasterizer.test.ts, imei.test.ts)
+- pnpm build: next build static export generated (5/5 pages, including /dev/spikes)
+- npx cap sync: 6 plugins synced for Android & iOS (@capacitor-community/bluetooth-le, @capacitor-mlkit/barcode-scanning, @capacitor-mlkit/text-recognition, @capacitor/camera, @capacitor/haptics, @capacitor/share)
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Corrected `docs/printers.md` (untested matrix & unchecked list) and `docs/decisions.md` (Spike B proposed with chosen Capacitor 8 plugins); refactored `canvasToEscPosRaster` in `rasterizer.ts` to accept `RasterSource`, slice image into <= 128-row bands with `GS v 0` headers, pad width to multiple of 8 with white pixels, support optional cut, and added `chunkBytes`; added 4 vitest tests in `rasterizer.test.ts`; added `@capacitor/ios@^8.5.2` and generated native iOS project with `npx cap add ios`; configured Android & iOS permissions for BLE and Camera; created dev spikes screen at `src/app/dev/spikes/page.tsx` for real-device BLE printing, barcode scanning, and ML Kit OCR testing.
+
 
 ## 0.9 Frontend foundation
 
