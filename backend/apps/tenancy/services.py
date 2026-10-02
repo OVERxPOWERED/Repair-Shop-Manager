@@ -27,6 +27,11 @@ def seed_system_roles() -> dict[str, Role]:
     return roles
 
 
+def on_shop_created(shop: Shop) -> None:
+    """Seeds per-shop defaults; extended in 1.1 and 1.5."""
+    pass
+
+
 @transaction.atomic
 def create_organization_and_shop(
     owner_user,
@@ -39,7 +44,6 @@ def create_organization_and_shop(
     """
     Onboards an owner with a new organization, their first shop, and an active Owner membership.
     """
-    seed_system_roles()
     owner_role = Role.objects.get(organization=None, name="Owner")
 
     organization = Organization.objects.create(
@@ -61,5 +65,7 @@ def create_organization_and_shop(
         status=Membership.StatusChoices.ACTIVE,
         display_name=owner_user.name or "Owner",
     )
+
+    on_shop_created(shop)
 
     return organization, shop, membership

@@ -34,6 +34,42 @@ class World:
     def membership(self, user: User, shop: Shop) -> Membership:
         return Membership.objects.get(user=user, shop=shop)
 
+    @property
+    def membership_owner_a(self) -> Membership:
+        return self.membership(self.owner_a, self.shop_a)
+
+    @property
+    def membership_manager_a(self) -> Membership:
+        return self.membership(self.manager_a, self.shop_a)
+
+    @property
+    def membership_front_desk_a(self) -> Membership:
+        return self.membership(self.front_desk_a, self.shop_a)
+
+    @property
+    def membership_engineer_a(self) -> Membership:
+        return self.membership(self.engineer_a, self.shop_a)
+
+    @property
+    def membership_owner_b(self) -> Membership:
+        return self.membership(self.owner_b, self.shop_b)
+
+    @property
+    def role_owner(self) -> Role:
+        return Role.objects.get(organization=None, name="Owner")
+
+    @property
+    def role_manager(self) -> Role:
+        return Role.objects.get(organization=None, name="Manager")
+
+    @property
+    def role_front_desk(self) -> Role:
+        return Role.objects.get(organization=None, name="Front Desk")
+
+    @property
+    def role_engineer(self) -> Role:
+        return Role.objects.get(organization=None, name="Engineer")
+
 
 def _add_member(shop: Shop, phone: str, name: str, role_name: str) -> User:
     user = User.objects.create_user(phone=phone, name=name)

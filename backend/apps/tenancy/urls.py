@@ -1,19 +1,15 @@
-from django.urls import include, path
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from apps.tenancy.views import (
-    OnboardShopView,
-    RoleViewSet,
-    ShopViewSet,
-    StaffMembershipViewSet,
-)
+from apps.tenancy import views
 
 router = DefaultRouter()
-router.register(r"shops", ShopViewSet, basename="shop")
-router.register(r"roles", RoleViewSet, basename="role")
-router.register(r"staff", StaffMembershipViewSet, basename="staff")
+router.register("roles", views.RoleViewSet, basename="role")
+router.register("staff", views.StaffViewSet, basename="staff")
 
 urlpatterns = [
-    path("tenancy/onboard/", OnboardShopView.as_view(), name="tenancy-onboard"),
-    path("", include(router.urls)),
+    path("tenancy/onboard/", views.OnboardShopView.as_view(), name="tenancy-onboard"),
+    path("shops/", views.MyShopsView.as_view(), name="my-shops"),
+    path("shops/current/", views.CurrentShopView.as_view(), name="current-shop"),
+    *router.urls,
 ]

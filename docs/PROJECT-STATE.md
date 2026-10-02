@@ -2,13 +2,23 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.7 (Tenancy and permissions repair)  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.8 (🧑‍🔧 Hardware spikes, done honestly: printer + IMEI)  **Last updated:** 2026-10-02
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1, 0.2, 0.3, 0.4, 0.5, and 0.6 completed and verified on PostgreSQL 16.
+> Subphases 0.1 through 0.7 completed and verified on PostgreSQL 16.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Tenancy and Permissions Repair (Subphase 0.7):**
+  - Replaced thread-local `TenantScopingMiddleware` with explicit `resolve_shop_context(request)` setting `request.shop` and `request.membership`.
+  - Implemented `ShopScopedMixin`, `ShopScopedViewSet`, `ShopScopedAPIView`, and `ShopScopedPKField` with automated permission map checking and 404 isolation for cross-tenant or missing shops.
+  - Role management: removed system role seeding from onboarding GET; system roles (`Owner`, `Manager`, `Front Desk`, `Engineer`) automatically seeded on `post_migrate` signal and via `seed_roles` management command.
+  - Strict validators for GSTIN (with checksum), state code, and UPI ID.
+  - Staff management API: `GET /api/v1/staff/`, `GET /api/v1/staff/<id>/`, `POST /api/v1/staff/<id>/role/`, `POST /api/v1/staff/<id>/suspend/`, `POST /api/v1/staff/<id>/reactivate/`, `POST /api/v1/staff/<id>/remove/`.
+  - Guarded against modifying owners, self-modification, role escalation, and unauthorized role assignments.
+  - Deleted legacy `apps/tenancy/scoping.py`.
+  - Registered 6 staff error codes in `docs/error-codes.md`.
+  - 17 tenancy tests passing (71/71 total backend tests passing).
 - **Authentication Hardening (Subphase 0.6):**
   - E.164 phone normalization and privacy masking (`normalize_phone`, `mask_phone`) in `apps.core.phone`.
   - SMS provider abstraction (`SmsProvider`, `ConsoleSmsProvider`, `get_sms_provider`) with secure hidden logging outside `DEBUG`.

@@ -42,7 +42,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.4](#04-api-contract-layer-envelope-errors-request-id-pagination-throttling) | API contract layer (envelope, errors, request ID, pagination, throttling) | ✅ Done | 2026-10-02 |
 | 0 | [0.5](#05-idempotency-keys-and-optimistic-concurrency) | Idempotency keys and optimistic concurrency | ✅ Done | 2026-10-02 |
 | 0 | [0.6](#06-authentication-hardening) | Authentication hardening | ✅ Done | 2026-10-02 |
-| 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ⬜ Not started | — |
+| 0 | [0.7](#07-tenancy-and-permissions-repair) | Tenancy and permissions repair | ✅ Done | 2026-10-02 |
 | 0 | [0.8](#08--hardware-spikes-done-honestly-printer--imei) | 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI) | ⬜ Not started | — |
 | 0 | [0.9](#09-frontend-foundation) | Frontend foundation | ⬜ Not started | — |
 | 0 | [0.10](#010-i18n-and-indian-formatters) | i18n and Indian formatters | ⬜ Not started | — |
@@ -276,25 +276,32 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-02 | e5ae7ed |
 
-- [ ] 0.7.1 Model changes
-- [ ] 0.7.2 Shop context and permission classes
-- [ ] 0.7.3 Base views and the scoped PK field
-- [ ] 0.7.4 Roles: seed on migrate, never in a GET
-- [ ] 0.7.5 Validators
-- [ ] 0.7.6 Serializers
-- [ ] 0.7.7 Staff service
-- [ ] 0.7.8 Views
-- [ ] 0.7.9 Error codes
-- [ ] 0.7.10 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.7.1 Model changes
+- [x] 0.7.2 Shop context and permission classes
+- [x] 0.7.3 Base views and the scoped PK field
+- [x] 0.7.4 Roles: seed on migrate, never in a GET
+- [x] 0.7.5 Validators
+- [x] 0.7.6 Serializers
+- [x] 0.7.7 Staff service
+- [x] 0.7.8 Views
+- [x] 0.7.9 Error codes
+- [x] 0.7.10 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- uv run pytest: 71 passed in 4.97s (100%)
+- uv run ruff check .: All checks passed!
+- uv run ruff format --check .: 81 files already formatted
+- uv run python manage.py makemigrations --check --dry-run: No changes detected
+- uv run python manage.py spectacular --file /tmp/schema.yml --validate: 0 errors, 0 warnings
+- grep -rn --exclude-dir=__pycache__ "TenantScopingMiddleware\|is_platform_admin" apps/ config/ | grep -v "accounts/models.py\|migrations": Clean (only User.is_platform_admin in serializer and negative scoping test)
 ```
-**Notes:** —
+**Notes:** Replaced thread-local TenantScopingMiddleware with explicit resolve_shop_context and request.shop/request.membership; implemented ShopScopedMixin, ShopScopedViewSet, ShopScopedAPIView, and ShopScopedPKField; removed system role seeding from onboarding GETs and attached to post_migrate signal and seed_roles management command; added GSTIN, state code, and UPI ID regexes and checksum validators; implemented StaffViewSet (list, retrieve, role, suspend, reactivate, remove) with StaffService enforcement preventing self-modification, owner modification, and role escalation; registered 6 staff error codes; deleted scoping.py.
+
 
 ## 0.8 🧑‍🔧 Hardware spikes, done honestly (printer + IMEI)
 

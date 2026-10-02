@@ -9,7 +9,7 @@ from apps.core.models import IdempotencyRecord
 from apps.tenancy.models import Shop
 
 pytestmark = pytest.mark.django_db
-BODY = {"shop_name": "Idem Shop", "shop_type": "mobile"}
+BODY = {"name": "Idem Shop", "shop_type": "mobile"}
 
 
 def test_same_key_returns_same_shop(client_for, world):
@@ -27,7 +27,7 @@ def test_same_key_different_body_rejected(client_for, world):
     c = client_for(world.owner_a)
     key = str(uuid.uuid4())
     c.post("/api/v1/tenancy/onboard/", BODY, format="json", HTTP_IDEMPOTENCY_KEY=key)
-    r = c.post("/api/v1/tenancy/onboard/", {**BODY, "shop_name": "Other"}, format="json", HTTP_IDEMPOTENCY_KEY=key)
+    r = c.post("/api/v1/tenancy/onboard/", {**BODY, "name": "Other"}, format="json", HTTP_IDEMPOTENCY_KEY=key)
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "idempotency.key_reused"
 

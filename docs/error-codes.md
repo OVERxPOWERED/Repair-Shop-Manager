@@ -30,4 +30,10 @@ Add a row in the same commit that introduces a code (ROADMAP Recipe R8).
 | otp.locked | 400 | Too many incorrect attempts; request a new OTP |
 | otp.invalid | 400 | Incorrect OTP code; attempts remaining indicated in fields |
 | auth.account_disabled | 403 | User account has been deactivated or disabled |
+| staff.cannot_modify_self | 422 | You cannot change your own membership |
+| staff.cannot_modify_owner | 422 | The shop owner cannot be changed |
+| staff.insufficient_rank | 403 | Only the owner can change or grant this role |
+| staff.role_invalid | 400 | Unknown role |
+| staff.role_not_assignable | 422 | The Owner role cannot be assigned |
+| staff.invalid_status_change | 409 | This status change is not allowed |
 | server.error | 500 | Unexpected; quote `request_id` to support |

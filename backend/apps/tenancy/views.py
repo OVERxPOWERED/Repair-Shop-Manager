@@ -1,127 +1,136 @@
-"""
-Views for tenancy management, shop onboarding, and staff membership.
-"""
-
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, status, viewsets
+from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.serializers import my_shops
+from apps.core.api.concurrency import save_with_version
+from apps.core.api.errors import DomainError
 from apps.core.api.idempotency import idempotent
-from apps.tenancy.models import Membership, Role, Shop
-from apps.tenancy.scoping import ShopScopedViewSet
+from apps.tenancy import staff as staff_service
+from apps.tenancy.models import Membership, Role
+from apps.tenancy.permissions import ANY_MEMBER
 from apps.tenancy.serializers import (
+    ChangeRoleSerializer,
     MembershipSerializer,
     OnboardShopSerializer,
     RoleSerializer,
     ShopSerializer,
 )
-from apps.tenancy.services import create_organization_and_shop, seed_system_roles
+from apps.tenancy.services import create_organization_and_shop
+from apps.tenancy.viewsets import ShopScopedAPIView, ShopScopedMixin
 
 
 class OnboardShopView(APIView):
-    """
-    Onboard the current user by creating their organization and first repair shop.
-    Assigns the current user as the Owner of the shop.
-    """
-
     permission_classes = (permissions.IsAuthenticated,)
 
-    @extend_schema(
-        summary="Onboard New Shop & Organization",
-        description="Creates organization and initial shop branch with Owner membership for authenticated user.",
-        request=OnboardShopSerializer,
-        responses={201: dict, 400: dict},
-    )
+    @extend_schema(request=OnboardShopSerializer, responses={201: dict})
     @idempotent(required=False)
     def post(self, request):
-        serializer = OnboardShopSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        data = serializer.validated_data
-        org, shop, membership = create_organization_and_shop(
+        s = OnboardShopSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        data = dict(s.validated_data)
+        org_name = data.pop("organization_name", "") or data["name"]
+        _org, shop, _membership = create_organization_and_shop(
             owner_user=request.user,
-            org_name=data.get("organization_name") or data["shop_name"],
-            shop_name=data["shop_name"],
-            shop_type=data.get("shop_type", Shop.ShopTypeChoices.MOBILE),
-            phone=data.get("phone", ""),
-            address_line1=data.get("address_line1", ""),
-            city=data.get("city", ""),
-            pincode=data.get("pincode", ""),
-            state_code=data.get("state_code", ""),
-            gst_enabled=data.get("gst_enabled", False),
-            gstin=data.get("gstin"),
-            upi_id=data.get("upi_id"),
+            org_name=org_name,
+            shop_name=data.pop("name"),
+            shop_type=data.pop("shop_type", "mobile"),
+            phone=data.pop("phone", ""),
+            **data,
         )
-
-        return Response(
-            {
-                "organization_id": str(org.id),
-                "shop": ShopSerializer(shop).data,
-                "membership": MembershipSerializer(membership).data,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        return Response({"shop": ShopSerializer(shop).data, "shops": my_shops(request.user)}, status=201)
 
 
-class ShopViewSet(viewsets.ModelViewSet):
-    """
-    Manage shops.
-    Listing returns all shops where the authenticated user has an active membership.
-    Detail retrieval and updates require active membership in that specific shop.
-    """
+class MyShopsView(APIView):
+    """GET /shops/: every shop the caller is an active member of. No X-Shop-Id needed."""
 
-    queryset = Shop.objects.all()
-    serializer_class = ShopSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get_queryset(self):
-        if getattr(self, "swagger_fake_view", False):
-            return Shop.objects.none()
-        if getattr(self.request.user, "is_platform_admin", False):
-            return Shop.objects.alive()
-        # Return only shops where user is an active member
-        return Shop.objects.filter(
-            memberships__user=self.request.user, memberships__status="active", deleted_at__isnull=True
-        ).distinct()
+    @extend_schema(responses={200: dict})
+    def get(self, request):
+        return Response(my_shops(request.user))
 
 
-class RoleViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    List available roles (system defaults and organization custom roles).
-    """
+class CurrentShopView(ShopScopedAPIView):
+    """GET/PATCH /shops/current/ (the shop named in X-Shop-Id)."""
 
-    queryset = Role.objects.all()
+    http_method_names = ["get", "patch", "head", "options"]
+    permission_map = {"get": ANY_MEMBER, "patch": "shop.settings"}
+
+    @extend_schema(responses=ShopSerializer)
+    def get(self, request):
+        return Response(ShopSerializer(request.shop).data)
+
+    @extend_schema(request=ShopSerializer, responses=ShopSerializer)
+    def patch(self, request):
+        s = ShopSerializer(request.shop, data=request.data, partial=True)
+        s.is_valid(raise_exception=True)
+        shop = save_with_version(request, s)
+        return Response(ShopSerializer(shop).data)
+
+
+class RoleViewSet(ShopScopedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = RoleSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_map = {"list": "staff.view", "retrieve": "staff.view"}
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Role.objects.none()
-        seed_system_roles()
-        return Role.objects.filter(is_system=True)
+        return staff_service.assignable_roles(self.request.shop).order_by("name")
 
 
-class StaffMembershipViewSet(ShopScopedViewSet):
-    """
-    Manage shop staff members. Scoped by X-Shop-Id.
-    Requires 'staff.view' for reading and 'staff.manage' for editing.
-    """
-
-    queryset = Membership.objects.all()
+class StaffViewSet(ShopScopedMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = MembershipSerializer
-    required_permission = "staff.view"
+    permission_map = {
+        "list": "staff.view",
+        "retrieve": "staff.view",
+        "change_role": "staff.manage",
+        "suspend": "staff.manage",
+        "reactivate": "staff.manage",
+        "remove": "staff.manage",
+    }
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Membership.objects.none()
-        # In ShopScopedViewSet, request.shop is verified
         return (
-            Membership.objects.filter(shop=self.request.shop, status__in=["active", "suspended", "invited"])
-            .select_related("user", "role")
+            Membership.objects.filter(shop=self.request.shop)
+            .exclude(status=Membership.StatusChoices.REMOVED)
+            .select_related("user", "role", "shop__organization")
             .order_by("-joined_at")
         )
 
-    def perform_create(self, serializer):
-        # Handled through Invites rather than direct membership creation
-        pass
+    @extend_schema(request=ChangeRoleSerializer, responses=MembershipSerializer)
+    @action(detail=True, methods=["post"], url_path="role")
+    def change_role(self, request, pk=None):
+        target = self.get_object()
+        s = ChangeRoleSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        role = staff_service.assignable_roles(request.shop).filter(pk=s.validated_data["role_id"]).first()
+        if role is None:
+            raise DomainError("Unknown role.", code="staff.role_invalid", status=400)
+        staff_service.change_role(actor=request.membership, target=target, role=role)
+        return Response(MembershipSerializer(target).data)
+
+    def _set_status(self, request, new_status):
+        target = self.get_object()
+        staff_service.set_status(actor=request.membership, target=target, status=new_status)
+        return Response(MembershipSerializer(target).data)
+
+    @extend_schema(request=None, responses=MembershipSerializer)
+    @action(detail=True, methods=["post"])
+    def suspend(self, request, pk=None):
+        return self._set_status(request, Membership.StatusChoices.SUSPENDED)
+
+    @extend_schema(request=None, responses=MembershipSerializer)
+    @action(detail=True, methods=["post"])
+    def reactivate(self, request, pk=None):
+        return self._set_status(request, Membership.StatusChoices.ACTIVE)
+
+    @extend_schema(request=None, responses={204: None})
+    @action(detail=True, methods=["post"])
+    def remove(self, request, pk=None):
+        self._set_status(request, Membership.StatusChoices.REMOVED)
+        return Response(status=status.HTTP_204_NO_CONTENT)

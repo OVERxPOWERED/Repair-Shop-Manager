@@ -49,6 +49,7 @@ PERMISSION_CODES = {
     "shop.settings": "Update shop profile, GST settings, and brand configuration",
     "printers.configure": "Configure Bluetooth thermal printers",
     "billing.subscription": "Manage FixPro subscription and billing",
+    "audit.view": "View the shop audit log",
 }
 
 # Predefined role permission matrices
@@ -63,6 +64,7 @@ SYSTEM_ROLES = {
             "data.bulk_delete",
             "roles.manage",
             "billing.subscription",
+            "audit.view",
         )
     ],
     "Front Desk": [
@@ -101,35 +103,27 @@ SYSTEM_ROLES = {
 }
 
 
-class HasShopPermission(permissions.BasePermission):
-    """
-    DRF Permission class to check if current user's membership in request.shop
-    contains the required permission code.
-    Owners always have full permission.
-    """
+ANY_MEMBER = "__any_member__"  # permission_map value: any active member of the shop
 
-    def __init__(self, required_permission: str | None = None):
-        self.required_permission = required_permission
-        super().__init__()
+
+class IsShopMember(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        from apps.tenancy.context import resolve_shop_context
+
+        resolve_shop_context(request)
+        return True
+
+
+class HasShopPermission(permissions.BasePermission):
+    """Deny by default: the view must map the current action to a permission code."""
+
+    message = "You do not have permission to do this."
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        if getattr(request.user, "is_platform_admin", False):
-            return True
-
-        # Check tenant context
         membership = getattr(request, "membership", None)
-        if not membership or membership.status != "active":
+        code = view.get_required_permission()
+        if membership is None or code is None:
             return False
-
-        # Owner role automatically has all permissions
-        if membership.role.name == "Owner":
-            return True
-
-        perm = getattr(view, "required_permission", self.required_permission)
-        if not perm:
-            return True
-
-        return perm in membership.role.permissions
+        return code == ANY_MEMBER or membership.has_perm(code)

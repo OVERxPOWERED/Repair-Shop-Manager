@@ -42,7 +42,7 @@ def test_validation_shape(client_for, world):
     r = client_for(world.owner_a).post("/api/v1/tenancy/onboard/", {}, format="json")
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "validation.failed"
-    assert "shop_name" in r.json()["error"]["fields"]
+    assert "name" in r.json()["error"]["fields"]
 
 
 @pytest.mark.parametrize(("d", "fy"), [(date(2027, 3, 31), 2026), (date(2027, 4, 1), 2027), (date(2026, 12, 1), 2026)])

@@ -2,9 +2,11 @@
 Serializers for tenancy resources.
 """
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from apps.accounts.serializers import normalize_phone
+from apps.core.validators import validate_gstin, validate_state_code, validate_upi_id
 from apps.tenancy.models import Invite, Membership, Organization, Role, Shop
 
 
@@ -22,64 +24,83 @@ class OrganizationSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "status", "created_at")
 
 
+SHOP_FIELDS = (
+    "id",
+    "organization_id",
+    "name",
+    "shop_type",
+    "phone",
+    "address_line1",
+    "address_line2",
+    "city",
+    "pincode",
+    "state_code",
+    "timezone",
+    "default_locale",
+    "gst_enabled",
+    "gstin",
+    "registration_type",
+    "upi_id",
+    "invoice_prefix",
+    "round_off_enabled",
+    "lock_order_after_delivery",
+    "engineers_see_assigned_only",
+    "mask_phone_for_engineers",
+    "default_warranty_days",
+    "tracking_enabled",
+    "tracking_expiry_days",
+    "version",
+    "created_at",
+    "updated_at",
+)
+
+
+def _django_to_drf(func, value, field):
+    try:
+        return func(value)
+    except DjangoValidationError as err:
+        raise serializers.ValidationError({field: err.messages}) from err
+
+
 class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
-        fields = (
-            "id",
-            "organization_id",
-            "name",
-            "shop_type",
-            "phone",
-            "address_line1",
-            "address_line2",
-            "city",
-            "pincode",
-            "state_code",
-            "latitude",
-            "longitude",
-            "logo_key",
-            "timezone",
-            "default_locale",
-            "gst_enabled",
-            "gstin",
-            "registration_type",
-            "upi_id",
-            "invoice_prefix",
-            "round_off_enabled",
-            "lock_order_after_delivery",
-            "engineers_see_assigned_only",
-            "mask_phone_for_engineers",
-            "default_warranty_days",
-            "tracking_enabled",
-            "tracking_expiry_days",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = ("id", "organization_id", "created_at", "updated_at")
-
-
-class OnboardShopSerializer(serializers.Serializer):
-    """
-    Used during initial onboarding to provision organization and first shop.
-    """
-
-    organization_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    shop_name = serializers.CharField(max_length=150)
-    shop_type = serializers.ChoiceField(choices=Shop.ShopTypeChoices.choices, default=Shop.ShopTypeChoices.MOBILE)
-    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    address_line1 = serializers.CharField(required=False, allow_blank=True, default="")
-    city = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
-    pincode = serializers.CharField(max_length=10, required=False, allow_blank=True, default="")
-    state_code = serializers.CharField(max_length=2, required=False, allow_blank=True, default="")
-    gst_enabled = serializers.BooleanField(default=False)
-    gstin = serializers.CharField(max_length=15, required=False, allow_null=True, allow_blank=True)
-    upi_id = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
+        fields = SHOP_FIELDS
+        read_only_fields = ("id", "organization_id", "version", "created_at", "updated_at")
 
     def validate_phone(self, value):
-        if value:
-            return normalize_phone(value)
-        return value
+        return normalize_phone(value) if value else value
+
+    def validate(self, attrs):
+        def current(name, default=None):
+            return attrs.get(name, getattr(self.instance, name, default))
+
+        gst_enabled = current("gst_enabled", False)
+        gstin = current("gstin")
+        state_code = current("state_code", "")
+        _django_to_drf(validate_state_code, state_code, "state_code")
+        _django_to_drf(validate_upi_id, current("upi_id"), "upi_id")
+        if gst_enabled:
+            if not gstin:
+                raise serializers.ValidationError({"gstin": ["GSTIN is required when GST is enabled."]})
+            gstin = _django_to_drf(validate_gstin, gstin, "gstin")
+            attrs["gstin"] = gstin
+            if state_code and state_code != gstin[:2]:
+                raise serializers.ValidationError({"state_code": ["State code must match the GSTIN."]})
+            attrs["state_code"] = gstin[:2]
+            if current("registration_type", "unregistered") == "unregistered":
+                attrs["registration_type"] = Shop.RegistrationTypeChoices.REGULAR
+        else:
+            attrs["registration_type"] = Shop.RegistrationTypeChoices.UNREGISTERED
+        return attrs
+
+
+class OnboardShopSerializer(ShopSerializer):
+    organization_name = serializers.CharField(max_length=150, required=False, allow_blank=True, write_only=True)
+
+    class Meta(ShopSerializer.Meta):
+        fields = (*SHOP_FIELDS, "organization_name")
+        extra_kwargs = {"name": {"required": True}, "phone": {"required": False}}
 
 
 class MembershipSerializer(serializers.ModelSerializer):
@@ -100,8 +121,14 @@ class MembershipSerializer(serializers.ModelSerializer):
             "status",
             "display_name",
             "joined_at",
+            "created_at",
+            "updated_at",
         )
-        read_only_fields = ("id", "user_id", "shop_id", "joined_at")
+        read_only_fields = fields
+
+
+class ChangeRoleSerializer(serializers.Serializer):
+    role_id = serializers.UUIDField()
 
 
 class InviteSerializer(serializers.ModelSerializer):
@@ -119,7 +146,4 @@ class InviteSerializer(serializers.ModelSerializer):
             "accepted_at",
             "created_at",
         )
-        read_only_fields = ("id", "shop_id", "expires_at", "accepted_at", "created_at")
-
-    def validate_phone(self, value):
-        return normalize_phone(value)
+        read_only_fields = ("id", "shop_id", "created_at")

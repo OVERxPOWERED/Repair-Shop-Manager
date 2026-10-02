@@ -95,6 +95,7 @@ class Shop(UUIDModel, TimeStampedModel, SoftDeletableModel):
     tracking_expiry_days = models.PositiveIntegerField(
         default=30, help_text="Days after delivery customer web tracking token remains active"
     )
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name = _("Shop")
@@ -153,11 +154,18 @@ class Membership(UUIDModel, TimeStampedModel):
     class Meta:
         verbose_name = _("Membership")
         verbose_name_plural = _("Memberships")
-        unique_together = ("user", "shop")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "shop"], condition=~models.Q(status="removed"), name="membership_uniq_live"
+            ),
+        ]
         indexes = [
             models.Index(fields=["shop", "status"]),
             models.Index(fields=["user", "status"]),
         ]
+
+    def has_perm(self, code: str) -> bool:
+        return self.status == self.StatusChoices.ACTIVE and code in (self.role.permissions or [])
 
     def __str__(self):
         return f"{self.user.phone} @ {self.shop.name} ({self.role.name})"
@@ -175,6 +183,7 @@ class Invite(UUIDModel, TimeStampedModel):
     token_hash = models.CharField(max_length=128)
     expires_at = models.DateTimeField()
     accepted_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
     invited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="sent_invites"
     )
