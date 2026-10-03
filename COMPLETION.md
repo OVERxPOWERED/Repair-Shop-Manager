@@ -50,7 +50,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ✅ Done | 2026-10-02 |
 | 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ✅ Done | 2026-10-02 |
 | 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ✅ Done | 2026-10-03 |
-| 0 | [0.15](#015-audit-log) | Audit log | ⬜ Not started | — |
+| 0 | [0.15](#015-audit-log) | Audit log | ✅ Done | 2026-10-03 |
 | 0 | [0.16](#016-staff-invites-and-the-staff--roles-screens) | Staff invites and the Staff / Roles screens | ⬜ Not started | — |
 | 0 | [0.17](#017-pilot-deployment-monitoring-scheduled-jobs-and-backups) | Pilot deployment, monitoring, scheduled jobs and backups | ⬜ Not started | — |
 | 0 | [0.18](#018-phase-0-exit-review) | Phase 0 exit review | ⬜ Not started | — |
@@ -497,20 +497,30 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | 4f947da |
 
-- [ ] 0.15.1 App and model
-- [ ] 0.15.2 Service
-- [ ] 0.15.3 Record these events now
-- [ ] 0.15.4 Read API and admin
-- [ ] 0.15.5 Tests (`apps/audit/tests/test_audit.py`)
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.15.1 App and model
+- [x] 0.15.2 Service
+- [x] 0.15.3 Record these events now
+- [x] 0.15.4 Read API and admin
+- [x] 0.15.5 Tests (`apps/audit/tests/test_audit.py`)
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- uv run pytest: 79 passed
+- uv run ruff check .: clean
+- uv run ruff format --check .: clean
+- python manage.py makemigrations --check --dry-run: No changes detected
+- python manage.py migrate audit zero && python manage.py migrate: reversible migrations verified
+Frontend:
+- pnpm gen:api: successfully generated /audit-logs/ types in schema.d.ts
+- pnpm lint: clean (185 i18n keys)
+- pnpm typecheck: clean
+- pnpm test: 52 passed across 11 test files
 ```
-**Notes:** —
+**Notes:** Created `apps/audit` with `AuditLog` model (UUIDModel, shop FK PROTECT, actor FK PROTECT, action, entity_type/id, before/after JSON diffs, ip, user_agent, request_id, created_at, objects=AppendOnlyQuerySet); enforced append-only rules at QuerySet/Model level (`update()` and `delete()` raise RuntimeError) and at PostgreSQL database level via row trigger `audit_no_update_delete` blocking UPDATE/DELETE; implemented `snapshot(obj, fields)`, `_diff(before, after)`, and `record_audit(...)` in `services.py`; instrumented all 7 required events across `OnboardShopView` (`shop.created`), `CurrentShopView.patch` (`shop.settings_updated`), `StaffViewSet.change_role` (`staff.role_changed`), `StaffViewSet._set_status` (`staff.status_changed`), `VerifyOTPView` (`auth.new_device_login`), `LogoutAllView` (`auth.logout_all`), and `DeviceRevokeView` (`auth.device_revoked`); created `AuditLogSerializer`, `AuditLogViewSet` (`ShopScopedMixin`, `permission_map={"list": "audit.view"}`, django-filter filtering on action, entity_type, entity_id, actor), and read-only Django admin; added 8 pytest unit tests in `apps/audit/tests/test_audit.py` covering model/QuerySet/trigger immutability, shop settings diffing, staff status/role audit logs, auth lifecycle audit logs, permission enforcement (Owner 200, Manager 403), and tenant isolation.
 
 ## 0.16 Staff invites and the Staff / Roles screens
 

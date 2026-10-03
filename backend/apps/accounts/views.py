@@ -22,6 +22,7 @@ from apps.accounts.services import (
     verify_otp_and_login,
 )
 from apps.accounts.tokens import DeviceAwareTokenRefreshSerializer
+from apps.audit.services import record_audit
 from apps.core.api.errors import NotFoundError
 from apps.core.net import get_client_ip
 
@@ -55,13 +56,22 @@ class VerifyOTPView(APIView):
         s = VerifyOTPSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         d = s.validated_data
-        user, _device, tokens, _is_new_device = verify_otp_and_login(
+        user, device, tokens, is_new_device = verify_otp_and_login(
             phone=d["phone"],
             code=d["code"],
             device_id=d["device_id"],
             platform=d["platform"],
             app_version=d.get("app_version", ""),
         )
+        if is_new_device:
+            record_audit(
+                action="auth.new_device_login",
+                entity=device,
+                request=request,
+                actor=user,
+                shop=None,
+                after={"platform": device.platform, "device_id": device.device_id},
+            )
         return Response({"user": UserSerializer(user).data, "tokens": tokens, "shops": my_shops(user)})
 
 
@@ -101,6 +111,12 @@ class LogoutView(APIView):
 class LogoutAllView(APIView):
     @extend_schema(request=None, responses={204: None}, summary="Log out all devices")
     def post(self, request):
+        record_audit(
+            action="auth.logout_all",
+            request=request,
+            actor=request.user,
+            shop=None,
+        )
         logout_everywhere(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -119,5 +135,13 @@ class DeviceRevokeView(APIView):
         device = UserDevice.objects.filter(user=request.user, pk=pk, revoked_at__isnull=True).first()
         if device is None:
             raise NotFoundError()
+        record_audit(
+            action="auth.device_revoked",
+            entity=device,
+            request=request,
+            actor=request.user,
+            shop=None,
+            after={"device_id": device.device_id},
+        )
         revoke_device(device)
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -2,13 +2,21 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.15 (Audit log)  **Last updated:** 2026-10-03
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.16 (Staff invites and the Staff / Roles screens)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.14 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.15 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Append-Only Audit Log (Subphase 0.15):**
+  - Created `apps/audit` with `AuditLog` model (UUID PK, shop FK PROTECT, actor FK PROTECT, action, entity_type/id, before/after JSON diffs, ip, user_agent, request_id, created_at, objects=AppendOnlyQuerySet).
+  - Enforced append-only guarantees at Model/QuerySet levels (`update()` and `delete()` raise RuntimeError) and at PostgreSQL database level via row trigger `audit_no_update_delete` blocking UPDATE and DELETE.
+  - Implemented `snapshot(obj, fields)`, `_diff(before, after)`, and `record_audit(...)` in `apps/audit/services.py`.
+  - Instrumented audit events across 7 lifecycle actions: `shop.created` on onboarding, `shop.settings_updated` (storing diff of changed keys on PATCH `/shops/current/`), `staff.role_changed` (storing before/after role_id on POST `/staff/<id>/role/`), `staff.status_changed` (storing before/after status on suspend/reactivate/remove), `auth.new_device_login` (storing platform and device_id on new device OTP verify), `auth.logout_all` (on POST `/auth/logout-all/`), and `auth.device_revoked` (storing device_id on DELETE `/auth/devices/<id>/`).
+  - Created `AuditLogSerializer`, `AuditLogViewSet` (`ShopScopedMixin`, `permission_map={"list": "audit.view"}`, django-filter filtering on `action`, `entity_type`, `entity_id`, `actor`), and read-only Django admin.
+  - Added 8 unit tests in `apps/audit/tests/test_audit.py` (model/QuerySet/trigger immutability, shop settings diffing, staff status/role audit logs, auth lifecycle audit logs, permission enforcement: Owner 200, Manager 403, and tenant isolation).
+  - All 79 backend tests and 52 frontend tests passing; lint, typecheck, migrations, and reversibility verified clean.
 - **App Shell, Navigation and Shared States (+ iPhone) (Subphase 0.14):**
   - Implemented shared state components in `src/components/states/`: `ListSkeleton`, `CardSkeleton`, `EmptyState`, `ErrorState`, `PermissionDenied`, `OfflineBanner`, and centralized exports in `index.ts`.
   - Implemented shell navigation components in `src/components/shell/`: `AppHeader` (dynamic multi-shop switcher chevron, notification bell, user initials avatar linking to `/more/`), `ShopSwitcher` (sheet listing user shops with selection and `queryClient.clear()`), and `BottomNav` (5 tabs: Home, Jobs, Customers, Inventory, More; >=48px touch targets, safe area).
