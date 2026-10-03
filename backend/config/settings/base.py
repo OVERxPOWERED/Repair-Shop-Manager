@@ -60,6 +60,7 @@ LOCAL_APPS = [
     "apps.billing.apps.BillingConfig",
     "apps.documents.apps.DocumentsConfig",
     "apps.tracking.apps.TrackingConfig",
+    "apps.messaging.apps.MessagingConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -205,6 +206,9 @@ SIMPLE_JWT = {
 }
 
 SMS_PROVIDER = os.environ.get("SMS_PROVIDER", "apps.core.sms.ConsoleSmsProvider")
+SMS_API_KEY = os.environ.get("SMS_API_KEY", "")
+SMS_SENDER_ID = os.environ.get("SMS_SENDER_ID", "FIXPRO")
+SMS_DLT_OTP_TE_ID = os.environ.get("SMS_DLT_OTP_TE_ID", "")
 
 
 def _parse_otp_test_numbers(raw: str) -> dict[str, str]:

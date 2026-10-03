@@ -97,6 +97,9 @@ class Shop(UUIDModel, TimeStampedModel, SoftDeletableModel):
     tracking_expiry_days = models.PositiveIntegerField(
         default=30, help_text="Days after delivery customer web tracking token remains active"
     )
+    auto_sms_events = models.JSONField(
+        default=list, blank=True, help_text="List of events that trigger automated customer SMS"
+    )
     version = models.PositiveIntegerField(default=1)
 
     class Meta:

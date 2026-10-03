@@ -79,6 +79,8 @@ class JobViewSet(ShopScopedViewSet):
         "payments": "payments.view",
         "record_payment": "payments.record",
         "create_invoice": "invoices.create_draft",
+        "messages": "jobs.view",
+        "send_message": "jobs.edit",
     }
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
@@ -499,6 +501,61 @@ class JobViewSet(ShopScopedViewSet):
         job = self.get_object()
         invoice = create_draft_from_job(job=job, actor=request.user, request=request)
         return Response(InvoiceSerializer(invoice, context={"request": request}).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"], url_path="messages")
+    def messages(self, request, pk=None):
+        job = self.get_object()
+        membership = request.membership
+        if not (membership and membership.has_perm("jobs.view")):
+            raise DomainError(
+                "You do not have permission to view messages.",
+                code="permission.denied",
+                status=403,
+            )
+        from apps.messaging.serializers import MessageLogSerializer
+
+        logs = job.message_logs.filter(deleted_at__isnull=True).order_by("-created_at")
+        return Response(MessageLogSerializer(logs, many=True).data)
+
+    @action(detail=True, methods=["post"], url_path="messages/send")
+    def send_message(self, request, pk=None):
+        job = self.get_object()
+        membership = request.membership
+        if not (membership and membership.has_perm("jobs.edit")):
+            raise DomainError(
+                "You do not have permission to send messages for this repair job.",
+                code="permission.denied",
+                status=403,
+            )
+        from apps.audit.services import record_audit
+        from apps.messaging.serializers import MessageLogSerializer, SendJobMessageSerializer
+        from apps.messaging.services import send_job_message
+
+        serializer = SendJobMessageSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        key = serializer.validated_data["key"]
+        channel = serializer.validated_data.get("channel", "sms")
+
+        log = send_job_message(job=job, key=key, actor=request.user, channel=channel)
+
+        record_audit(
+            actor=request.user,
+            shop=request.shop,
+            request=request,
+            action="job.message_sent",
+            entity=job,
+            after={
+                "key": key,
+                "channel": channel,
+                "log_id": str(log.id) if log else None,
+            },
+        )
+
+        return Response(
+            MessageLogSerializer(log).data if log else {},
+            status=status.HTTP_200_OK,
+        )
 
 
 class DashboardSummaryView(APIView):

@@ -80,6 +80,7 @@ SHOP_FIELDS = (
     "default_warranty_days",
     "tracking_enabled",
     "tracking_expiry_days",
+    "auto_sms_events",
     "version",
     "created_at",
     "updated_at",
@@ -101,6 +102,17 @@ class ShopSerializer(serializers.ModelSerializer):
 
     def validate_phone(self, value):
         return normalize_phone(value) if value else value
+
+    def validate_auto_sms_events(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("auto_sms_events must be a list.")
+        allowed = {"job_received", "ready_for_pickup", "delivered"}
+        invalid = set(value) - allowed
+        if invalid:
+            raise serializers.ValidationError(
+                f"Invalid auto_sms_events: {', '.join(sorted(invalid))}. Allowed: {', '.join(sorted(allowed))}."
+            )
+        return list(dict.fromkeys(value))
 
     def validate(self, attrs):
         def current(name, default=None):

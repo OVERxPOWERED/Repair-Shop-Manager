@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import uuid
 
@@ -52,13 +53,29 @@ def recalculate_job_totals(job: Job) -> Job:
 
 
 def on_job_created(job: Job) -> None:
-    """Hook: extended in 1.11 (advance payment) and 1.19 (intake notification)."""
-    pass
+    """Hook: called after a job is created. Triggers automated SMS if enabled."""
+    events = getattr(job.shop, "auto_sms_events", None) or []
+    if "job_received" in events:
+        from apps.messaging.services import send_job_message
+
+        with contextlib.suppress(Exception):
+            send_job_message(job=job, key="job_received")
 
 
 def on_job_status_changed(job: Job, from_status: str) -> None:
-    """Hook: extended in 1.19 (status notification) and 2.3 (SMS/WhatsApp triggers)."""
-    pass
+    """Hook: called on job workflow status transitions. Triggers automated SMS if enabled."""
+    events = getattr(job.shop, "auto_sms_events", None) or []
+    from apps.messaging.services import send_job_message
+
+    target_key = None
+    if job.status == JobStatus.READY_FOR_PICKUP and "ready_for_pickup" in events:
+        target_key = "ready_for_pickup"
+    elif job.status == JobStatus.DELIVERED and "delivered" in events:
+        target_key = "delivered"
+
+    if target_key:
+        with contextlib.suppress(Exception):
+            send_job_message(job=job, key=target_key)
 
 
 def notify_assignment(job: Job) -> None:

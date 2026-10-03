@@ -21,6 +21,7 @@ urlpatterns = [
     path("api/v1/", include("apps.jobs.urls")),
     path("api/v1/", include("apps.billing.urls")),
     path("api/v1/", include("apps.documents.urls")),
+    path("api/v1/", include("apps.messaging.urls")),
 ]
 
 if settings.DEBUG:
