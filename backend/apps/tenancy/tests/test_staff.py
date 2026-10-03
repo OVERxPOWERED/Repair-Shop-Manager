@@ -110,3 +110,37 @@ def test_removed_member_can_be_re_added(client_for, world):
 def test_other_shop_staff_hidden(client_for, world):
     c = client_for(world.owner_a, world.shop_a)
     assert_other_shop_hidden(c, f"/api/v1/staff/{world.membership_owner_b.id}/", methods=("get",))
+
+
+def test_engineer_can_list_assignable_staff(client_for, world):
+    # Engineer does not have staff.view, but has jobs.create -> /staff/ is 403, /staff/assignable/ is 200
+    c_eng = client_for(world.engineer_a, world.shop_a)
+    assert c_eng.get("/api/v1/staff/").status_code == 403
+
+    r = c_eng.get("/api/v1/staff/assignable/")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    # All members in shop_a who have jobs.change_status (Owner, Manager, Front Desk, Engineer)
+    ids = [item["id"] for item in data]
+    assert str(world.membership_owner_a.id) in ids
+    assert str(world.membership_engineer_a.id) in ids
+
+    # Check payload shape: only {id, display_name, role_name}
+    first = data[0]
+    assert set(first.keys()) == {"id", "display_name", "role_name"}
+
+
+def test_assignable_excludes_suspended_and_other_shop(client_for, world):
+    # Suspend engineer
+    eng_m = world.membership_engineer_a
+    eng_m.status = Membership.StatusChoices.SUSPENDED
+    eng_m.save()
+
+    c = client_for(world.owner_a, world.shop_a)
+    r = c.get("/api/v1/staff/assignable/")
+    assert r.status_code == 200
+    ids = [item["id"] for item in r.json()["data"]]
+    # Suspended engineer is not returned
+    assert str(eng_m.id) not in ids
+    # Other shop B members are not returned
+    assert str(world.membership_owner_b.id) not in ids

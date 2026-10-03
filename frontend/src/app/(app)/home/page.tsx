@@ -133,18 +133,14 @@ export default function HomePage() {
           Quick Operations
         </h2>
         <div className="grid grid-cols-4 gap-2.5">
-          {/* Tile 1: Add Job (disabled until 1.7) */}
-          <button
-            type="button"
-            disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-neutral-900 text-white flex flex-col items-center justify-center p-2 text-center shadow-sm opacity-80 cursor-not-allowed"
+          {/* Tile 1: Add Job */}
+          <Link
+            href="/jobs/new/"
+            className="relative col-span-1 aspect-square rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex flex-col items-center justify-center p-2 text-center shadow-sm active:scale-95 transition-transform"
           >
-            <Plus className="w-5 h-5 mb-1 text-white" />
+            <Plus className="w-5 h-5 mb-1 text-white dark:text-neutral-900" />
             <span className="text-[11px] font-bold leading-tight">Add Job</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-amber-400 text-neutral-950 text-[9px] font-extrabold uppercase">
-              Soon
-            </span>
-          </button>
+          </Link>
 
           {/* Tile 2: Rough Reg */}
           <button

@@ -727,6 +727,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/assignable/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description X-Shop-Id -> request.shop/membership, then permission_map[action] is required. */
+        get: operations["staff_assignable_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tenancy/onboard/": {
         parameters: {
             query?: never;
@@ -763,6 +780,12 @@ export interface components {
             name: string;
             is_default?: boolean;
             sort_order?: number;
+        };
+        AssignableStaff: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly display_name: string;
+            readonly role_name: string;
         };
         AuditLog: {
             /** Format: uuid */
@@ -1208,6 +1231,17 @@ export interface components {
         };
         PaginatedAccessoryOptionList: {
             data: components["schemas"]["AccessoryOption"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
+        PaginatedAssignableStaffList: {
+            data: components["schemas"]["AssignableStaff"][];
             meta: {
                 count?: number;
                 page?: number;
@@ -3063,6 +3097,34 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["Membership"];
+                    };
+                };
+            };
+        };
+    };
+    staff_assignable_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedAssignableStaffList"];
                     };
                 };
             };

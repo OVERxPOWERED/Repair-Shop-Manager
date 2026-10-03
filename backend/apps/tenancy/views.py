@@ -17,6 +17,7 @@ from apps.tenancy.models import AccessoryOption, Invite, Membership, Role, ShopB
 from apps.tenancy.permissions import ANY_MEMBER
 from apps.tenancy.serializers import (
     AccessoryOptionSerializer,
+    AssignableStaffSerializer,
     ChangeRoleSerializer,
     CreateInviteSerializer,
     InviteSerializer,
@@ -160,6 +161,7 @@ class StaffViewSet(ShopScopedMixin, mixins.ListModelMixin, mixins.RetrieveModelM
         "suspend": "staff.manage",
         "reactivate": "staff.manage",
         "remove": "staff.manage",
+        "assignable": "jobs.create",
     }
 
     def get_queryset(self):
@@ -171,6 +173,17 @@ class StaffViewSet(ShopScopedMixin, mixins.ListModelMixin, mixins.RetrieveModelM
             .select_related("user", "role", "shop__organization")
             .order_by("-joined_at")
         )
+
+    @extend_schema(responses={200: AssignableStaffSerializer(many=True)})
+    @action(detail=False, methods=["get"], url_path="assignable")
+    def assignable(self, request):
+        members = (
+            Membership.objects.filter(shop=request.shop, status=Membership.StatusChoices.ACTIVE)
+            .select_related("user", "role")
+            .order_by("user__name", "user__phone")
+        )
+        assignable_members = [m for m in members if m.has_perm("jobs.change_status")]
+        return Response(AssignableStaffSerializer(assignable_members, many=True).data)
 
     @extend_schema(request=ChangeRoleSerializer, responses=MembershipSerializer)
     @action(detail=True, methods=["post"], url_path="role")

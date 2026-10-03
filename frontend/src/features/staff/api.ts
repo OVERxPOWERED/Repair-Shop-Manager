@@ -17,6 +17,12 @@ export type StaffMember = {
   updated_at: string;
 };
 
+export type AssignableStaff = {
+  id: string;
+  display_name: string;
+  role_name: string;
+};
+
 export type Role = {
   id: string;
   name: string;
@@ -55,6 +61,15 @@ export function useStaffList() {
       const res = await apiList<StaffMember>("/staff/");
       return res.items;
     },
+    enabled: Boolean(shopId),
+  });
+}
+
+export function useAssignableStaff() {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: ["staff", "assignable", shopId],
+    queryFn: () => api<AssignableStaff[]>("/staff/assignable/"),
     enabled: Boolean(shopId),
   });
 }

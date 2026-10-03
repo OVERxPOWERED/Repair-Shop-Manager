@@ -2,12 +2,20 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.7 (Job intake wizard: 8 steps)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.8 (Status workflow, assignment, visibility and dashboard API)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Job Intake Wizard (8 Steps) (Subphase 1.7):**
+  - Added `GET /api/v1/staff/assignable/` on `StaffViewSet` returning active non-suspended staff members (`AssignableStaffSerializer`) with unit tests in `apps/tenancy/tests/test_staff.py` (125 total backend pytest tests passing).
+  - Built `useIntakeStore` with Zustand `persist` to `localStorage` key `fixpro.intakeDraft` with strict exclusion of lock secret (`lockValue`) and photo blobs. Supports draft restoration banner with discard action.
+  - Implemented interactive 3x3 `PatternInput` with SVG connections, drag pointer tracking, step badges, and haptic feedback.
+  - Built 8-step intake wizard at `src/app/(app)/jobs/new/page.tsx` with top progress indicator, per-step Zod validation, skippable optional steps, and modular step components (`IntakeStepCustomer`, `IntakeStepDevice`, `IntakeStepCondition`, `IntakeStepAccessories`, `IntakeStepProblem`, `IntakeStepEstimate`, `IntakeStepAssignment`, `IntakeStepConfirmation`).
+  - Added sequential photo upload post-creation with partial failure warning toast and redirection to job detail.
+  - Added 150 new i18n translation keys across all 3 locales (`en`, `hi`, `hi-Latn`) bringing total catalog to 555 keys (100% key parity).
+  - Vitest 90/90 tests passing; static production export generated cleanly (21/21 pages, `/jobs/new` 21.9 kB).
 - **File Storage and Job Photos (Subphase 1.6):**
   - Integrated `django-storages[s3]>=1.14` and `Pillow>=10.4`; configured `FileSystemStorage` under `MEDIA_ROOT` for dev/test and private S3/R2 storage for prod.
   - Built image normalization in `apps/core/images.py` (`normalise_photo`) stripping EXIF/GPS metadata, fixing rotation via `exif_transpose`, resizing to max 1600px side, and re-encoding to quality 80 JPEG.

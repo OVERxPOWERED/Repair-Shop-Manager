@@ -61,7 +61,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | ✅ Done | 2026-10-03 |
 | 1 | [1.5](#15-jobs-core-api-job-sheet-numbering-lock-encryption) | Jobs core API (job sheet, numbering, lock encryption) | ✅ Done | 2026-10-03 |
 | 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ✅ Done | 2026-10-03 |
-| 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ⬜ Not started | — |
+| 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ✅ Done | 2026-10-03 |
 | 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ⬜ Not started | — |
 | 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ⬜ Not started | — |
 | 1 | [1.10](#110-imei-barcode-scan-ocr-capture-and-check-imei) | IMEI barcode scan, OCR capture and "Check IMEI" | ⬜ Not started | — |
@@ -781,19 +781,30 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
 
-- [ ] 1.7.1 Supporting endpoint
-- [ ] 1.7.2 Draft state
-- [ ] 1.7.3 Steps (`(app)/jobs/new/page.tsx` with a `StepProgressBar`)
-- [ ] 1.7.4 i18n and tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.7.1 Supporting endpoint (`GET /api/v1/staff/assignable/` and `useAssignableStaff`)
+- [x] 1.7.2 Draft state (`useIntakeStore` with Zustand `persist` to `fixpro.intakeDraft`, omitting lock secrets and photo blobs)
+- [x] 1.7.3 Steps (`(app)/jobs/new/page.tsx` with 8-segment progress line and modular step components)
+- [x] 1.7.4 i18n and tests (150 keys across `en`, `hi`, `hi-Latn`, 24 intake-schema Vitest tests, PatternInput with haptics)
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- ruff check .: All checks passed!
+- ruff format --check .: 134 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+- pytest: 125 passed across all test suites (including test_staff.py assignable action)
+
+Frontend:
+- pnpm lint: No ESLint warnings or errors
+- pnpm i18n:check: 555 keys across all 3 locales (100% key parity)
+- pnpm typecheck: 0 errors
+- pnpm test: vitest 90 passed across 14 test files (including 24 intake-schema tests)
+- pnpm build: next build static export generated (21/21 pages, /jobs/new bundled at 21.9 kB)
 ```
-**Notes:** —
+**Notes:** Built complete 8-step job intake wizard (`(app)/jobs/new/page.tsx`). Added `GET /api/v1/staff/assignable/` supporting endpoint returning active non-suspended staff members (`AssignableStaffSerializer`) with unit tests in `apps/tenancy/tests/test_staff.py` (125 total backend pytest tests passing). Built Zustand draft store (`useIntakeStore`) persisted to `localStorage` under `fixpro.intakeDraft` with strict exclusion of lock secret (`lockValue`) and photo blobs. Implemented interactive 3x3 `PatternInput` with SVG connections, drag pointer tracking, step badges, and haptic feedback. Built dedicated intake steps: Step 1 (Customer search / new customer), Step 2 (Device selector with customer past devices / category / brand / model / Luhn IMEI check), Step 3 (Condition chips, notes, photo strip), Step 4 (Accessory checklist with shop defaults), Step 5 (Fault description, chips, PIN/Pattern/Password selector, staff internal note), Step 6 (MoneyInput estimate in paise and target date), Step 7 (Priority level and technician assignment), Step 8 (Complete intake review and confirmation with quick edit shortcuts). Added sequential photo upload post-creation with partial failure warning toast. Added 150 new i18n translation keys across all 3 locales (`en`, `hi`, `hi-Latn`) bringing total catalog to 555 keys.
 
 ## 1.8 Status workflow, assignment, visibility and dashboard API
 

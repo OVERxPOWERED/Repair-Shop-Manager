@@ -158,6 +158,15 @@ class MembershipSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class AssignableStaffSerializer(serializers.ModelSerializer):
+    role_name = serializers.CharField(source="role.name", read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = ("id", "display_name", "role_name")
+        read_only_fields = fields
+
+
 class ChangeRoleSerializer(serializers.Serializer):
     role_id = serializers.UUIDField()
 
