@@ -960,7 +960,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | (pending commit) |
+| ✅ Done | 2026-10-03 | 2026-10-03 | 08669ef |
 
 - [x] 1.13.1 Models (`apps/billing/models.py`)
 - [x] 1.13.2 Immutability
