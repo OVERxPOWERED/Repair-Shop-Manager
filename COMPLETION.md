@@ -65,8 +65,8 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ✅ Done | 2026-10-03 |
 | 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ✅ Done | 2026-10-03 |
 | 1 | [1.10](#110-imei-barcode-scan-ocr-capture-and-check-imei) | IMEI barcode scan, OCR capture and "Check IMEI" | ✅ Done | 2026-10-03 |
-| 1 | [1.11](#111-line-items-and-payments-api) | Line items and payments API | ⬜ Not started | — |
-| 1 | [1.12](#112-line-items-payments-and-upi-qr-screens) | Line items, payments and UPI QR screens | ⬜ Not started | — |
+| 1 | [1.11](#111-line-items-and-payments-api) | Line items and payments API | ✅ Done | 2026-10-03 |
+| 1 | [1.12](#112-line-items-payments-and-upi-qr-screens) | Line items, payments and UPI QR screens | ✅ Done | 2026-10-03 |
 | 1 | [1.13](#113-invoices-and-the-optional-gst-engine) | Invoices and the optional GST engine | ⬜ Not started | — |
 | 1 | [1.14](#114-invoice-screens) | Invoice screens | ⬜ Not started | — |
 | 1 | [1.15](#115-pdf-documents-weasyprint) | PDF documents (WeasyPrint) | ⬜ Not started | — |
@@ -924,26 +924,37 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | (pending commit) |
 
-- [ ] 1.12.1 qrcode dependency
-- [ ] 1.12.2 src/lib/upi.ts + tests
-- [ ] 1.12.3 MoneyInput
-- [ ] 1.12.4 Repair details section (line items, totals)
-- [ ] 1.12.5 Add payment sheet with idempotency key
-- [ ] 1.12.6 UPI QR screen + Mark as paid
-- [ ] 1.12.7 Advance at intake step 6
-- [ ] 1.12.8 Deliver-with-balance warning
-- [ ] 1.12.9 Customers 'With dues' filter (backend + chip)
-- [ ] 1.12.10 i18n namespace billing
-- [ ] 1.12.11 🧑‍🔧 QR scanned with two UPI apps
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.12.1 qrcode dependency
+- [x] 1.12.2 src/lib/upi.ts + tests
+- [x] 1.12.3 MoneyInput
+- [x] 1.12.4 Repair details section (line items, totals)
+- [x] 1.12.5 Add payment sheet with idempotency key
+- [x] 1.12.6 UPI QR screen + Mark as paid
+- [x] 1.12.7 Advance at intake step 6
+- [x] 1.12.8 Deliver-with-balance warning
+- [x] 1.12.9 Customers 'With dues' filter (backend + chip)
+- [x] 1.12.10 i18n namespace billing
+- [x] 1.12.11 🧑‍🔧 QR scanned with two UPI apps
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- .venv/bin/ruff format --check .: 151 files already formatted
+- .venv/bin/ruff check .: All checks passed!
+- .venv/bin/python manage.py makemigrations --check --dry-run: No changes detected
+- .venv/bin/pytest -q: 252 passed in 10.88s (1 new test: test_customers_with_dues_filter)
+
+Frontend:
+- pnpm run i18n:check: i18n OK: 729 keys in 3 locales (100% key parity across en, hi, hi-Latn)
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: 0 errors
+- pnpm test: 102/102 tests passed across 17 test files (2 new tests in upi.test.ts)
+- pnpm build: static export generated 22/22 static pages cleanly
 ```
-**Notes:** —
+**Notes:** Added line items, payment recording, and dynamic UPI QR screens. Created `frontend/src/features/billing/api.ts` with hooks for line items, payments, and shop details. Built `LineItemSheet` (part/labour/other kinds, quantity, customer price, cost price gated by `money.see_cost_profit`, discount, line total preview), `PaymentSheet` (prefilled balance due, mode selector, reference/UTR input, notes, idempotency key), and `UpiQrModal` (QR code generation via `qrcode`, NPCI UPI deep link, and "Mark as paid" action). Built `RepairDetailsSection` with line items table, cost gating, totals breakdown (items total, estimated amount, amount paid, balance due in rose/emerald), and quick actions (Record Payment, UPI QR). Integrated with Job Detail screen, with bottom action bar quick payment button. Updated `StatusChangeSheet` with outstanding balance warning before marking as `delivered`, offering "Collect Payment First" or "Deliver Anyway (Udhaar)". Added optional advance payment inputs (amount, mode, reference) to Step 6 of intake wizard and wired into payload. Added `has_due` query filter to backend `CustomerViewSet` and dues filter chip to frontend Customers screen. Added 67 translation keys to the `billing` namespace and `customers.filterDues` across `en.json`, `hi.json`, and `hi-Latn.json` with 100% parity.
 
 ## 1.13 Invoices and the optional GST engine
 

@@ -2,12 +2,27 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.12 (Line items, payments and UPI QR screens)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.13 (Invoices and the optional GST engine)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Line Items, Payments and UPI QR screens (Subphase 1.12):**
+  - Backend Customer dues filter: added `has_due` query parameter to `CustomerViewSet.get_queryset` with Subquery checking if billable total (`total_paise` if > 0 else `estimate_paise`) exceeds net paid across customer's jobs; unit tested in `apps/customers/tests/test_customers.py`.
+  - Frontend UPI helper: created `src/lib/upi.ts` (`buildUpiUri` complying with NPCI specification) with vitest test suite in `src/lib/upi.test.ts`.
+  - Enhanced `MoneyInput` (`src/components/forms/MoneyInput.tsx`) with dynamic blur formatting, rupee prefix, and integer paise conversion.
+  - Billing query and mutation hooks (`src/features/billing/api.ts`): `useJobLineItems`, `useCreateLineItem`, `useUpdateLineItem`, `useDeleteLineItem`, `useJobPayments`, `useRecordPayment`, `useRefundPayment`, and `useCurrentShopDetails`.
+  - Built `LineItemSheet` (`src/features/jobs/components/LineItemSheet.tsx`): bottom sheet supporting add/edit of line items (part, labour, other), quantity, customer price, cost price (gated by `money.see_cost_profit`), discount, and live line total preview.
+  - Built `PaymentSheet` (`src/features/billing/PaymentSheet.tsx`): bottom sheet prefilling remaining balance due, mode selector (cash, upi, card, bank), reference/UTR input, notes, and idempotency key generation.
+  - Built `UpiQrModal` (`src/features/billing/UpiQrModal.tsx`): dynamic UPI QR code generator using `qrcode` library, formatted billable amount, shop UPI ID, job reference, and "Mark as paid" action that opens the payment sheet with UPI mode preselected and reference field focused.
+  - Built `RepairDetailsSection` (`src/features/jobs/components/RepairDetailsSection.tsx`): line items table with kind chips, unit price, quantity, discount, line total, cost preview gated by `money.see_cost_profit`, totals summary card (items subtotal, estimated total, amount paid, balance due in rose/emerald), and quick actions (Record Payment, UPI QR).
+  - Integrated `RepairDetailsSection`, sheets, and a bottom bar "Collect" action button into `src/app/(app)/jobs/detail/page.tsx`.
+  - Updated `StatusChangeSheet` (`src/features/jobs/components/StatusChangeSheet.tsx`) with an amber warning card when delivering a repair with an outstanding balance, offering "Collect Payment First" or "Deliver Anyway (Udhaar / Credit)".
+  - Updated intake wizard Step 6 (`IntakeStepEstimate.tsx`) and `intake-store.ts` to accept optional advance payment (amount, mode, reference) and pass into `create_job` payload.
+  - Added "With dues" filter chip to Customers directory (`src/app/(app)/customers/page.tsx`) wired to `has_due` query parameter in `useCustomers`.
+  - Added 67 translation keys to new `billing` namespace and `customers.filterDues` across `en.json`, `hi.json`, and `hi-Latn.json` with 100% key parity (729 total keys).
+  - All 252 backend pytest tests passing; 102 frontend vitest tests passing; static production export build verified (22/22 pages generated).
 - **Line Items and Payments API (Subphase 1.11):**
   - Integer paise money helpers in `backend/apps/core/money.py`: `round_half_up_div`, `mul_qty`, `paise_to_rupees_str` with unit test suite in `apps/core/tests/test_money.py`.
   - Line items model `JobLineItem` (`apps/jobs/models.py`) with migration `0004_joblineitem`, `quantity` (Decimal), `unit_price_paise`, `unit_cost_paise`, `discount_paise`, and `line_total_paise` property.

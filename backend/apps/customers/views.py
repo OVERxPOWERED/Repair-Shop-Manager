@@ -67,6 +67,56 @@ class CustomerViewSet(ShopScopedViewSet):
             except ValueError:
                 qs = qs.none()
 
+        has_due = self.request.query_params.get("has_due")
+        if has_due in ("true", "1", "yes"):
+            from django.db.models import Case, F, IntegerField, OuterRef, Subquery, Sum, When
+            from django.db.models.functions import Coalesce
+
+            from apps.billing.models import Payment
+            from apps.jobs.models import Job
+
+            in_sub = (
+                Payment.objects.filter(
+                    shop=self.request.shop,
+                    job=OuterRef("pk"),
+                    direction=Payment.Direction.IN,
+                    deleted_at__isnull=True,
+                )
+                .values("job")
+                .annotate(total=Sum("amount_paise"))
+                .values("total")
+            )
+
+            out_sub = (
+                Payment.objects.filter(
+                    shop=self.request.shop,
+                    job=OuterRef("pk"),
+                    direction=Payment.Direction.OUT,
+                    deleted_at__isnull=True,
+                )
+                .values("job")
+                .annotate(total=Sum("amount_paise"))
+                .values("total")
+            )
+
+            billable_expr = Case(
+                When(total_paise__gt=0, then=F("total_paise")),
+                default=F("estimate_paise"),
+                output_field=IntegerField(),
+            )
+
+            jobs_with_due = (
+                Job.objects.filter(shop=self.request.shop, deleted_at__isnull=True)
+                .annotate(
+                    paid=Coalesce(Subquery(in_sub, output_field=IntegerField()), 0)
+                    - Coalesce(Subquery(out_sub, output_field=IntegerField()), 0),
+                    billable=billable_expr,
+                )
+                .filter(billable__gt=F("paid"))
+                .values("customer_id")
+            )
+            qs = qs.filter(id__in=Subquery(jobs_with_due))
+
         ordering = self.request.query_params.get("ordering")
         allowed_orderings = {
             "name": "name",

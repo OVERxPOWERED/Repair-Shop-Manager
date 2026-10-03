@@ -402,6 +402,7 @@
     "newCustomerBtn": "Naya Customer",
     "searchPlaceholder": "Naam ya phone se search karein...",
     "filterAll": "Sabhi",
+    "filterDues": "Baaki wale",
     "emptyTitle": "Abhi tak koi customer nahi",
     "emptyBody": "Jobs aur billing shuru karne ke liye pehla customer add karein.",
     "noSearchResultsTitle": "Koi matching customer nahi mila",
@@ -783,6 +784,94 @@
       "passwordInvalid": "Password khali nahi ho sakta (max 64 characters)",
       "estimateInvalid": "Estimate 0 ya usse zyada hona chahiye",
       "expectedDatePast": "Target date beete hue samay ki nahi ho sakti"
+    }
+  },
+  "billing": {
+    "common": {
+      "cancel": "Cancel",
+      "save": "Save karein",
+      "edit": "Edit karein",
+      "delete": "Delete karein",
+      "loading": "Load ho raha hai..."
+    },
+    "repairDetails": {
+      "title": "Repair & Parts Billing",
+      "subtitle": "Parts, labour aur payments ka hisaab rakhein",
+      "subtotal": "Items Total",
+      "estimatedTotal": "Estimated Amount",
+      "amountPaid": "Total Paid",
+      "balanceDue": "Baaki Amount"
+    },
+    "lineItems": {
+      "addButton": "Item jodein",
+      "addTitle": "Naya item jodein",
+      "editTitle": "Item edit karein",
+      "typeLabel": "Item Type",
+      "kinds": {
+        "part": "Part / Hardware",
+        "labour": "Labour / Service",
+        "other": "Other"
+      },
+      "descLabel": "Description",
+      "descPlaceholder": "e.g. Display combo replacement",
+      "qtyLabel": "Quantity",
+      "priceLabel": "Customer Price (₹)",
+      "costLabel": "Cost Price (₹) - Customer se chupa hua",
+      "discountLabel": "Discount (₹)",
+      "lineTotalLabel": "Line Total",
+      "costPrefix": "Cost",
+      "jobLocked": "Job locked hai. Items add ya modify nahi kiye ja sakte.",
+      "emptyState": "Abhi tak koi item nahi joda gaya. Parts ya service charge jodne ke liye 'Item jodein' par click karein.",
+      "addedSuccess": "Item successfully add ho gaya",
+      "updatedSuccess": "Item successfully update ho gaya",
+      "deletedSuccess": "Item hata diya gaya",
+      "deleteConfirm": "Kya aap waqai is item ko delete karna chahte hain?",
+      "saveFailed": "Item save karne me fail hua. Kripya dubara try karein.",
+      "deleteFailed": "Item delete karne me fail hua"
+    },
+    "payment": {
+      "actionBtn": "Payment lein",
+      "recordButton": "Payment record karein",
+      "recordTitle": "Payment record karein",
+      "recordSubmit": "Payment save karein",
+      "amountLabel": "Amount (₹)",
+      "modeLabel": "Payment Mode",
+      "modes": {
+        "cash": "Cash",
+        "upi": "UPI",
+        "card": "Card",
+        "bank": "Bank Transfer"
+      },
+      "upiRefLabel": "UPI Ref / UTR Number",
+      "cardRefLabel": "Card Auth / Slip Ref",
+      "bankRefLabel": "Bank Transfer Ref / IMPS",
+      "notesLabel": "Notes (Optional)",
+      "notesPlaceholder": "e.g. Ramesh ne GPay se diya",
+      "recordedSuccess": "Payment successfully record ho gaya",
+      "recordFailed": "Payment record karne me fail hua"
+    },
+    "upiQr": {
+      "title": "UPI Dynamic QR",
+      "jobRef": "Job #{jobNo}",
+      "scanCaption": "Kisi bhi UPI app (GPay, PhonePe, Paytm, BHIM) se scan karein",
+      "markAsPaid": "Paid mark karein",
+      "buttonLabel": "UPI QR"
+    },
+    "advance": {
+      "intakeLabel": "Advance Payment (₹)",
+      "intakeHint": "Intake ke samay customer se liya gaya advance"
+    },
+    "delivery": {
+      "dueWarningTitle": "Pending Balance: {amount}",
+      "dueWarningDesc": "Is repair par customer ka balance pending hai.",
+      "collectPayment": "Pehle Payment lein",
+      "deliverUdhaar": "Udhaar deliver karein"
+    },
+    "validation": {
+      "descRequired": "Description zaroori hai",
+      "qtyPositive": "Quantity kam se kam 1 honi chahiye",
+      "discountExceedsGross": "Discount gross amount se zyada nahi ho sakta",
+      "amountPositive": "Payment amount zero se zyada hona chahiye"
     }
   }
 }

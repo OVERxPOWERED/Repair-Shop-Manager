@@ -32,13 +32,23 @@ export type CustomerInput = {
   sms_opt_in?: boolean;
 };
 
-export function useCustomers(q?: string) {
+export type CustomerFilterOptions = {
+  q?: string;
+  has_due?: boolean;
+};
+
+export function useCustomers(filterOptions?: string | CustomerFilterOptions) {
+  const options = typeof filterOptions === "string" ? { q: filterOptions } : filterOptions ?? {};
+  const { q, has_due } = options;
   const shopId = useAuthStore((s) => s.shopId);
   return useInfiniteQuery({
-    queryKey: ["customers", shopId, q ?? ""],
+    queryKey: ["customers", shopId, q ?? "", Boolean(has_due)],
     queryFn: async ({ pageParam = 1 }) => {
-      const qParam = q && q.trim() ? `&q=${encodeURIComponent(q.trim())}` : "";
-      return apiList<Customer>(`/customers/?page=${pageParam}${qParam}`);
+      const params = new URLSearchParams();
+      params.set("page", String(pageParam));
+      if (q && q.trim()) params.set("q", q.trim());
+      if (has_due) params.set("has_due", "true");
+      return apiList<Customer>(`/customers/?${params.toString()}`);
     },
     getNextPageParam: (lastPage) => {
       return lastPage.meta.next ? lastPage.meta.page + 1 : undefined;

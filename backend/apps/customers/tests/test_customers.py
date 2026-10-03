@@ -195,3 +195,67 @@ def test_engineer_cannot_create_and_tenant_isolation(world, client_for):
     # Shop A client should get 404 for GET, PATCH, DELETE
     c_a = client_for(world.owner_a, world.shop_a)
     assert_other_shop_hidden(c_a, f"/api/v1/customers/{cust_b_id}/")
+
+
+def test_customers_with_dues_filter(world, client_for):
+    import uuid
+
+    from django.utils import timezone
+
+    from apps.billing.models import Payment
+    from apps.devices.models import Device
+    from apps.jobs.services import create_job
+
+    c = client_for(world.owner_a, world.shop_a)
+
+    # Customer 1: Has due (estimate 150000, paid 50000 -> balance 100000)
+    c1 = Customer.objects.create(shop=world.shop_a, name="Due Customer", phone="+919876543201")
+    d1 = Device.objects.create(shop=world.shop_a, customer=c1, category="mobile", model="Pixel 7")
+    job1 = create_job(
+        shop=world.shop_a,
+        actor=world.owner_a,
+        membership=world.membership_owner_a,
+        data={"customer": c1, "device": d1, "fault_description": "Screen", "estimate_paise": 150000},
+    )
+    Payment.objects.create(
+        shop=world.shop_a,
+        job=job1,
+        customer=c1,
+        direction=Payment.Direction.IN,
+        mode="cash",
+        amount_paise=50000,
+        received_by=world.owner_a,
+        received_at=timezone.now(),
+        idempotency_key=uuid.uuid4(),
+    )
+
+    # Customer 2: Fully paid (estimate 100000, paid 100000 -> balance 0)
+    c2 = Customer.objects.create(shop=world.shop_a, name="Paid Customer", phone="+919876543202")
+    d2 = Device.objects.create(shop=world.shop_a, customer=c2, category="mobile", model="iPhone 13")
+    job2 = create_job(
+        shop=world.shop_a,
+        actor=world.owner_a,
+        membership=world.membership_owner_a,
+        data={"customer": c2, "device": d2, "fault_description": "Battery", "estimate_paise": 100000},
+    )
+    Payment.objects.create(
+        shop=world.shop_a,
+        job=job2,
+        customer=c2,
+        direction=Payment.Direction.IN,
+        mode="cash",
+        amount_paise=100000,
+        received_by=world.owner_a,
+        received_at=timezone.now(),
+        idempotency_key=uuid.uuid4(),
+    )
+
+    # Customer 3: No jobs
+    Customer.objects.create(shop=world.shop_a, name="No Job Customer", phone="+919876543203")
+
+    # Filter with has_due=true
+    r_due = c.get("/api/v1/customers/?has_due=true")
+    assert r_due.status_code == 200
+    due_ids = [item["id"] for item in r_due.json()["data"]]
+    assert str(c1.id) in due_ids
+    assert str(c2.id) not in due_ids

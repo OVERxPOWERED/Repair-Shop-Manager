@@ -45,6 +45,7 @@ export type IntakeDraft = {
   expectedDate: string | null;
   advancePaise: number;
   advanceMode: "cash" | "upi" | "card" | "bank";
+  advanceReference?: string;
   assignedToId: string | null;
   priority: "low" | "normal" | "urgent";
 };
@@ -72,6 +73,7 @@ export function createEmptyDraft(): IntakeDraft {
     expectedDate: null,
     advancePaise: 0,
     advanceMode: "cash",
+    advanceReference: "",
     assignedToId: null,
     priority: "normal",
   };

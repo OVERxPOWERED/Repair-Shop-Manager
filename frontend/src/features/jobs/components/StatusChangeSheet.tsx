@@ -19,12 +19,14 @@ import { StatusBadge } from "./StatusBadge";
 import { STATUS_STYLE, type JobStatus } from "../status";
 import { useChangeJobStatus, useJobTransitions, type Job } from "../api";
 import { ApiError } from "@/lib/api/client";
+import { formatPaise } from "@/lib/format/money";
 
 export interface StatusChangeSheetProps {
   job: Job;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onJobRefresh?: () => void;
+  onOpenPayment?: () => void;
 }
 
 export function StatusChangeSheet({
@@ -32,8 +34,10 @@ export function StatusChangeSheet({
   open,
   onOpenChange,
   onJobRefresh,
+  onOpenPayment,
 }: StatusChangeSheetProps) {
   const t = useTranslations("jobs");
+  const tBilling = useTranslations("billing");
   const { data: transitionsData, isLoading: isLoadingTransitions } = useJobTransitions(
     open ? job.id : null
   );
@@ -45,6 +49,10 @@ export function StatusChangeSheet({
   const [cancelReasonError, setCancelReasonError] = useState("");
 
   const allowedTransitions = transitionsData?.allowed ?? [];
+
+  const totalPaise = job.total_paise && job.total_paise > 0 ? job.total_paise : job.estimate_paise;
+  const paidPaise = job.paid_paise || 0;
+  const balanceDue = job.balance_paise !== undefined ? job.balance_paise : Math.max(0, totalPaise - paidPaise);
 
   const handleSelectTransition = (target: JobStatus) => {
     setSelectedTarget(target);
@@ -183,6 +191,36 @@ export function StatusChangeSheet({
               />
             </div>
 
+            {selectedTarget === "delivered" && balanceDue > 0 && (
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                  <div className="text-xs text-amber-900 dark:text-amber-200">
+                    <span className="font-bold">
+                      {tBilling("delivery.dueWarningTitle", { amount: formatPaise(balanceDue) })}
+                    </span>
+                    <p className="mt-0.5 text-amber-700 dark:text-amber-300">
+                      {tBilling("delivery.dueWarningDesc")}
+                    </p>
+                  </div>
+                </div>
+
+                {onOpenPayment && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      onOpenChange(false);
+                      onOpenPayment();
+                    }}
+                    className="w-full h-9 rounded-xl text-xs font-semibold bg-white dark:bg-neutral-900 border-amber-300 text-amber-900 dark:text-amber-100 hover:bg-amber-100/50"
+                  >
+                    {tBilling("delivery.collectPayment")}
+                  </Button>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-2 pt-2">
               <Button
                 type="button"
@@ -196,13 +234,19 @@ export function StatusChangeSheet({
                 type="button"
                 disabled={changeStatusMutation.isPending}
                 onClick={handleConfirm}
-                className="flex-1 rounded-xl h-10 text-xs font-bold bg-neutral-950 text-white dark:bg-white dark:text-neutral-950"
+                className={`flex-1 rounded-xl h-10 text-xs font-bold text-white ${
+                  selectedTarget === "delivered" && balanceDue > 0
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-neutral-950 dark:bg-white dark:text-neutral-950"
+                }`}
               >
                 {changeStatusMutation.isPending ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                     <span>{t("detail.changingStatus")}</span>
                   </>
+                ) : selectedTarget === "delivered" && balanceDue > 0 ? (
+                  <span>{tBilling("delivery.deliverUdhaar")}</span>
                 ) : (
                   <span>{t("detail.confirmTransition")}</span>
                 )}

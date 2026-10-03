@@ -402,6 +402,7 @@
     "newCustomerBtn": "नया ग्राहक",
     "searchPlaceholder": "नाम या फ़ोन से खोजें...",
     "filterAll": "सभी",
+    "filterDues": "बाकी वाले",
     "emptyTitle": "अभी तक कोई ग्राहक नहीं",
     "emptyBody": "जॉब और बिलिंग शुरू करने के लिए अपना पहला ग्राहक जोड़ें।",
     "noSearchResultsTitle": "कोई मिलता-जुलता ग्राहक नहीं मिला",
@@ -783,6 +784,94 @@
       "passwordInvalid": "पासवर्ड खाली नहीं हो सकता (अधिकतम 64 अक्षर)",
       "estimateInvalid": "अनुमानित राशि 0 या उससे अधिक होनी चाहिए",
       "expectedDatePast": "अपेक्षित तिथि बीती हुई नहीं हो सकती"
+    }
+  },
+  "billing": {
+    "common": {
+      "cancel": "रद्द करें",
+      "save": "सहेजें",
+      "edit": "संपादित करें",
+      "delete": "हटाएं",
+      "loading": "लोड हो रहा है..."
+    },
+    "repairDetails": {
+      "title": "रिपेयर और पार्ट्स बिलिंग",
+      "subtitle": "पार्ट्स, लेबर और भुगतानों का हिसाब रखें",
+      "subtotal": "कुल आइटम्स",
+      "estimatedTotal": "अनुमानित राशि",
+      "amountPaid": "कुल प्राप्त",
+      "balanceDue": "बाकी राशि"
+    },
+    "lineItems": {
+      "addButton": "आइटम जोड़ें",
+      "addTitle": "नया आइटम जोड़ें",
+      "editTitle": "आइटम संपादित करें",
+      "typeLabel": "आइटम का प्रकार",
+      "kinds": {
+        "part": "पार्ट / हार्डवेयर",
+        "labour": "लेबर / सर्विस चार्ज",
+        "other": "अन्य"
+      },
+      "descLabel": "विवरण",
+      "descPlaceholder": "उदा. डिस्प्ले कॉम्बो रिप्लेसमेंट",
+      "qtyLabel": "मात्रा (Quantity)",
+      "priceLabel": "ग्राहक दर (₹)",
+      "costLabel": "लागत मूल्य (₹) - ग्राहक से छुपा",
+      "discountLabel": "छूट (₹)",
+      "lineTotalLabel": "आइटम कुल",
+      "costPrefix": "लागत",
+      "jobLocked": "जॉब लॉक है। आइटम्स में बदलाव नहीं हो सकता।",
+      "emptyState": "अभी तक कोई आइटम नहीं जोड़ा गया। पार्ट्स या सर्विस चार्ज जोड़ने के लिए 'आइटम जोड़ें' पर क्लिक करें।",
+      "addedSuccess": "आइटम सफलतापूर्वक जोड़ा गया",
+      "updatedSuccess": "आइटम सफलतापूर्वक अपडेट किया गया",
+      "deletedSuccess": "आइटम हटा दिया गया",
+      "deleteConfirm": "क्या आप वाकई इस आइटम को हटाना चाहते हैं?",
+      "saveFailed": "आइटम सहेजने में विफल। कृपया पुनः प्रयास करें।",
+      "deleteFailed": "आइटम हटाने में विफल"
+    },
+    "payment": {
+      "actionBtn": "भुगतान लें",
+      "recordButton": "भुगतान दर्ज करें",
+      "recordTitle": "भुगतान दर्ज करें",
+      "recordSubmit": "भुगतान सहेजें",
+      "amountLabel": "राशि (₹)",
+      "modeLabel": "भुगतान का माध्यम",
+      "modes": {
+        "cash": "नकद (Cash)",
+        "upi": "यूपीआई (UPI)",
+        "card": "कार्ड (Card)",
+        "bank": "बैंक ट्रांसफर"
+      },
+      "upiRefLabel": "यूपीआई संदर्भ / UTR नंबर",
+      "cardRefLabel": "कार्ड ऑथ / स्लिप नंबर",
+      "bankRefLabel": "बैंक संदर्भ / IMPS नंबर",
+      "notesLabel": "नोट्स (वैकल्पिक)",
+      "notesPlaceholder": "उदा. रमेश द्वारा GPay से प्राप्त",
+      "recordedSuccess": "भुगतान सफलतापूर्वक दर्ज किया गया",
+      "recordFailed": "भुगतान दर्ज करने में विफल"
+    },
+    "upiQr": {
+      "title": "यूपीआई डायनेमिक क्यूआर",
+      "jobRef": "जॉब #{jobNo}",
+      "scanCaption": "किसी भी यूपीआई ऐप (GPay, PhonePe, Paytm, BHIM) से स्कैन करें",
+      "markAsPaid": "भुगतान हो गया मार्क करें",
+      "buttonLabel": "यूपीआई क्यूआर"
+    },
+    "advance": {
+      "intakeLabel": "प्राप्त एडवांस राशि (₹)",
+      "intakeHint": "जॉब लेते समय ग्राहक द्वारा दिया गया अग्रिम भुगतान"
+    },
+    "delivery": {
+      "dueWarningTitle": "बाकी राशि: {amount}",
+      "dueWarningDesc": "इस रिपेयर पर ग्राहक का भुगतान अभी बाकी है।",
+      "collectPayment": "पहले भुगतान प्राप्त करें",
+      "deliverUdhaar": "उधार में डिलीवर करें"
+    },
+    "validation": {
+      "descRequired": "विवरण दर्ज करना आवश्यक है",
+      "qtyPositive": "मात्रा कम से कम 1 होनी चाहिए",
+      "discountExceedsGross": "छूट कुल राशि से अधिक नहीं हो सकती",
+      "amountPositive": "भुगतान राशि शून्य से अधिक होनी चाहिए"
     }
   }
 }

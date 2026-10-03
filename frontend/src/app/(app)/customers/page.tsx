@@ -34,7 +34,10 @@ export default function CustomersPage() {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useCustomers(deferredSearch);
+  } = useCustomers({
+    q: deferredSearch,
+    has_due: filter === "dues" ? true : undefined,
+  });
 
   const allCustomers = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -89,6 +92,17 @@ export default function CustomersPage() {
             }`}
           >
             {t("filterAll")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("dues")}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              filter === "dues"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("filterDues")}
           </button>
         </div>
       </div>

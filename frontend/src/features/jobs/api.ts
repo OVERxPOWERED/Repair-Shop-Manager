@@ -70,6 +70,10 @@ export type Job = {
   lock_type: "none" | "pin" | "pattern" | "password";
   is_locked: boolean;
   estimate_paise: number;
+  total_paise?: number;
+  cost_paise?: number;
+  paid_paise?: number;
+  balance_paise?: number;
   expected_date: string | null;
   delivered_at: string | null;
   cancelled_at: string | null;
@@ -115,6 +119,9 @@ export type JobCreatePayload = {
   lock_type?: "none" | "pin" | "pattern" | "password";
   lock_value?: string;
   estimate_paise?: number;
+  advance_paise?: number;
+  advance_mode?: "cash" | "upi" | "card" | "bank";
+  advance_reference?: string;
   expected_date?: string | null;
   assigned_to_id?: string | null;
   internal_note?: string;

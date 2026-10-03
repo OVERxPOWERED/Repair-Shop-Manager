@@ -24,6 +24,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -44,6 +45,11 @@ import { StatusChangeSheet } from "@/features/jobs/components/StatusChangeSheet"
 import { ReopenJobDialog } from "@/features/jobs/components/ReopenJobDialog";
 import { EditJobSheet } from "@/features/jobs/components/EditJobSheet";
 import { CheckImeiSheet } from "@/features/devices/CheckImeiSheet";
+import { RepairDetailsSection } from "@/features/jobs/components/RepairDetailsSection";
+import { LineItemSheet } from "@/features/jobs/components/LineItemSheet";
+import { PaymentSheet } from "@/features/billing/PaymentSheet";
+import { UpiQrModal } from "@/features/billing/UpiQrModal";
+import { useCurrentShopDetails, type JobLineItem, type PaymentMode } from "@/features/billing/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -58,6 +64,7 @@ function JobDetailContent() {
   const t = useTranslations("jobs");
   const tNav = useTranslations("nav");
   const tDevices = useTranslations("devices");
+  const tBilling = useTranslations("billing");
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocaleStore((s) => s.locale);
@@ -89,12 +96,38 @@ function JobDetailContent() {
   const canViewLock = usePermission("jobs.view_device_lock");
   const canReopen = usePermission("jobs.reopen");
   const canEdit = usePermission("jobs.edit");
+  const canRecordPayment = usePermission("payments.record");
+  const { data: currentShop } = useCurrentShopDetails();
 
   // Dialog & Sheet States
   const [isAssignSheetOpen, setIsAssignSheetOpen] = useState(false);
   const [isStatusSheetOpen, setIsStatusSheetOpen] = useState(false);
   const [isReopenDialogOpen, setIsReopenDialogOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+
+  // Billing Sheet States
+  const [isLineItemSheetOpen, setIsLineItemSheetOpen] = useState(false);
+  const [lineItemToEdit, setLineItemToEdit] = useState<JobLineItem | null>(null);
+  const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
+  const [paymentDefaultMode, setPaymentDefaultMode] = useState<PaymentMode>("cash");
+  const [focusPaymentReference, setFocusPaymentReference] = useState(false);
+  const [isUpiQrOpen, setIsUpiQrOpen] = useState(false);
+
+  const handleOpenAddLineItem = () => {
+    setLineItemToEdit(null);
+    setIsLineItemSheetOpen(true);
+  };
+
+  const handleEditLineItem = (item: JobLineItem) => {
+    setLineItemToEdit(item);
+    setIsLineItemSheetOpen(true);
+  };
+
+  const handleOpenPayment = (mode: PaymentMode = "cash", focusRef: boolean = false) => {
+    setPaymentDefaultMode(mode);
+    setFocusPaymentReference(focusRef);
+    setIsPaymentSheetOpen(true);
+  };
 
   // Lock Reveal State & 30s Countdown
   const [revealedLock, setRevealedLock] = useState<{
@@ -542,7 +575,20 @@ function JobDetailContent() {
         )}
       </div>
 
-      {/* 7. Assigned Technician Card */}
+      {/* 7. Repair Details & Payments Card */}
+      <div className="mb-3">
+        <RepairDetailsSection
+          job={job}
+          canEdit={canEdit}
+          onOpenAddLineItem={handleOpenAddLineItem}
+          onEditLineItem={handleEditLineItem}
+          onOpenPayment={() => handleOpenPayment("cash", false)}
+          onOpenUpiQr={() => setIsUpiQrOpen(true)}
+          shopUpiId={currentShop?.upi_id}
+        />
+      </div>
+
+      {/* 8. Assigned Technician Card */}
       <div className="rounded-2xl border border-neutral-200/90 dark:border-border bg-white dark:bg-card p-4 shadow-sm mb-3 flex items-center justify-between">
         <div>
           <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
@@ -688,6 +734,18 @@ function JobDetailContent() {
           {t("detail.updateStatusBtn")}
         </Button>
 
+        {canRecordPayment && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleOpenPayment("cash", false)}
+            className="rounded-xl h-11 text-xs font-semibold px-3 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+          >
+            <CreditCard className="w-3.5 h-3.5 mr-1" />
+            <span>{tBilling("payment.actionBtn")}</span>
+          </Button>
+        )}
+
         {canEdit && !job.is_locked && (
           <Button
             type="button"
@@ -725,6 +783,7 @@ function JobDetailContent() {
         open={isStatusSheetOpen}
         onOpenChange={setIsStatusSheetOpen}
         onJobRefresh={refetchJob}
+        onOpenPayment={() => handleOpenPayment("cash", false)}
       />
 
       <ReopenJobDialog
@@ -745,6 +804,50 @@ function JobDetailContent() {
         onOpenChange={setCheckImeiOpen}
         defaultImei={checkImeiTarget}
       />
+
+      <LineItemSheet
+        jobId={job.id}
+        open={isLineItemSheetOpen}
+        onOpenChange={setIsLineItemSheetOpen}
+        itemToEdit={lineItemToEdit}
+      />
+
+      <PaymentSheet
+        jobId={job.id}
+        balancePaise={
+          job.balance_paise ??
+          Math.max(
+            0,
+            (job.total_paise && job.total_paise > 0
+              ? job.total_paise
+              : job.estimate_paise) - (job.paid_paise || 0)
+          )
+        }
+        open={isPaymentSheetOpen}
+        onOpenChange={setIsPaymentSheetOpen}
+        defaultMode={paymentDefaultMode}
+        focusReference={focusPaymentReference}
+      />
+
+      {Boolean(currentShop?.upi_id) && (
+        <UpiQrModal
+          open={isUpiQrOpen}
+          onOpenChange={setIsUpiQrOpen}
+          shopName={currentShop?.name || "Repair Shop"}
+          upiId={currentShop?.upi_id || ""}
+          amountPaise={
+            job.balance_paise ??
+            Math.max(
+              0,
+              (job.total_paise && job.total_paise > 0
+                ? job.total_paise
+                : job.estimate_paise) - (job.paid_paise || 0)
+            )
+          }
+          jobNo={job.job_no}
+          onMarkAsPaid={() => handleOpenPayment("upi", true)}
+        />
+      )}
     </div>
   );
 }
