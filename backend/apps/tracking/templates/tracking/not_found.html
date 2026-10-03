@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{ s.not_found_title|default:"Tracking Link Not Found" }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+      text-align: center;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      border: 1px solid #e2e8f0;
+      padding: 32px 24px;
+      max-width: 400px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 0.875rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🔍</div>
+    <h1>{{ s.not_found_title|default:"Tracking Link Not Found" }}</h1>
+    <p>{{ s.not_found_desc|default:"This tracking link is invalid, expired, or the repair shop has disabled public tracking." }}</p>
+  </div>
+</body>
+</html>

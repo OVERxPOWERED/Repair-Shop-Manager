@@ -72,7 +72,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.15](#115-pdf-documents-weasyprint) | PDF documents (WeasyPrint) | ✅ Done | 2026-10-03 |
 | 1 | [1.16](#116-sharing-native-share-sheet-and-whatsapp) | Sharing (native share sheet and WhatsApp) | ✅ Done | 2026-10-03 |
 | 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ✅ Done | 2026-10-03 |
-| 1 | [1.18](#118-public-tracking-page) | Public tracking page | ⬜ Not started | — |
+| 1 | [1.18](#118-public-tracking-page) | Public tracking page | ✅ Done | 2026-10-03 |
 | 1 | [1.19](#119-messaging-templates-sms-adapter-message-log) | Messaging (templates, SMS adapter, message log) | ⬜ Not started | — |
 | 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ⬜ Not started | — |
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ⬜ Not started | — |
@@ -1132,19 +1132,26 @@ Created `backend/apps/documents/`:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
 
-- [ ] 1.18.1 App `apps/tracking`
-- [ ] 1.18.2 View rules
-- [ ] 1.18.3 Template
-- [ ] 1.18.4 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.18.1 App `apps/tracking`
+- [x] 1.18.2 View rules
+- [x] 1.18.3 Template
+- [x] 1.18.4 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest backend: 291 passed (all 9 tracking tests passed)
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 172 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+- pnpm lint: 0 warnings, 0 errors
+- pnpm i18n:check: 919 keys across 3 locales (100% parity)
+- pnpm typecheck: 0 errors
+- pnpm test: 21 test files, 138 passed (100%)
 ```
-**Notes:** —
+**Notes:** Built lightweight, server-rendered public tracking service under `/t/<token>/` and `/t/<token>/invoice.pdf`. Created fixed-window IP rate limiter (`apps/core/ratelimit.py`, 60 req/min). Fast-rejects malformed tokens via regex (`TOKEN_RE`) with 0 database queries. Added customer-facing simplified statuses and localized dictionary (`en`, `hi`, `hi-Latn`) supporting `?lang=` override and customer preferred locale fallback (`apps/tracking/strings.py`). Enforces strict privacy rules: shows customer first name only, device brand/model, status with milestone progress bar, customer-visible notes, and dynamic UPI QR (`segno` inline SVG); never leaks customer phone, IMEI, lock credentials, internal notes, technician names, or UUIDs. Handled tracking disable toggle and delivered job expiry (410).
 
 ## 1.19 Messaging (templates, SMS adapter, message log)
 

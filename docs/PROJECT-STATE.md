@@ -2,12 +2,33 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.18 (Public tracking page)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.19 (Messaging: templates, SMS adapter, message log)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Public Tracking Page (Subphase 1.18):**
+  - Lightweight, server-rendered public tracking service implemented outside `/api/v1/` under `/t/<token>/` and `/t/<token>/invoice.pdf`.
+  - Rate limiting & Fast-reject security layer:
+    - Fixed-window IP rate limiter in `apps/core/ratelimit.py` (`allow_request`) using Django cache to enforce 60 requests/minute per client IP (returns 429 `tracking/rate_limited.html`).
+    - Regex validator (`TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{20,64}$")`) rejecting malformed/junk tokens immediately with 404 (`tracking/not_found.html`) with 0 database queries executed (`django_assert_num_queries(0)`).
+  - Scope and lifecycle enforcement:
+    - Verifies `shop__tracking_enabled=True` and `shop__deleted_at__isnull=True`.
+    - Handles delivered job expiration: returns 410 (`tracking/expired.html`) when delivered past `shop.tracking_expiry_days` (default 30 days).
+  - Multi-lingual presentation:
+    - Localized status dictionary in `apps/tracking/strings.py` across `en`, `hi`, and `hi-Latn`.
+    - Simplifies internal repair statuses into customer-friendly terms (e.g. `diagnosing`/`awaiting_approval` → "Checking" / "जाँच जारी", `in_repair` → "Repairing" / "मरम्मत जारी", `ready_for_pickup` → "Ready for pickup" / "तैयार है").
+    - Resolves language via `?lang=` override, falling back to customer `preferred_locale`, then `en`. Language switcher at footer.
+  - Strict Information Hiding (Privacy & Security):
+    - Shows customer first name only ("Rajesh"), device brand and model, current status with visual milestone progress bar, shop updates (`JobNote` with `visibility="customer"`), balance due, and inline SVG UPI QR code (`segno`) with click-to-pay deep link (`upi://pay`).
+    - Exposes issued invoice PDF link (`/t/<token>/invoice.pdf`) strictly when an issued invoice exists.
+    - Strictly never leaks: customer phone, IMEI/serial, device lock pattern/PIN/passwords, internal notes, technician names, or database UUIDs.
+    - Security response headers applied: `X-Robots-Tag: noindex, nofollow`, `Cache-Control: private, max-age=60`, `Referrer-Policy: no-referrer`.
+  - Responsive, 2G-friendly template:
+    - Zero JavaScript, inline CSS < 10 KB, system font fallbacks with Noto Sans Devanagari, OpenGraph preview tags (`og:title`, `og:description`) for WhatsApp rich links.
+  - Comprehensive test suite in `apps/tracking/tests/test_tracking.py` (9/9 tests passing).
+  - Full backend test suite passing (291 tests), ruff check/format clean, makemigrations clean.
 - **Thermal Receipt Printing (Subphase 1.17):**
   - Native BLE thermal printer driver and architecture:
     - Service contracts and error mappings in `src/native/printer/types.ts`: `PaperWidth` (58|80), `DOTS` (384|576), `PrinterInfo`, `PrinterError` (`not_found`, `disconnected`, `permission`, `unsupported`, `write_failed`), `PrinterConfig`, and `PrinterService`.

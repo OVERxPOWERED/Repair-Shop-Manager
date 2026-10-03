@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="{{ s.page_title }} – {{ shop.name }}">
+  <meta property="og:description" content="{{ device_name }}: {{ status_label }}">
+  <title>{{ s.page_title }} | {{ shop.name }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      line-height: 1.5;
+      padding: 16px 12px 32px 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .shop-header {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .shop-name {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+    .shop-address {
+      font-size: 0.8125rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .shop-call-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #0284c7;
+      text-decoration: none;
+      padding: 6px 12px;
+      background: #f0f9ff;
+      border-radius: 12px;
+      border: 1px solid #e0f2fe;
+    }
+    .main-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+    .badge-status {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+    .badge-closed {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .greeting {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 8px;
+    }
+    .job-subtitle {
+      font-size: 0.875rem;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .device-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #e2e8f0;
+    }
+    .milestone-container {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .milestone-list {
+      list-style: none;
+      position: relative;
+      padding-left: 24px;
+    }
+    .milestone-list::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: #e2e8f0;
+    }
+    .milestone-item {
+      position: relative;
+      padding-bottom: 18px;
+    }
+    .milestone-item:last-child {
+      padding-bottom: 0;
+    }
+    .milestone-dot {
+      position: absolute;
+      left: -24px;
+      top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #cbd5e1;
+    }
+    .milestone-item.done .milestone-dot {
+      background: #10b981;
+      border-color: #10b981;
+    }
+    .milestone-item.current .milestone-dot {
+      background: #0284c7;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }
+    .milestone-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+    .milestone-item.current .milestone-label {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .milestone-item.done .milestone-label {
+      color: #334155;
+    }
+    .info-card {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 16px;
+      border: 1px solid #f1f5f9;
+    }
+    .info-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .info-val {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .note-item {
+      font-size: 0.875rem;
+      color: #334155;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .note-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .payment-section {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+      padding: 18px;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .payment-due-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #166534;
+    }
+    .payment-due-val {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #14532d;
+      margin: 4px 0 12px 0;
+    }
+    .qr-wrapper {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 12px;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      margin-bottom: 12px;
+    }
+    .qr-wrapper svg {
+      display: block;
+      width: 160px;
+      height: 160px;
+    }
+    .btn-pay {
+      display: block;
+      width: 100%;
+      background: #15803d;
+      color: #ffffff;
+      font-size: 0.9375rem;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(21, 128, 61, 0.2);
+    }
+    .scan-hint {
+      font-size: 0.75rem;
+      color: #15803d;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+    .btn-invoice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 14px;
+      margin-top: 14px;
+    }
+    .warranty-card {
+      background: #fdf4ff;
+      border: 1px solid #f0abfc;
+      color: #86198f;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-top: 14px;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .lang-switcher {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.8125rem;
+      color: #64748b;
+    }
+    .lang-switcher a {
+      color: #0284c7;
+      text-decoration: none;
+      font-weight: 700;
+      margin: 0 6px;
+    }
+    .lang-switcher a.active {
+      color: #0f172a;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Shop Profile Header -->
+    <header class="shop-header">
+      <h1 class="shop-name">{{ shop.name }}</h1>
+      {% if shop.address %}
+        <p class="shop-address">{{ shop.address }}</p>
+      {% endif %}
+      {% if shop.phone %}
+        <a href="tel:{{ shop.phone }}" class="shop-call-btn">
+          📞 {{ s.call_shop }} (+91 {{ shop.phone }})
+        </a>
+      {% endif %}
+    </header>
+
+    <!-- Main Status Card -->
+    <main class="main-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <span class="badge {% if is_closed %}badge-closed{% else %}badge-status{% endif %}">
+            {{ status_label }}
+          </span>
+          <h2 class="greeting">{{ greeting_str }}</h2>
+          <p class="job-subtitle">{{ job_no_str }}</p>
+        </div>
+      </div>
+
+      <div class="device-title">
+        <span style="font-size: 0.8125rem; color: #64748b; font-weight: 600; display: block;">{{ s.device }}</span>
+        {{ device_name }}
+      </div>
+
+      <!-- Milestone Progress Bar -->
+      {% if not is_closed %}
+        <div class="milestone-container">
+          <ul class="milestone-list">
+            {% for m in milestones %}
+              <li class="milestone-item {% if m.is_done %}done{% elif m.is_current %}current{% endif %}">
+                <div class="milestone-dot"></div>
+                <div class="milestone-label">{{ m.label }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <!-- Expected Date -->
+      {% if expected_date %}
+        <div class="info-card">
+          <div class="info-title">{{ s.expected_date }}</div>
+          <div class="info-val">{{ expected_date }}</div>
+        </div>
+      {% endif %}
+
+      <!-- Notes from Shop -->
+      {% if notes %}
+        <div class="info-card">
+          <div class="info-title">{{ s.notes }}</div>
+          {% for note in notes %}
+            <div class="note-item">{{ note }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Payment & UPI QR Section -->
+      {% if balance_paise > 0 %}
+        <div class="payment-section">
+          <div class="payment-due-label">{{ s.balance_due }}</div>
+          <div class="payment-due-val">{{ balance_formatted }}</div>
+
+          {% if upi_qr_svg %}
+            <div class="qr-wrapper">
+              {{ upi_qr_svg|safe }}
+            </div>
+            {% if pay_upi_url %}
+              <a href="{{ pay_upi_url }}" class="btn-pay">
+                {{ pay_upi_label }}
+              </a>
+            {% endif %}
+            <p class="scan-hint">{{ s.scan_upi_hint }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Invoice PDF Link -->
+      {% if invoice_pdf_url %}
+        <a href="{{ invoice_pdf_url }}" class="btn-invoice">
+          📄 {{ s.download_invoice }}
+        </a>
+      {% endif %}
+
+      <!-- Warranty Badge -->
+      {% if warranty_until %}
+        <div class="warranty-card">
+          🛡️ {{ warranty_until }}
+        </div>
+      {% endif %}
+    </main>
+
+    <!-- Language Selector Footer -->
+    <footer class="lang-switcher">
+      <span>{{ s.switch_lang }}:</span>
+      <a href="?lang=en" class="{% if lang == 'en' %}active{% endif %}">English</a> •
+      <a href="?lang=hi" class="{% if lang == 'hi' %}active{% endif %}">हिंदी</a> •
+      <a href="?lang=hi-Latn" class="{% if lang == 'hi-Latn' %}active{% endif %}">Hinglish</a>
+    </footer>
+  </div>
+</body>
+</html>
