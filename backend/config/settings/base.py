@@ -225,3 +225,5 @@ LOGGING = {
 CRON_SECRET = os.environ.get("CRON_SECRET", "dev-cron-secret")
 
 FIELD_ENCRYPTION_KEYS = [k.strip() for k in os.environ.get("FIELD_ENCRYPTION_KEYS", "").split(",") if k.strip()]
+
+PUBLIC_TRACKING_BASE_URL = os.environ.get("PUBLIC_TRACKING_BASE_URL", "https://track.fixpro.in")

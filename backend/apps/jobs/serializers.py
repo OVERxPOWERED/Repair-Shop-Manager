@@ -30,7 +30,7 @@ class JobCustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ("id", "name", "phone", "phone_masked")
+        fields = ("id", "name", "phone", "phone_masked", "preferred_locale")
 
     def get_phone_masked(self, obj) -> bool:
         request = self.context.get("request")
@@ -268,6 +268,7 @@ class JobSerializer(serializers.ModelSerializer):
     accessories = serializers.SerializerMethodField()
     paid_paise = serializers.SerializerMethodField()
     balance_paise = serializers.SerializerMethodField()
+    tracking_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Job
@@ -294,6 +295,7 @@ class JobSerializer(serializers.ModelSerializer):
             "warranty_days",
             "warranty_until",
             "tracking_token",
+            "tracking_url",
             "is_locked",
             "cancel_reason",
             "total_paise",
@@ -324,6 +326,14 @@ class JobSerializer(serializers.ModelSerializer):
         paid = self.get_paid_paise(obj)
         billable = obj.total_paise if obj.total_paise > 0 else obj.estimate_paise
         return billable - paid
+
+    def get_tracking_url(self, obj) -> str:
+        if not getattr(obj, "tracking_token", None):
+            return ""
+        from django.conf import settings
+
+        base = getattr(settings, "PUBLIC_TRACKING_BASE_URL", "https://track.fixpro.in").rstrip("/")
+        return f"{base}/t/{obj.tracking_token}/"
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

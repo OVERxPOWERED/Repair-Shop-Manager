@@ -136,6 +136,64 @@ export async function apiList<T>(path: string, opts: RequestOptions = {}): Promi
   return { items: body.data, meta: body.meta };
 }
 
+async function doFetchBlob(path: string, opts: RequestOptions, canRetry: boolean): Promise<Blob> {
+  const { tokens, shopId } = useAuthStore.getState();
+  const headers: Record<string, string> = {
+    Accept: "application/pdf, application/octet-stream, */*",
+    "Accept-Language": useLocaleStore.getState().locale,
+    "X-App-Version": env.appVersion,
+  };
+  if (opts.auth !== false && tokens?.access) headers.Authorization = `Bearer ${tokens.access}`;
+  if (opts.shop !== false && shopId) headers["X-Shop-Id"] = shopId;
+
+  let res: Response;
+  try {
+    res = await fetch(`${env.apiBaseUrl}${path}`, {
+      method: opts.method ?? "GET",
+      headers,
+      signal: opts.signal,
+    });
+  } catch {
+    throw new ApiError(0, "network.offline", "Network error");
+  }
+
+  if (res.status === 401 && canRetry && opts.auth !== false && tokens?.refresh) {
+    const result = await refreshTokens();
+    if (result === "ok") return doFetchBlob(path, opts, false);
+    if (result === "network") throw new ApiError(0, "network.offline", "Network error");
+    await useAuthStore.getState().signOut();
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const e = body?.error;
+    throw new ApiError(res.status, e?.code ?? "server.error", e?.message ?? res.statusText, e?.fields ?? {}, e?.request_id);
+  }
+  return await res.blob();
+}
+
+/** For binary endpoints (PDFs, downloads): returns response Blob with auth headers. */
+export async function apiBlob(path: string, opts: RequestOptions = {}): Promise<Blob> {
+  let didFire = false;
+  const timer = setTimeout(() => {
+    didFire = true;
+    activeSlowRequests += 1;
+    useServerWakeStore.setState({ waking: true });
+  }, 4000);
+
+  try {
+    return await doFetchBlob(path, opts, true);
+  } finally {
+    clearTimeout(timer);
+    if (didFire) {
+      activeSlowRequests = Math.max(0, activeSlowRequests - 1);
+      if (activeSlowRequests === 0) {
+        useServerWakeStore.setState({ waking: false });
+      }
+    }
+  }
+}
+
 export const newIdempotencyKey = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()

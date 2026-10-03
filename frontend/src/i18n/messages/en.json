@@ -1007,5 +1007,27 @@
       "invalidGstin": "Invalid GSTIN format or checksum",
       "fixGstinError": "Please fix the GSTIN error before saving"
     }
+  },
+  "messages": {
+    "jobReceived": "Hello {customerName}, your device {deviceName} has been received for repair at {shopName} (Job #{jobNo}). Track real-time repair progress here: {trackingUrl}",
+    "readyForPickup": "Hello {customerName}, your device {deviceName} is repaired and ready for pickup at {shopName} (Job #{jobNo}). Balance due: {balanceFormatted}. Track details: {trackingUrl}",
+    "invoiceShared": "Hello {customerName}, here is your invoice {invoiceNo} for {totalFormatted} from {shopName}. Balance due: {balanceFormatted}. Track repair: {trackingUrl}\nThank you for choosing us!"
+  },
+  "share": {
+    "share": "Share",
+    "shareTitle": "Share Document",
+    "shareReceipt": "Share Receipt PDF",
+    "sharePdf": "Share PDF",
+    "whatsAppJobReceived": "WhatsApp: Job received",
+    "whatsAppReadyForPickup": "WhatsApp: Ready for pickup",
+    "whatsAppInvoice": "WhatsApp Invoice",
+    "openWhatsApp": "Open WhatsApp",
+    "chooseSize": "Paper Size",
+    "sizeA4": "A4 Format",
+    "sizeA5": "A5 Format",
+    "preparingPdf": "Preparing PDF...",
+    "shareSuccess": "Shared successfully",
+    "shareFailed": "Failed to share document",
+    "downloadFallback": "Document downloaded"
   }
 }

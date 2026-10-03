@@ -26,6 +26,7 @@ import {
   Loader2,
   CreditCard,
   FileText,
+  Share2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ import { AssignTechnicianSheet } from "@/features/jobs/components/AssignTechnici
 import { StatusChangeSheet } from "@/features/jobs/components/StatusChangeSheet";
 import { ReopenJobDialog } from "@/features/jobs/components/ReopenJobDialog";
 import { EditJobSheet } from "@/features/jobs/components/EditJobSheet";
+import { JobShareSheet } from "@/features/jobs/components/JobShareSheet";
 import { CheckImeiSheet } from "@/features/devices/CheckImeiSheet";
 import { RepairDetailsSection } from "@/features/jobs/components/RepairDetailsSection";
 import { LineItemSheet } from "@/features/jobs/components/LineItemSheet";
@@ -68,6 +70,7 @@ function JobDetailContent() {
   const tDevices = useTranslations("devices");
   const tBilling = useTranslations("billing");
   const tInvoices = useTranslations("invoices");
+  const tShare = useTranslations("share");
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocaleStore((s) => s.locale);
@@ -124,6 +127,7 @@ function JobDetailContent() {
   const [isStatusSheetOpen, setIsStatusSheetOpen] = useState(false);
   const [isReopenDialogOpen, setIsReopenDialogOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
 
   // Billing Sheet States
   const [isLineItemSheetOpen, setIsLineItemSheetOpen] = useState(false);
@@ -294,6 +298,18 @@ function JobDetailContent() {
         </button>
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsShareSheetOpen(true)}
+            className="rounded-xl h-8 px-2.5 text-xs font-semibold gap-1.5 border-neutral-300 dark:border-neutral-700"
+            title={tShare("share")}
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{tShare("share")}</span>
+          </Button>
+
           {job.priority === "urgent" && (
             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
               {t("detail.priority.urgent")}
@@ -856,6 +872,13 @@ function JobDetailContent() {
         open={isEditSheetOpen}
         onOpenChange={setIsEditSheetOpen}
         onJobRefresh={refetchJob}
+      />
+
+      <JobShareSheet
+        job={job}
+        open={isShareSheetOpen}
+        onOpenChange={setIsShareSheetOpen}
+        shopName={currentShop?.name}
       />
 
       <CheckImeiSheet

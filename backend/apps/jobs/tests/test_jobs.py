@@ -294,3 +294,21 @@ def test_job_tenant_isolation(world, client_for):
     assert_other_shop_hidden(c_b, f"/api/v1/jobs/{job.id}/")
     assert_other_shop_hidden(c_b, f"/api/v1/jobs/{job.id}/lock/", methods=("get",))
     assert_other_shop_hidden(c_b, f"/api/v1/jobs/{job.id}/notes/", methods=("get",))
+
+
+def test_job_tracking_url(world, client_for):
+    cust = Customer.objects.create(shop=world.shop_a, name="Cust Tracking", phone="+919876543210")
+    dev = Device.objects.create(shop=world.shop_a, customer=cust, category="mobile", model="Dev Tracking")
+    job = create_job(
+        shop=world.shop_a,
+        actor=world.owner_a,
+        membership=world.membership(world.owner_a, world.shop_a),
+        data={"customer": cust, "device": dev, "fault_description": "Tracking test"},
+    )
+    c = client_for(world.owner_a, world.shop_a)
+    r = c.get(f"/api/v1/jobs/{job.id}/")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert "tracking_url" in data
+    assert data["tracking_url"].startswith("http")
+    assert f"/t/{job.tracking_token}/" in data["tracking_url"]

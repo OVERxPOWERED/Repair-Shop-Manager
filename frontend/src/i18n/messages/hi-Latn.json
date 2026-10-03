@@ -1007,5 +1007,27 @@
       "invalidGstin": "Invalid GSTIN format ya checksum",
       "fixGstinError": "Save karne se pehle GSTIN error theek karein"
     }
+  },
+  "messages": {
+    "jobReceived": "Namaste {customerName}, aapka device {deviceName} {shopName} par repair ke liye receive ho gaya hai (Job #{jobNo}). Live repair status yahan track karein: {trackingUrl}",
+    "readyForPickup": "Namaste {customerName}, aapka device {deviceName} repair ho chuka hai aur {shopName} par pickup ke liye ready hai (Job #{jobNo}). Balance due: {balanceFormatted}. Details dekhein: {trackingUrl}",
+    "invoiceShared": "Namaste {customerName}, {shopName} se aapka invoice {invoiceNo} total amount {totalFormatted} ka hai. Balance due: {balanceFormatted}. Repair track karein: {trackingUrl}\nHumari service choose karne ke liye dhanyavaad!"
+  },
+  "share": {
+    "share": "Share karein",
+    "shareTitle": "Document share karein",
+    "shareReceipt": "Receipt PDF share karein",
+    "sharePdf": "PDF share karein",
+    "whatsAppJobReceived": "WhatsApp: Job receive hua",
+    "whatsAppReadyForPickup": "WhatsApp: Pickup ke liye ready",
+    "whatsAppInvoice": "WhatsApp invoice bhejein",
+    "openWhatsApp": "WhatsApp kholein",
+    "chooseSize": "Paper size chunein",
+    "sizeA4": "A4 format",
+    "sizeA5": "A5 format",
+    "preparingPdf": "PDF prepare ho raha hai...",
+    "shareSuccess": "Successfully share ho gaya",
+    "shareFailed": "Document share nahi ho paya",
+    "downloadFallback": "Document download ho gaya"
   }
 }

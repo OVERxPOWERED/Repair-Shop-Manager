@@ -40,6 +40,7 @@ export type Job = {
     name: string;
     phone: string;
     phone_masked: boolean;
+    preferred_locale?: string;
   };
   device: {
     id: string;
@@ -74,6 +75,8 @@ export type Job = {
   cost_paise?: number;
   paid_paise?: number;
   balance_paise?: number;
+  tracking_token?: string;
+  tracking_url?: string;
   expected_date: string | null;
   delivered_at: string | null;
   cancelled_at: string | null;

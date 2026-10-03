@@ -2,12 +2,23 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.16 (Sharing native share sheet and WhatsApp)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.17 (Thermal receipt printing)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Sharing: Native Share Sheet and WhatsApp (Subphase 1.16):**
+  - Backend `PUBLIC_TRACKING_BASE_URL` setting (`https://track.fixpro.in` default) and `JobSerializer.tracking_url` dynamically building public status tracking URL from `tracking_token`. Added `preferred_locale` to `JobCustomerSerializer`. Tested in `test_jobs.py`.
+  - Frontend binary API fetch: added `apiBlob(path, opts)` in `src/lib/api/client.ts` handling JWT authentication, automatic token refresh, active slow-request wake indicator, and Blob return.
+  - Native share service: created `src/native/share.ts` with `sharePdf({ url, filename, text, dialogTitle })` (native Capacitor Share & Filesystem; web `navigator.canShare` / `navigator.share` with graceful user-cancellation handling and object-URL download fallback) and `openWhatsApp(phone, text)` (normalizing Indian 10-digit numbers to 91 country code). Unit tested in `src/native/share.test.ts`.
+  - WhatsApp message generators: created `src/features/messages/whatsapp.ts` with localized templates (`en`, `hi`, `hi-Latn`) for job intake receipt, ready for pickup with balance due, and invoice sharing, plus `isPhoneMasked` security helper. Unit tested in `src/features/messages/whatsapp.test.ts` (13 tests).
+  - UI Integrations:
+    - Job Detail: added Share button and `JobShareSheet` dialog allowing PDF receipt sharing (A4 / A5 format switch) and WhatsApp intake / ready updates.
+    - Invoice Detail: added Share PDF button in header & sticky action bar and WhatsApp Invoice button for issued & cancelled invoices.
+    - Privacy & Masking: strictly hides WhatsApp actions whenever customer phone is masked or technician lacks `customers.see_phone`.
+  - Complete i18n support across `en`, `hi`, and `hi-Latn` with 100% key parity (871 keys).
+  - All 282 backend pytest tests passing; all 129 frontend vitest tests passing; static export build verified (24/24 static pages generated).
 - **PDF Documents via WeasyPrint (Subphase 1.15):**
   - Server-side PDF document generation service via `WeasyPrint` and `Segno` QR codes with embedded official `Noto Sans` and `Noto Sans Devanagari` fonts (OFL licensed).
   - Python amount-to-words helper in `apps/core/amount_words.py` converting integer paise to Indian English financial words ("Rupees ... and ... Paise Only") with unit tests in `apps/core/tests/test_amount_words.py`.

@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Eye,
   Settings2,
+  MessageCircle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -31,6 +32,13 @@ import {
   type InvoiceLineInput,
 } from "@/features/invoices/api";
 import { useCurrentShopDetails } from "@/features/billing/api";
+import { useCustomer } from "@/features/customers/api";
+import { sharePdf } from "@/native/share";
+import {
+  isPhoneMasked,
+  sendInvoiceWhatsApp,
+  type InvoiceMessageData,
+} from "@/features/messages/whatsapp";
 import { InvoicePreview } from "@/features/invoices/components/InvoicePreview";
 import { InvoiceLineSheet } from "@/features/invoices/components/InvoiceLineSheet";
 import { IssueInvoiceDialog } from "@/features/invoices/components/IssueInvoiceDialog";
@@ -48,17 +56,23 @@ import { usePermission } from "@/lib/auth/store";
 
 function InvoiceDetailContent() {
   const t = useTranslations("invoices");
+  const tShare = useTranslations("share");
   const router = useRouter();
   const searchParams = useSearchParams();
   const invoiceId = searchParams.get("id");
 
   const { data: invoice, isLoading, isError, refetch } = useInvoice(invoiceId);
   const { data: currentShop } = useCurrentShopDetails();
+  const { data: customer } = useCustomer(invoice?.customer_id);
 
   // Permissions
   const canCreateDraft = usePermission("invoices.create_draft");
   const canIssue = usePermission("invoices.issue");
   const canCancel = usePermission("invoices.cancel");
+  const canSeePhone = usePermission("customers.see_phone");
+
+  // Sharing & WhatsApp state
+  const [isSharingPdf, setIsSharingPdf] = useState(false);
 
   // Mutations
   const updateDraftMutation = useUpdateDraftInvoice(invoiceId || "");
@@ -127,6 +141,56 @@ function InvoiceDetailContent() {
   const isIssued = invoice.status === "issued";
   const isCancelled = invoice.status === "cancelled";
   const isGstEnabled = currentShop?.gst_enabled ?? Boolean(invoice.customer_gstin || invoice.kind === "tax_invoice");
+
+  const snapshotCustomer = (invoice.customer_snapshot || {}) as Record<string, string>;
+  const customerPhone = customer?.phone || snapshotCustomer.phone || "";
+  const isCustomerPhoneMasked =
+    Boolean(customer?.phone_masked) ||
+    isPhoneMasked(customerPhone) ||
+    !canSeePhone ||
+    !customerPhone.trim();
+
+  const handleSharePdf = async () => {
+    if (!invoice) return;
+    setIsSharingPdf(true);
+    try {
+      const safeNumber = (invoice.number_display || "invoice").replace(/[^a-zA-Z0-9_-]/g, "_");
+      await sharePdf({
+        url: `/invoices/${invoice.id}/pdf/`,
+        filename: `${safeNumber}.pdf`,
+        text: `Invoice ${invoice.number_display || ""}`,
+        dialogTitle: `${invoice.number_display || "Invoice"} PDF`,
+      });
+      toast.success(tShare("shareSuccess"));
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
+      toast.error(tShare("shareFailed"));
+    } finally {
+      setIsSharingPdf(false);
+    }
+  };
+
+  const handleWhatsAppInvoice = async () => {
+    if (!invoice || !customerPhone) return;
+    try {
+      const invoiceData: InvoiceMessageData = {
+        customerName: customer?.name || snapshotCustomer.name || "Customer",
+        shopName: currentShop?.name || "Repair Shop",
+        invoiceNo: invoice.number_display || "Invoice",
+        totalPaise: invoice.total_paise,
+        balancePaise: invoice.balance_paise,
+      };
+      await sendInvoiceWhatsApp(
+        customerPhone,
+        invoiceData,
+        customer?.preferred_locale
+      );
+    } catch {
+      toast.error(tShare("shareFailed"));
+    }
+  };
 
   // Handle live GSTIN change with state code auto-detection
   const handleGstinChange = (value: string) => {
@@ -310,15 +374,36 @@ function InvoiceDetailContent() {
           <span>{invoice.job_id ? t("backToJob") : t("backToInvoices")}</span>
         </button>
 
-        {invoice.job_id && (
-          <Link
-            href={`/jobs/detail/?id=${invoice.job_id}`}
-            className="flex items-center gap-1.5 text-xs font-bold text-neutral-900 dark:text-neutral-100 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-xl hover:bg-neutral-200 transition-colors"
-          >
-            <Wrench className="w-3.5 h-3.5 text-neutral-500" />
-            <span>{t("viewJob")}</span>
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {!isDraft && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSharePdf}
+              disabled={isSharingPdf}
+              className="rounded-xl h-8 px-2.5 text-xs font-semibold gap-1.5 border-neutral-300 dark:border-neutral-700"
+              title={tShare("sharePdf")}
+            >
+              {isSharingPdf ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Share2 className="w-3.5 h-3.5" />
+              )}
+              <span className="hidden sm:inline">{tShare("share")}</span>
+            </Button>
+          )}
+
+          {invoice.job_id && (
+            <Link
+              href={`/jobs/detail/?id=${invoice.job_id}`}
+              className="flex items-center gap-1.5 text-xs font-bold text-neutral-900 dark:text-neutral-100 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-xl hover:bg-neutral-200 transition-colors"
+            >
+              <Wrench className="w-3.5 h-3.5 text-neutral-500" />
+              <span>{t("viewJob")}</span>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Cancelled Banner */}
@@ -653,10 +738,41 @@ function InvoiceDetailContent() {
                 variant="outline"
                 onClick={() => setIsCancelDialogOpen(true)}
                 disabled={cancelMutation.isPending}
-                className="rounded-xl h-11 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50"
+                className="rounded-xl h-11 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 px-3"
               >
                 <AlertTriangle className="w-3.5 h-3.5 mr-1" />
-                <span>{t("cancelWithCreditNoteBtn")}</span>
+                <span className="hidden sm:inline">{t("cancelWithCreditNoteBtn")}</span>
+                <span className="sm:hidden">Cancel</span>
+              </Button>
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSharePdf}
+              disabled={isSharingPdf}
+              className="rounded-xl h-11 text-xs font-semibold border-neutral-300 dark:border-neutral-700 px-3"
+              title={tShare("sharePdf")}
+            >
+              {isSharingPdf ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <Share2 className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              <span>{tShare("sharePdf")}</span>
+            </Button>
+
+            {!isCustomerPhoneMasked && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleWhatsAppInvoice}
+                className="rounded-xl h-11 text-xs font-semibold border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 px-3"
+                title={tShare("whatsAppInvoice")}
+              >
+                <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                <span className="hidden sm:inline">{tShare("whatsAppInvoice")}</span>
+                <span className="sm:hidden">WhatsApp</span>
               </Button>
             )}
 
@@ -664,22 +780,40 @@ function InvoiceDetailContent() {
               type="button"
               variant="outline"
               onClick={() => window.print()}
-              className="flex-1 rounded-xl h-11 text-xs font-semibold border-neutral-300"
+              className="flex-1 rounded-xl h-11 text-xs font-semibold border-neutral-300 px-3"
             >
               <Printer className="w-3.5 h-3.5 mr-1.5" />
               <span>{t("printBtn")}</span>
             </Button>
           </>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.print()}
-            className="flex-1 rounded-xl h-11 text-xs font-semibold border-neutral-300"
-          >
-            <Printer className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t("printBtn")}</span>
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSharePdf}
+              disabled={isSharingPdf}
+              className="rounded-xl h-11 text-xs font-semibold border-neutral-300 dark:border-neutral-700 px-3"
+              title={tShare("sharePdf")}
+            >
+              {isSharingPdf ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <Share2 className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              <span>{tShare("sharePdf")}</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.print()}
+              className="flex-1 rounded-xl h-11 text-xs font-semibold border-neutral-300 px-3"
+            >
+              <Printer className="w-3.5 h-3.5 mr-1.5" />
+              <span>{t("printBtn")}</span>
+            </Button>
+          </>
         )}
       </div>
 

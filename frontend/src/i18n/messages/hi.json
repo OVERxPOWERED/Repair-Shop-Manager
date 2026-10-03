@@ -1007,5 +1007,27 @@
       "invalidGstin": "अमान्य जीएसटीआईएन प्रारूप या चेकसम",
       "fixGstinError": "सहेजने से पहले कृपया जीएसटीआईएन की त्रुटि ठीक करें"
     }
+  },
+  "messages": {
+    "jobReceived": "नमस्ते {customerName}, आपका डिवाइस {deviceName} {shopName} पर रिपेयर के लिए प्राप्त हो गया है (जॉब #{jobNo})। रिपेयर की स्थिति यहाँ ट्रैक करें: {trackingUrl}",
+    "readyForPickup": "नमस्ते {customerName}, आपका डिवाइस {deviceName} रिपेयर हो चुका है और {shopName} पर पिकअप के लिए तैयार है (जॉब #{jobNo})। शेष देय राशि: {balanceFormatted}। विवरण देखें: {trackingUrl}",
+    "invoiceShared": "नमस्ते {customerName}, {shopName} से आपका बिल {invoiceNo} कुल राशि {totalFormatted} का है। शेष देय राशि: {balanceFormatted}। रिपेयर ट्रैक करें: {trackingUrl}\nहमारी सेवा चुनने के लिए धन्यवाद!"
+  },
+  "share": {
+    "share": "शेयर करें",
+    "shareTitle": "दस्तावेज़ शेयर करें",
+    "shareReceipt": "रसीद PDF शेयर करें",
+    "sharePdf": "PDF शेयर करें",
+    "whatsAppJobReceived": "व्हाट्सएप: जॉब प्राप्त हुआ",
+    "whatsAppReadyForPickup": "व्हाट्सएप: पिकअप के लिए तैयार",
+    "whatsAppInvoice": "व्हाट्सएप बिल भेजें",
+    "openWhatsApp": "व्हाट्सएप खोलें",
+    "chooseSize": "कागज़ का आकार",
+    "sizeA4": "A4 फॉर्मेट",
+    "sizeA5": "A5 फॉर्मेट",
+    "preparingPdf": "PDF तैयार हो रहा है...",
+    "shareSuccess": "सफलतापूर्वक शेयर किया गया",
+    "shareFailed": "दस्तावेज़ शेयर करने में विफल",
+    "downloadFallback": "दस्तावेज़ डाउनलोड हो गया"
   }
 }
