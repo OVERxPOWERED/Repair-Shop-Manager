@@ -2,12 +2,18 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.2 (Customers API)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.3 (Devices and IMEI API)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Customers API (Subphase 1.2):**
+  - Created `apps/customers` with `Customer(ShopScopedModel)` carrying GIN trigram indexes on `name` and `phone`, unique constraint `cust_uniq_phone_per_shop` (`shop`, `phone` for non-deleted rows), and registered in Django admin.
+  - Implemented phone masking helpers in `apps/customers/visibility.py` (`can_see_customer_phone`, `present_phone`) checking shop setting `mask_phone_for_engineers` and user permission `customers.see_phone`.
+  - Built `CustomerSerializer` with E.164 normalization, duplicate phone detection (`customer.phone_exists`), dynamic representation masking (`phone_masked`), and update-time protection against overwriting real phone numbers with masked ones.
+  - Built `CustomerViewSet(ShopScopedViewSet)` with `q=` search (digit search across `phone` and `alt_phone`, trigram icontains on `name`), exact `phone=` lookup, ordering, `@idempotent(required=False)` on create, and append-only audit logging (`customer.created`, `customer.updated`, `customer.deleted`) strictly masking phone numbers in before/after snapshots.
+  - Added 6 unit tests in `apps/customers/tests/test_customers.py` covering full CRUD, duplicate rejection within shop vs other shop, trigram search and query budget (max 3 queries), technician masking matrix, and stored phone preservation (102 total backend pytest tests passing).
 - **Postgres Search and Per-Shop Catalogs (Subphase 1.1):**
   - Enabled PostgreSQL trigram extension (`pg_trgm`) via migration `core.0002_enable_pg_trgm`.
   - Added `DeviceCategory` choices, `ShopBrand(ShopScopedModel)`, and `AccessoryOption(ShopScopedModel)` with case-insensitive unique constraint `brand_uniq_name_per_cat` on `(Lower("name"), "shop", "device_category")`.
