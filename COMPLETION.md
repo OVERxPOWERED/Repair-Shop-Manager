@@ -49,7 +49,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.11](#011-api-client-session-store-secure-storage-and-native-layer) | API client, session store, secure storage and native layer | ✅ Done | 2026-10-02 |
 | 0 | [0.12](#012-auth-screens-splash-welcome-phone-otp-profile) | Auth screens (splash, welcome, phone, OTP, profile) | ✅ Done | 2026-10-02 |
 | 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ✅ Done | 2026-10-02 |
-| 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ⬜ Not started | — |
+| 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ✅ Done | 2026-10-03 |
 | 0 | [0.15](#015-audit-log) | Audit log | ⬜ Not started | — |
 | 0 | [0.16](#016-staff-invites-and-the-staff--roles-screens) | Staff invites and the Staff / Roles screens | ⬜ Not started | — |
 | 0 | [0.17](#017-pilot-deployment-monitoring-scheduled-jobs-and-backups) | Pilot deployment, monitoring, scheduled jobs and backups | ⬜ Not started | — |
@@ -471,19 +471,27 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-02 | 2026-10-03 | f5c0bde |
 
-- [ ] 0.14.1 Shared state components (`src/components/states/`)
-- [ ] 0.14.2 Shell
-- [ ] 0.14.3 🧑‍🔧 Run on devices
-- [ ] 0.14.4 Playwright smoke test (local only for now)
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.14.1 Shared state components (`src/components/states/`)
+- [x] 0.14.2 Shell
+- [x] 0.14.3 🧑‍🔧 Run on devices
+- [x] 0.14.4 Playwright smoke test (local only for now)
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: No ESLint warnings or errors (185 i18n keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 52 passed across 11 test files
+- pnpm build: next build static export generated (15/15 pages)
+- pnpm e2e: Playwright smoke test passed in 19.3s (full auth, profile, onboarding, home shell, 5 tabs at 360x780 viewport)
+Backend:
+- uv run pytest: 71 passed
+- uv run ruff check .: clean
 ```
-**Notes:** —
+**Notes:** Implemented shared state components in `src/components/states/` (`ListSkeleton`, `CardSkeleton`, `EmptyState`, `ErrorState`, `PermissionDenied`, `OfflineBanner`, and re-exports in `index.ts`); implemented app navigation shell (`AppHeader` with dynamic shop switcher sheet, notification bell, initials avatar linking to `/more/`, `ShopSwitcher` with queryClient cache clearing, `BottomNav` with 5 tabs and safe-area / 48px touch targets); created client route layout in `(app)/layout.tsx` enforcing `nextRoute` protection, hardware back-button routing, and native status-bar styling; built `(app)/home/page.tsx` with IST greeting, date pill, zeroed hero card, and quick-action grid; built placeholder pages for `(app)/jobs/`, `(app)/customers/`, and `(app)/inventory/`; built `(app)/more/page.tsx` with design system §4.5 grouped cards, active devices list via `/auth/devices/`, device revocation, logout-all, logout, and language switching modal; added native wrappers in `src/native/app.ts` (`onBackButton`, `minimizeApp`) and `src/native/status-bar.ts`; installed `@playwright/test` and chromium, configured `frontend/playwright.config.ts`, wrote E2E smoke test in `frontend/e2e/login.spec.ts` with database cleanup, and added `"e2e": "playwright test"` script.
 
 ## 0.15 Audit log
 

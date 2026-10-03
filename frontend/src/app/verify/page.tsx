@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -32,6 +32,7 @@ function VerifyContent() {
   const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [attemptsMsg, setAttemptsMsg] = useState<string | null>(null);
+  const submittedRef = useRef<string | null>(null);
 
   // Cooldown countdown timer
   useEffect(() => {
@@ -105,7 +106,8 @@ function VerifyContent() {
 
   // Auto-submit when 6 digits are typed
   useEffect(() => {
-    if (code.length === 6 && !loading) {
+    if (code.length === 6 && !loading && submittedRef.current !== code) {
+      submittedRef.current = code;
       handleVerify(code);
     }
   }, [code, loading, handleVerify]);
@@ -116,6 +118,7 @@ function VerifyContent() {
     setResending(true);
     setErrorMsg(null);
     setAttemptsMsg(null);
+    submittedRef.current = null;
 
     try {
       const deviceId = await getDeviceId();
@@ -173,6 +176,9 @@ function VerifyContent() {
           <OtpInput
             value={code}
             onChange={(val) => {
+              if (val !== code) {
+                submittedRef.current = null;
+              }
               setCode(val);
               setErrorMsg(null);
               setAttemptsMsg(null);

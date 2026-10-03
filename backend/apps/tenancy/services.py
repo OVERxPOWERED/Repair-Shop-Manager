@@ -44,7 +44,11 @@ def create_organization_and_shop(
     """
     Onboards an owner with a new organization, their first shop, and an active Owner membership.
     """
-    owner_role = Role.objects.get(organization=None, name="Owner")
+    try:
+        owner_role = Role.objects.get(organization=None, name="Owner")
+    except Role.DoesNotExist:
+        seed_system_roles()
+        owner_role = Role.objects.get(organization=None, name="Owner")
 
     organization = Organization.objects.create(
         name=org_name.strip() or f"{owner_user.name or 'Owner'}'s Workshop", owner_user=owner_user

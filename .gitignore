@@ -51,6 +51,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .turbo
+test-results/
+playwright-report/
 
 # Mobile / Capacitor
 frontend/android/.gradle/

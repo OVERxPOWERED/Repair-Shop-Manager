@@ -2,13 +2,23 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.14 (App shell, navigation and shared states (+ iPhone))  **Last updated:** 2026-10-02
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.15 (Audit log)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.13 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.14 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **App Shell, Navigation and Shared States (+ iPhone) (Subphase 0.14):**
+  - Implemented shared state components in `src/components/states/`: `ListSkeleton`, `CardSkeleton`, `EmptyState`, `ErrorState`, `PermissionDenied`, `OfflineBanner`, and centralized exports in `index.ts`.
+  - Implemented shell navigation components in `src/components/shell/`: `AppHeader` (dynamic multi-shop switcher chevron, notification bell, user initials avatar linking to `/more/`), `ShopSwitcher` (sheet listing user shops with selection and `queryClient.clear()`), and `BottomNav` (5 tabs: Home, Jobs, Customers, Inventory, More; >=48px touch targets, safe area).
+  - Built shell layout in `src/app/(app)/layout.tsx` enforcing `nextRoute` route protection, hardware back-button routing (`App.minimizeApp` on tab root, `router.back` otherwise), and light status bar styling.
+  - Built `(app)/home/page.tsx` with dynamic IST greeting, date pill, hero card with zeros and quick operations grid with "Soon" badges.
+  - Built placeholder views for `(app)/jobs/`, `(app)/customers/`, and `(app)/inventory/` with contextual `EmptyState`.
+  - Built `(app)/more/page.tsx` with design system §4.5 grouped cards, active devices list via `GET /api/v1/auth/devices/`, device revocation via `DELETE /api/v1/auth/devices/<id>/`, logout all via `POST /api/v1/auth/logout-all/`, logout via `POST /api/v1/auth/logout/`, and language switcher dialog.
+  - Added native wrappers `src/native/app.ts` (`onBackButton`, `minimizeApp`) and `src/native/status-bar.ts`.
+  - Configured `@playwright/test` and chromium, wrote full E2E smoke test in `frontend/e2e/login.spec.ts` (tested at 360x780 viewport: auth, profile, onboarding, home shell, 5 tabs navigation).
+  - All 52 frontend vitest tests passing; 71 backend pytest tests passing; static export (15/15 pages) and lint passing with 0 errors.
 - **Shop Onboarding Wizard (Subphase 0.13):**
   - Ported backend `validate_gstin` (regex, state code lookup, and check character algorithm) to `src/lib/validation/gstin.ts` with 4 unit tests.
   - Created sorted GST state codes constant in `src/lib/constants/gst-states.ts`.

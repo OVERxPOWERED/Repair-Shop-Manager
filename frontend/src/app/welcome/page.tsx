@@ -43,12 +43,12 @@ export default function WelcomePage() {
 
       {/* Action Footer */}
       <div className="w-full pb-6 pt-4">
-        <Link href="/login/" className="w-full block">
-          <Button className="w-full text-base font-semibold group flex items-center justify-center gap-2">
+        <Button asChild className="w-full text-base font-semibold group flex items-center justify-center gap-2">
+          <Link href="/login/">
             <span>{t("continuePhone")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     </div>
   );
