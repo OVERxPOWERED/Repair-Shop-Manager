@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -18,11 +19,19 @@ import { MoneyInput } from "@/components/forms/MoneyInput";
 import { newIdempotencyKey } from "@/lib/api/client";
 import {
   useRecordPayment,
+  useCurrentShopDetails,
   type PaymentMode,
+  type Payment,
 } from "@/features/billing/api";
+import { paymentReceiptModel } from "@/lib/printer/receipt";
+import { printReceipt } from "@/lib/printer/render-canvas";
+import { getPrinterService } from "@/native/printer";
+import { isNative } from "@/native/platform";
 
 export interface PaymentSheetProps {
   jobId: string;
+  jobNo?: number;
+  device?: { brand_name?: string; model?: string };
   balancePaise: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,13 +41,19 @@ export interface PaymentSheetProps {
 
 export function PaymentSheet({
   jobId,
+  jobNo,
+  device,
   balancePaise,
   open,
   onOpenChange,
   defaultMode = "cash",
   focusReference = false,
 }: PaymentSheetProps) {
+  const router = useRouter();
   const t = useTranslations("billing");
+  const tPrinter = useTranslations("printer");
+  const { data: currentShop } = useCurrentShopDetails();
+
   const [mode, setMode] = useState<PaymentMode>(defaultMode);
   const [amountPaise, setAmountPaise] = useState(0);
   const [reference, setReference] = useState("");
@@ -66,27 +81,67 @@ export function PaymentSheet({
     }
   }, [open, balancePaise, defaultMode, focusReference]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executePrint = async (payment: Payment, remaining: number) => {
+    const printer = getPrinterService();
+    if (isNative() || printer.isConnected()) {
+      try {
+        const model = paymentReceiptModel(
+          { job_no: jobNo ?? 0, device },
+          payment,
+          currentShop,
+          remaining
+        );
+        await printReceipt(model);
+        toast.success(tPrinter("printSuccess"));
+      } catch {
+        router.push(
+          `/print/receipt/?type=payment&id=${payment.id}&job_id=${jobId}&size=58`
+        );
+      }
+    } else {
+      router.push(
+        `/print/receipt/?type=payment&id=${payment.id}&job_id=${jobId}&size=58`
+      );
+    }
+  };
+
+  const handleRecord = async (andPrint: boolean) => {
     if (amountPaise <= 0) {
       setError(t("validation.amountPositive"));
       return;
     }
 
     try {
-      await recordMutation.mutateAsync({
+      const res = await recordMutation.mutateAsync({
         mode,
         amount_paise: amountPaise,
         reference: reference.trim(),
         notes: notes.trim(),
         idempotencyKey,
       });
-      toast.success(t("payment.recordedSuccess"));
+
+      const remaining = Math.max(0, balancePaise - amountPaise);
       onOpenChange(false);
+
+      if (andPrint) {
+        await executePrint(res, remaining);
+      } else {
+        toast.success(t("payment.recordedSuccess"), {
+          action: {
+            label: t("payment.printReceipt"),
+            onClick: () => executePrint(res, remaining),
+          },
+        });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t("payment.recordFailed");
       toast.error(msg);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleRecord(false);
   };
 
   return (
@@ -177,25 +232,42 @@ export function PaymentSheet({
 
           {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
 
-          <div className="pt-2 flex gap-3">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-12 rounded-xl"
+              className="h-11 rounded-xl"
               disabled={recordMutation.isPending}
             >
               {t("common.cancel")}
             </Button>
+
             <Button
               type="submit"
               disabled={recordMutation.isPending}
-              className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              className="flex-1 h-11 rounded-xl bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 font-semibold"
             >
               {recordMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 t("payment.recordSubmit")
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              disabled={recordMutation.isPending}
+              onClick={() => handleRecord(true)}
+              className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5"
+            >
+              {recordMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Printer className="w-4 h-4" />
+                  <span>{t("payment.saveAndPrint")}</span>
+                </>
               )}
             </Button>
           </div>

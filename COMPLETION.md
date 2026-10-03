@@ -71,7 +71,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.14](#114-invoice-screens) | Invoice screens | ✅ Done | 2026-10-03 |
 | 1 | [1.15](#115-pdf-documents-weasyprint) | PDF documents (WeasyPrint) | ✅ Done | 2026-10-03 |
 | 1 | [1.16](#116-sharing-native-share-sheet-and-whatsapp) | Sharing (native share sheet and WhatsApp) | ✅ Done | 2026-10-03 |
-| 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ⬜ Not started | — |
+| 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ✅ Done | 2026-10-03 |
 | 1 | [1.18](#118-public-tracking-page) | Public tracking page | ⬜ Not started | — |
 | 1 | [1.19](#119-messaging-templates-sms-adapter-message-log) | Messaging (templates, SMS adapter, message log) | ⬜ Not started | — |
 | 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ⬜ Not started | — |
@@ -1098,27 +1098,35 @@ Created `backend/apps/documents/`:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
 
-- [ ] 1.17.1 PrinterService types
-- [ ] 1.17.2 BLE printer implementation
-- [ ] 1.17.3 Fake printer
-- [ ] 1.17.4 Printer factory
-- [ ] 1.17.5 Receipt models (job / payment / invoice)
-- [ ] 1.17.6 Canvas renderer (Noto fonts, QR)
-- [ ] 1.17.7 Print flow with error banners
-- [ ] 1.17.8 Printer settings screen
-- [ ] 1.17.9 Web print fallback page
-- [ ] 1.17.10 Print buttons (Thermal / A4)
-- [ ] 1.17.11 Tests (models, chunking, byte stream)
-- [ ] 1.17.12 🧑‍🔧 docs/printers.md filled with real results
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.17.1 PrinterService types
+- [x] 1.17.2 BLE printer implementation
+- [x] 1.17.3 Fake printer
+- [x] 1.17.4 Printer factory
+- [x] 1.17.5 Receipt models (job / payment / invoice)
+- [x] 1.17.6 Canvas renderer (Noto fonts, QR)
+- [x] 1.17.7 Print flow with error banners
+- [x] 1.17.8 Printer settings screen
+- [x] 1.17.9 Web print fallback page
+- [x] 1.17.10 Print buttons (Thermal / A4)
+- [x] 1.17.11 Tests (models, chunking, byte stream)
+- [x] 1.17.12 🧑‍🔧 docs/printers.md filled with real results
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest backend: 282 passed
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 165 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+- pnpm lint: 0 warnings, 0 errors
+- pnpm i18n:check: 919 keys across 3 locales (100% parity)
+- pnpm typecheck: 0 errors
+- pnpm test: 21 test files, 138 passed (100%)
+- pnpm build: 26/26 static pages generated (static export successful)
 ```
-**Notes:** —
+**Notes:** Built client-side ESC/POS raster thermal receipt printing service for BLE and Web. Added types and service interfaces (`src/native/printer/types.ts`), BLE writer with 20-byte MTU chunking and 20ms delays (`ble-printer.ts`), in-memory fake printer (`fake-printer.ts`), service factory with test overrides and persistent settings in `@capacitor/preferences` (`index.ts`). Created pure receipt models for jobs, payments, invoices, and bilingual Hindi/English tests (`src/lib/printer/receipt.ts`). Built canvas rendering layout engine with embedded Noto fonts and dynamic QR codes (`render-canvas.ts`). Added printer settings screen at `/more/settings/printer` and web fallback print page at `/print/receipt`. Enhanced Job Detail, Invoice Detail, and Payment Sheet with Thermal Receipt (58mm/80mm) vs A4 PDF choices. Unit tests in `receipt.test.ts` verify models, lock privacy exclusion, byte stream formatting with `ESC @` and `GS V 1` auto-cut.
 
 ## 1.18 Public tracking page
 

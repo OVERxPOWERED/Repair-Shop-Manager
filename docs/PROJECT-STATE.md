@@ -2,12 +2,32 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.17 (Thermal receipt printing)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.18 (Public tracking page)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Thermal Receipt Printing (Subphase 1.17):**
+  - Native BLE thermal printer driver and architecture:
+    - Service contracts and error mappings in `src/native/printer/types.ts`: `PaperWidth` (58|80), `DOTS` (384|576), `PrinterInfo`, `PrinterError` (`not_found`, `disconnected`, `permission`, `unsupported`, `write_failed`), `PrinterConfig`, and `PrinterService`.
+    - Native BLE printer service (`src/native/printer/ble-printer.ts`) via `@capacitor-community/bluetooth-le`: dynamic service discovery, MTU payload chunking (`chunkBytes(bytes, 20)` with 20ms delays between packets to prevent printer buffer overruns), and error code mapping.
+    - Test double (`src/native/printer/fake-printer.ts`) recording written byte streams and simulated device disconnects.
+    - Factory and device preference persistence (`src/native/printer/index.ts`) saving paired printer address, paper width, dithering, and auto-cut options in `@capacitor/preferences` (`fixpro.printer`).
+  - Pure receipt models and layout engine:
+    - Pure functional builders in `src/lib/printer/receipt.ts`: `jobReceiptModel`, `paymentReceiptModel`, `invoiceReceiptModel`, and bilingual `testReceiptModel`. Strictly prevents exposing device lock values (pattern, PIN, password).
+    - Canvas rasterizer in `src/lib/printer/render-canvas.ts`: renders bilingual Hindi Devanagari and English receipts using `Noto Sans` & `Noto Sans Devanagari`, text wrapping, right-aligned monetary values, dashed dividers, and dynamic QR codes (`qrcode.toCanvas`).
+    - End-to-end print flow `printReceipt(model, options)` with auto-reconnect, 1-bit monochrome raster conversion (`canvasToEscPosRaster`), ESC/POS initialization (`ESC @`), and optional auto-cutter command (`GS V 1`).
+  - Screens and UI integrations:
+    - Printer settings screen at `src/app/(app)/more/settings/printer/page.tsx`: Bluetooth device scanner, connection toggle, 58mm vs 80mm paper width selector, auto-cut switch, bilingual hardware test print, and forget printer action. Accessible from More menu.
+    - Web fallback print page at `src/app/(app)/print/receipt/page.tsx`: supports `job`, `invoice`, `payment`, and `test` receipt types formatted with `@media print { @page { size: 58mm auto; margin: 0; } }` (or 80mm) with auto-print trigger.
+    - Job Detail: Print and Share buttons open `JobShareSheet` offering Thermal Receipt (58mm/80mm) with native BLE or web print fallback, A4/A5 PDF documents, and WhatsApp updates.
+    - Invoice Detail: Print button opens `InvoicePrintDialog` offering Thermal Receipt (58mm/80mm) and A4 PDF documents for issued/cancelled invoices.
+    - Payment Sheet: Enhanced with `Save & Print` button and post-payment toast action to immediately print thermal payment slips.
+  - Quality and localization:
+    - 9 comprehensive unit tests in `src/lib/printer/receipt.test.ts` (100% pass) verifying models, lock privacy exclusion, UTR balance calculations, GST itemization, Devanagari test strings, MTU chunking, and fake printer byte stream inspection with `ESC @` and `GS V 1`.
+    - Added full `printer` namespace and updated `billing.payment` across `en.json`, `hi.json`, and `hi-Latn.json` with 100% key parity (919 total keys).
+    - 282 backend tests passing, 138 frontend tests passing, 0 lint/typecheck errors, and Next.js static export build verified (26/26 pages).
 - **Sharing: Native Share Sheet and WhatsApp (Subphase 1.16):**
   - Backend `PUBLIC_TRACKING_BASE_URL` setting (`https://track.fixpro.in` default) and `JobSerializer.tracking_url` dynamically building public status tracking URL from `tracking_token`. Added `preferred_locale` to `JobCustomerSerializer`. Tested in `test_jobs.py`.
   - Frontend binary API fetch: added `apiBlob(path, opts)` in `src/lib/api/client.ts` handling JWT authentication, automatic token refresh, active slow-request wake indicator, and Blob return.

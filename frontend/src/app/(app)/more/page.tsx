@@ -25,6 +25,7 @@ import {
   Loader2,
   AlertCircle,
   HelpCircle,
+  Printer,
 } from "lucide-react";
 import { useAuthStore, useCurrentShop } from "@/lib/auth/store";
 import { useLocaleStore } from "@/i18n/store";
@@ -277,6 +278,29 @@ export default function MorePage() {
           {t("preferences")}
         </h2>
         <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden divide-y divide-neutral-100">
+          {/* Thermal Printer Settings */}
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/printer/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <Printer className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("thermalPrinter")}</p>
+                <p className="text-[11px] text-neutral-500">{t("thermalPrinterSubtitle")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                BLE
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
           {/* Language selector */}
           <button
             type="button"

@@ -27,6 +27,7 @@ import {
   CreditCard,
   FileText,
   Share2,
+  Printer,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -298,6 +299,18 @@ function JobDetailContent() {
         </button>
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsShareSheetOpen(true)}
+            className="rounded-xl h-8 px-2.5 text-xs font-semibold gap-1.5 border-neutral-300 dark:border-neutral-700"
+            title="Print"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Print</span>
+          </Button>
+
           <Button
             type="button"
             variant="outline"
@@ -896,6 +909,8 @@ function JobDetailContent() {
 
       <PaymentSheet
         jobId={job.id}
+        jobNo={job.job_no}
+        device={job.device}
         balancePaise={
           job.balance_paise ??
           Math.max(

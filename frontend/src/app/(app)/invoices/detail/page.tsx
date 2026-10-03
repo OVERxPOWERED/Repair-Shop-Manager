@@ -43,6 +43,7 @@ import { InvoicePreview } from "@/features/invoices/components/InvoicePreview";
 import { InvoiceLineSheet } from "@/features/invoices/components/InvoiceLineSheet";
 import { IssueInvoiceDialog } from "@/features/invoices/components/IssueInvoiceDialog";
 import { CancelInvoiceDialog } from "@/features/invoices/components/CancelInvoiceDialog";
+import { InvoicePrintDialog } from "@/features/invoices/components/InvoicePrintDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -98,6 +99,7 @@ function InvoiceDetailContent() {
   // Dialogs
   const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [creditNoteCreatedId, setCreditNoteCreatedId] = useState<string | null>(null);
 
   // Populate draft fields when invoice data loads
@@ -779,7 +781,7 @@ function InvoiceDetailContent() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => window.print()}
+              onClick={() => setIsPrintDialogOpen(true)}
               className="flex-1 rounded-xl h-11 text-xs font-semibold border-neutral-300 px-3"
             >
               <Printer className="w-3.5 h-3.5 mr-1.5" />
@@ -807,7 +809,7 @@ function InvoiceDetailContent() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => window.print()}
+              onClick={() => setIsPrintDialogOpen(true)}
               className="flex-1 rounded-xl h-11 text-xs font-semibold border-neutral-300 px-3"
             >
               <Printer className="w-3.5 h-3.5 mr-1.5" />
@@ -840,6 +842,13 @@ function InvoiceDetailContent() {
         invoiceNumber={invoice.number_display || "Invoice"}
         onConfirm={handleCancelConfirm}
         isCancelling={cancelMutation.isPending}
+      />
+
+      <InvoicePrintDialog
+        open={isPrintDialogOpen}
+        onOpenChange={setIsPrintDialogOpen}
+        invoice={invoice}
+        shop={currentShop}
       />
     </div>
   );
