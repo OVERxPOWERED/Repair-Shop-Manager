@@ -78,6 +78,7 @@ class JobViewSet(ShopScopedViewSet):
         "line_item_detail": "jobs.edit",
         "payments": "payments.view",
         "record_payment": "payments.record",
+        "create_invoice": "invoices.create_draft",
     }
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
@@ -486,6 +487,18 @@ class JobViewSet(ShopScopedViewSet):
             request=request,
         )
         return Response(PaymentSerializer(payment, context={"request": request}).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="invoice")
+    def create_invoice(self, request, pk=None):
+        if not (request.membership and request.membership.has_perm("invoices.create_draft")):
+            raise DomainError("You do not have permission to create invoices.", code="permission.denied", status=403)
+
+        from apps.billing.serializers import InvoiceSerializer
+        from apps.billing.services import create_draft_from_job
+
+        job = self.get_object()
+        invoice = create_draft_from_job(job=job, actor=request.user, request=request)
+        return Response(InvoiceSerializer(invoice, context={"request": request}).data, status=status.HTTP_201_CREATED)
 
 
 class DashboardSummaryView(APIView):

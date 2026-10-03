@@ -121,6 +121,15 @@ class ShopSerializer(serializers.ModelSerializer):
             attrs["state_code"] = gstin[:2]
             if current("registration_type", "unregistered") == "unregistered":
                 attrs["registration_type"] = Shop.RegistrationTypeChoices.REGULAR
+
+            prefix = current("invoice_prefix", "INV")
+            if prefix:
+                clean_prefix = str(prefix).strip().upper()
+                if not (1 <= len(clean_prefix) <= 4 and clean_prefix.isalnum()):
+                    raise serializers.ValidationError(
+                        {"invoice_prefix": ["Prefix must be 1-4 alphanumeric characters when GST is enabled."]}
+                    )
+                attrs["invoice_prefix"] = clean_prefix
         else:
             attrs["registration_type"] = Shop.RegistrationTypeChoices.UNREGISTERED
         return attrs

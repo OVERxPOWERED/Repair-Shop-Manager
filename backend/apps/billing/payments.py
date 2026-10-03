@@ -60,9 +60,14 @@ def record_payment(
                 fields={"amount_paise": ["Payment amount exceeds outstanding balance."]},
             )
 
+        issued_invoice = (
+            locked_job.invoices.filter(status="issued", deleted_at__isnull=True).exclude(kind="credit_note").first()
+        )
+
         payment = Payment.objects.create(
             shop=shop,
             job=locked_job,
+            invoice=issued_invoice,
             customer=locked_job.customer,
             direction=Payment.Direction.IN,
             mode=mode,
@@ -73,6 +78,22 @@ def record_payment(
             idempotency_key=idempotency_key,
             notes=notes or "",
         )
+
+        if issued_invoice:
+            inn = (
+                issued_invoice.payments.filter(direction=Payment.Direction.IN).aggregate(Sum("amount_paise"))[
+                    "amount_paise__sum"
+                ]
+                or 0
+            )
+            out = (
+                issued_invoice.payments.filter(direction=Payment.Direction.OUT).aggregate(Sum("amount_paise"))[
+                    "amount_paise__sum"
+                ]
+                or 0
+            )
+            issued_invoice.amount_paid_paise = max(0, inn - out)
+            issued_invoice.save(update_fields=["amount_paid_paise", "updated_at", "version"])
 
         record_audit(
             action="payment.recorded",
@@ -133,6 +154,7 @@ def refund_payment(
         refund = Payment.objects.create(
             shop=locked_payment.shop,
             job=locked_payment.job,
+            invoice=locked_payment.invoice,
             customer=locked_payment.customer,
             direction=Payment.Direction.OUT,
             mode=locked_payment.mode,
@@ -144,6 +166,19 @@ def refund_payment(
             idempotency_key=idempotency_key,
             notes=reason or "",
         )
+
+        if locked_payment.invoice:
+            inv = locked_payment.invoice
+            inn = (
+                inv.payments.filter(direction=Payment.Direction.IN).aggregate(Sum("amount_paise"))["amount_paise__sum"]
+                or 0
+            )
+            out = (
+                inv.payments.filter(direction=Payment.Direction.OUT).aggregate(Sum("amount_paise"))["amount_paise__sum"]
+                or 0
+            )
+            inv.amount_paid_paise = max(0, inn - out)
+            inv.save(update_fields=["amount_paid_paise", "updated_at", "version"])
 
         record_audit(
             action="payment.refunded",

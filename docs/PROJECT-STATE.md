@@ -2,12 +2,29 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.13 (Invoices and the optional GST engine)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.14 (Invoice screens)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Invoices and the Optional GST Engine (Subphase 1.13):**
+  - Created pure functions tax engine in `backend/apps/billing/tax.py` (`LineInput`, `LineTax`, `compute_line`, `round_off`, `invoice_kind_for`, `is_intra_state`), marked with `TODO(verify): reviewed by CA on <date>`.
+  - Built models in `backend/apps/billing/models.py` with migration `0002_invoice_payment_invoice_invoiceseries_invoice_series_and_more`:
+    - `InvoiceSeries`: sequential numbering per shop, series kind (`invoice`, `credit_note`, `bill_of_supply`), and FY start year.
+    - `Invoice`: supports kinds (`simple_bill`, `tax_invoice`, `bill_of_supply`, `credit_note`), statuses (`draft`, `issued`, `cancelled`), financial totals, frozen JSON snapshots (`shop_snapshot`, `customer_snapshot`), check constraint (`total_paise = taxable + cgst + sgst + igst + round_off`), and partial unique constraint (one live invoice per job).
+    - `InvoiceLine`: description, HSN/SAC, quantity, unit price, discount, tax inclusive, tax rate (basis points), taxable paise, CGST, SGST, IGST, and line total.
+    - `Payment.invoice`: FK linking payments to issued invoices.
+  - Immutability enforcement: added strict immutability checks in `Invoice.save()`, `Invoice.delete()`, and `InvoiceLine.save()` rejecting changes to issued or cancelled invoices with `RuntimeError` and API 409 responses.
+  - Concurrency-safe sequential numbering in `backend/apps/billing/numbering.py`: row-level locks via `select_for_update()`, FY rollover (resets April 1st), and 16-character GST limit validation (`invoice.number_too_long`).
+  - Invoice services in `backend/apps/billing/services.py`: `create_draft_from_job`, `issue_invoice`, `cancel_invoice` (compensating credit note with `CN` series), `update_draft_invoice`, and `delete_draft_invoice`.
+  - Payment linkage: updated `record_payment` and `refund_payment` to attach `invoice` FK if the job has an issued invoice and synchronize `invoice.amount_paid_paise`.
+  - Shop prefix validation: added `invoice_prefix` validation (1–4 alphanumeric chars `[A-Z0-9]`) in `ShopSerializer` when GST is enabled.
+  - Endpoints & Permissions:
+    - Added `InvoiceViewSet` (`/api/v1/invoices/`) with `list`, `retrieve`, `partial_update`, `destroy`, `@action issue`, `@action cancel`.
+    - Added `@action(detail=True, methods=["post"], url_path="invoice")` on `JobViewSet` (`/api/v1/jobs/{id}/invoice/`).
+    - Granular permissions mapped: `invoices.view`, `invoices.create_draft`, `invoices.issue`, `invoices.cancel`.
+  - Added 18 unit and integration tests across `test_tax.py` and `test_invoices.py`. Full test suite of 270 backend pytest tests passing; frontend lint, typecheck, and vitest tests passing.
 - **Line Items, Payments and UPI QR screens (Subphase 1.12):**
   - Backend Customer dues filter: added `has_due` query parameter to `CustomerViewSet.get_queryset` with Subquery checking if billable total (`total_paise` if > 0 else `estimate_paise`) exceeds net paid across customer's jobs; unit tested in `apps/customers/tests/test_customers.py`.
   - Frontend UPI helper: created `src/lib/upi.ts` (`buildUpiUri` complying with NPCI specification) with vitest test suite in `src/lib/upi.test.ts`.
