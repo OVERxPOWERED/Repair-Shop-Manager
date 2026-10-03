@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Wrench,
   Calendar,
@@ -15,13 +16,14 @@ import {
   AlertTriangle,
   ChevronRight,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/lib/auth/store";
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const { user } = useAuthStore();
+  const { user, pendingInvites } = useAuthStore();
 
   const now = new Date();
   const istHourStr = new Intl.DateTimeFormat("en-IN", {
@@ -62,6 +64,29 @@ export default function HomePage() {
           <span>{dateStr}</span>
         </div>
       </div>
+
+      {/* Pending Invites Alert Banner */}
+      {pendingInvites > 0 && (
+        <Link
+          href="/invites/"
+          className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-950 dark:text-amber-200 transition-colors hover:bg-amber-500/15"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-white shrink-0">
+              <Mail className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold leading-tight">
+                {t("pendingInvitesBannerTitle", { count: pendingInvites })}
+              </p>
+              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                {t("pendingInvitesBannerSubtitle")}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
+        </Link>
+      )}
 
       {/* 2. Dark Hero Metric Card */}
       <div className="bg-neutral-950 text-white rounded-3xl p-5 shadow-sm space-y-4">

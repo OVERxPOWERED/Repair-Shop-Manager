@@ -59,13 +59,14 @@ export default function ProfileSetupPage() {
         shop: false,
       });
 
-      await setSession({ user: res.user, shops: res.shops });
+      const pending = (res as { pending_invites?: number }).pending_invites ?? useAuthStore.getState().pendingInvites;
+      await setSession({ user: res.user, shops: res.shops, pendingInvites: pending });
 
       const target = nextRoute({
         status: "signedIn",
         hasName: Boolean(res.user?.name && res.user.name.trim().length >= 2),
         shopCount: res.shops?.length ?? 0,
-        pendingInvites: 0,
+        pendingInvites: pending,
       });
 
       router.replace(target ?? "/home/");

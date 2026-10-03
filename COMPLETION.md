@@ -51,7 +51,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.13](#013-shop-onboarding-wizard) | Shop onboarding wizard | ✅ Done | 2026-10-02 |
 | 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ✅ Done | 2026-10-03 |
 | 0 | [0.15](#015-audit-log) | Audit log | ✅ Done | 2026-10-03 |
-| 0 | [0.16](#016-staff-invites-and-the-staff--roles-screens) | Staff invites and the Staff / Roles screens | ⬜ Not started | — |
+| 0 | [0.16](#016-staff-invites-and-the-staff--roles-screens) | Staff invites and the Staff / Roles screens | ✅ Done | 2026-10-03 |
 | 0 | [0.17](#017-pilot-deployment-monitoring-scheduled-jobs-and-backups) | Pilot deployment, monitoring, scheduled jobs and backups | ⬜ Not started | — |
 | 0 | [0.18](#018-phase-0-exit-review) | Phase 0 exit review | ⬜ Not started | — |
 | **0** | **Exit** | **Phase 0 exit checklist** | ⬜ Not started | — |
@@ -526,20 +526,28 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | 8cc55e8 |
 
-- [ ] 0.16.1 Backend service (`backend/apps/tenancy/invites.py`)
-- [ ] 0.16.2 Endpoints
-- [ ] 0.16.3 Backend tests
-- [ ] 0.16.4 Frontend
+- [x] 0.16.1 Backend service (`backend/apps/tenancy/invites.py`)
+- [x] 0.16.2 Endpoints
+- [x] 0.16.3 Backend tests
+- [x] 0.16.4 Frontend
 - [ ] 0.16.5 🧑‍🔧 Device check
-- [ ] Verify commands from ROADMAP passed
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- pytest: 85 passed (3.49s)
+- ruff check .: clean
+- ruff format --check .: clean (93 files formatted)
+Frontend:
+- pnpm lint: clean (296 i18n keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 52 passed across 11 test files
+- pnpm build: next build static export generated (19/19 pages)
 ```
-**Notes:** —
+**Notes:** Implemented complete staff invites lifecycle on backend and frontend. Backend: `apps/tenancy/invites.py` (`pending_invites_for_phone`, `create_invite`, `accept_invite`, `decline_invite`), `InviteSerializer`, `CreateInviteSerializer`, `MyInviteSerializer`, `InviteViewSet` (list, create, revoke with audit), `MyInvitesListView` (GET `/me/invites/`), `AcceptInviteView` (POST `/me/invites/<id>/accept/` with `staff.invite_accepted` audit), `DeclineInviteView` (POST `/me/invites/<id>/decline/`), and updated `/auth/me/` & OTP verification to return `pending_invites` count; added 6 comprehensive pytest tests in `test_invites.py` covering invite creation, duplicates/already-member prevention, non-owner role requirement, cross-user phone verification on accept, and tenant isolation (85/85 tests passing). Frontend: regenerated API types schema; updated session store, SessionBoot, login/verify, profile-setup, and layout to handle `pendingInvites`; created `features/staff/api.ts` React Query hooks; built `InviteSheet.tsx` bottom sheet; built `(app)/more/staff/page.tsx` (staff list, status indicators, pending invites with revoke), `(app)/more/staff/detail/page.tsx` (role change dialog, suspend/reactivate, remove dialog), `(app)/more/roles/page.tsx` (system roles and permission matrix with translated descriptions), `(app)/invites/page.tsx` (accept/decline invites screen outside shell), enabled staff and roles rows on More screen, added pending invites alert banner on Home screen, added 111 new translation keys with 100% parity across `en`, `hi`, and `hi-Latn` (296 total keys), and verified static export (19/19 pages).
 
 ## 0.17 Pilot deployment, monitoring, scheduled jobs and backups
 

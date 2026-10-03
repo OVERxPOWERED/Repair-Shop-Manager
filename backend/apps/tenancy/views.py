@@ -1,3 +1,4 @@
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -7,14 +8,18 @@ from rest_framework.views import APIView
 from apps.accounts.serializers import my_shops
 from apps.audit.services import record_audit, snapshot
 from apps.core.api.concurrency import save_with_version
-from apps.core.api.errors import DomainError
+from apps.core.api.errors import DomainError, NotFoundError
 from apps.core.api.idempotency import idempotent
+from apps.tenancy import invites as invite_service
 from apps.tenancy import staff as staff_service
-from apps.tenancy.models import Membership, Role
+from apps.tenancy.models import Invite, Membership, Role
 from apps.tenancy.permissions import ANY_MEMBER
 from apps.tenancy.serializers import (
     ChangeRoleSerializer,
+    CreateInviteSerializer,
+    InviteSerializer,
     MembershipSerializer,
+    MyInviteSerializer,
     OnboardShopSerializer,
     RoleSerializer,
     ShopSerializer,
@@ -167,4 +172,109 @@ class StaffViewSet(ShopScopedMixin, mixins.ListModelMixin, mixins.RetrieveModelM
     @action(detail=True, methods=["post"])
     def remove(self, request, pk=None):
         self._set_status(request, Membership.StatusChoices.REMOVED)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InviteViewSet(ShopScopedMixin, viewsets.GenericViewSet):
+    serializer_class = InviteSerializer
+    permission_map = {
+        "list": "staff.view",
+        "create": "staff.manage",
+        "destroy": "staff.manage",
+    }
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Invite.objects.none()
+        return (
+            Invite.objects.filter(
+                shop=self.request.shop,
+                accepted_at__isnull=True,
+                revoked_at__isnull=True,
+                expires_at__gt=timezone.now(),
+            )
+            .select_related("role", "invited_by")
+            .order_by("-created_at")
+        )
+
+    @extend_schema(responses={200: InviteSerializer(many=True)})
+    def list(self, request):
+        qs = self.get_queryset()
+        return Response(InviteSerializer(qs, many=True).data)
+
+    @extend_schema(request=CreateInviteSerializer, responses={201: InviteSerializer})
+    @idempotent(required=False)
+    def create(self, request):
+        s = CreateInviteSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        phone = s.validated_data["phone"]
+        role = staff_service.assignable_roles(request.shop).filter(pk=s.validated_data["role_id"]).first()
+        if role is None:
+            raise DomainError("Unknown role.", code="staff.role_invalid", status=400)
+        invite = invite_service.create_invite(actor=request.membership, phone=phone, role=role)
+        record_audit(
+            action="staff.invited",
+            entity=invite,
+            request=request,
+            actor=request.user,
+            shop=request.shop,
+            after={"phone": invite.phone, "role_id": str(invite.role_id)},
+        )
+        return Response(InviteSerializer(invite).data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(responses={204: None})
+    def destroy(self, request, pk=None):
+        invite = Invite.objects.filter(
+            shop=request.shop,
+            pk=pk,
+            accepted_at__isnull=True,
+            revoked_at__isnull=True,
+        ).first()
+        if invite is None:
+            raise NotFoundError("Invite not found or already processed.", code="invite.not_found")
+        invite.revoked_at = timezone.now()
+        invite.save(update_fields=["revoked_at", "updated_at"])
+        record_audit(
+            action="staff.invite_revoked",
+            entity=invite,
+            request=request,
+            actor=request.user,
+            shop=request.shop,
+            after={"phone": invite.phone},
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyInvitesListView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(responses={200: MyInviteSerializer(many=True)}, summary="Pending invites for current user")
+    def get(self, request):
+        invites = invite_service.pending_invites_for_phone(request.user.phone).order_by("-created_at")
+        return Response(MyInviteSerializer(invites, many=True).data)
+
+
+class AcceptInviteView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(responses={200: dict}, summary="Accept a shop invite")
+    def post(self, request, id):
+        membership = invite_service.accept_invite(user=request.user, invite_id=id)
+        record_audit(
+            action="staff.invite_accepted",
+            entity=membership,
+            request=request,
+            actor=request.user,
+            shop=membership.shop,
+            after={"role_id": str(membership.role_id)},
+        )
+        return Response(my_shops(request.user))
+
+
+class DeclineInviteView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(responses={204: None}, summary="Decline a shop invite")
+    def post(self, request, id):
+        invite_service.decline_invite(user=request.user, invite_id=id)
         return Response(status=status.HTTP_204_NO_CONTENT)

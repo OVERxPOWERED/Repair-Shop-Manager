@@ -214,7 +214,27 @@ export default function MorePage() {
               <ChevronRight className="w-4 h-4 text-neutral-400" />
             </div>
           </button>
-          <MenuRow icon={ShieldCheck} title={t("roles")} soon />
+          <button
+            type="button"
+            onClick={() => router.push("/more/roles/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("roles")}</p>
+                <p className="text-[11px] text-neutral-500">{t("rolesSubtitle")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v0.16
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
           <MenuRow icon={CreditCard} title={t("salary")} soon />
         </div>
       </div>

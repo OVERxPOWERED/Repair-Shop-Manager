@@ -27,7 +27,6 @@ const TAB_ROOTS = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { status, user, shops } = useAuthStore();
 
   // 1. Status bar configuration on native
   useEffect(() => {
@@ -46,12 +45,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [pathname, router]);
 
+  const { status, user, shops, pendingInvites } = useAuthStore();
+
   // 3. Routing protection
   const target = nextRoute({
     status,
     hasName: Boolean(user?.name && user.name.trim().length >= 2),
     shopCount: shops.length,
-    pendingInvites: 0,
+    pendingInvites,
   });
 
   useEffect(() => {

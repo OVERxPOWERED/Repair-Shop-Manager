@@ -23,8 +23,10 @@ type AuthState = {
   user: User | null;
   shops: MyShop[];
   shopId: string | null;
+  pendingInvites: number;
   boot: () => Promise<void>;
-  setSession: (s: { user: User; tokens?: Tokens; shops: MyShop[] }) => Promise<void>;
+  setSession: (s: { user: User; tokens?: Tokens; shops: MyShop[]; pendingInvites?: number }) => Promise<void>;
+  setPendingInvites: (count: number) => void;
   setTokens: (t: Tokens) => Promise<void>;
   selectShop: (shopId: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -39,6 +41,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   shops: [],
   shopId: null,
+  pendingInvites: 0,
 
   boot: async () => {
     const raw = await getSecret(TOKENS_KEY);
@@ -54,12 +57,23 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     set({ tokens, shopId, status: tokens ? "signedIn" : "signedOut" });
   },
 
-  setSession: async ({ user, tokens, shops }) => {
+  setSession: async ({ user, tokens, shops, pendingInvites }) => {
     if (tokens) await setSecret(TOKENS_KEY, JSON.stringify(tokens));
     const current = get().shopId;
     const shopId = shops.some((s) => s.shop_id === current) ? current : (shops[0]?.shop_id ?? null);
     if (shopId) await setPref(SHOP_KEY, shopId);
-    set({ user, shops, shopId, status: "signedIn", ...(tokens ? { tokens } : {}) });
+    set({
+      user,
+      shops,
+      shopId,
+      status: "signedIn",
+      ...(tokens ? { tokens } : {}),
+      ...(pendingInvites !== undefined ? { pendingInvites } : {}),
+    });
+  },
+
+  setPendingInvites: (pendingInvites) => {
+    set({ pendingInvites });
   },
 
   setTokens: async (tokens) => {
@@ -74,7 +88,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signOut: async () => {
     await removeSecret(TOKENS_KEY);
-    set({ status: "signedOut", tokens: null, user: null, shops: [] });
+    set({ status: "signedOut", tokens: null, user: null, shops: [], pendingInvites: 0 });
   },
 }));
 

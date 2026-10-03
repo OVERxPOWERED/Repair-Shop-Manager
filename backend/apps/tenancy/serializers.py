@@ -133,6 +133,7 @@ class ChangeRoleSerializer(serializers.Serializer):
 
 class InviteSerializer(serializers.ModelSerializer):
     role_name = serializers.CharField(source="role.name", read_only=True)
+    invited_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Invite
@@ -142,8 +143,47 @@ class InviteSerializer(serializers.ModelSerializer):
             "phone",
             "role_id",
             "role_name",
+            "invited_by_name",
             "expires_at",
             "accepted_at",
             "created_at",
         )
-        read_only_fields = ("id", "shop_id", "created_at")
+        read_only_fields = fields
+
+    def get_invited_by_name(self, obj) -> str | None:
+        if obj.invited_by:
+            return obj.invited_by.name or obj.invited_by.phone
+        return None
+
+
+class CreateInviteSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=16)
+    role_id = serializers.UUIDField()
+
+    def validate_phone(self, value):
+        return normalize_phone(value)
+
+
+class MyInviteSerializer(serializers.ModelSerializer):
+    shop_name = serializers.CharField(source="shop.name", read_only=True)
+    role_name = serializers.CharField(source="role.name", read_only=True)
+    inviter_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Invite
+        fields = (
+            "id",
+            "shop_id",
+            "shop_name",
+            "role_id",
+            "role_name",
+            "inviter_name",
+            "expires_at",
+            "created_at",
+        )
+        read_only_fields = fields
+
+    def get_inviter_name(self, obj) -> str:
+        if obj.invited_by:
+            return obj.invited_by.name or obj.invited_by.phone
+        return "Shop Owner"

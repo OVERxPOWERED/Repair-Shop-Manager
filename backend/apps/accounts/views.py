@@ -25,6 +25,7 @@ from apps.accounts.tokens import DeviceAwareTokenRefreshSerializer
 from apps.audit.services import record_audit
 from apps.core.api.errors import NotFoundError
 from apps.core.net import get_client_ip
+from apps.tenancy.invites import pending_invites_for_phone
 
 
 class SendOTPView(APIView):
@@ -72,7 +73,15 @@ class VerifyOTPView(APIView):
                 shop=None,
                 after={"platform": device.platform, "device_id": device.device_id},
             )
-        return Response({"user": UserSerializer(user).data, "tokens": tokens, "shops": my_shops(user)})
+        pending = pending_invites_for_phone(user.phone).count()
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "tokens": tokens,
+                "shops": my_shops(user),
+                "pending_invites": pending,
+            }
+        )
 
 
 class RefreshView(TokenRefreshView):
@@ -84,14 +93,28 @@ class RefreshView(TokenRefreshView):
 class MeView(APIView):
     @extend_schema(responses={200: dict}, summary="Current user and their shops")
     def get(self, request):
-        return Response({"user": UserSerializer(request.user).data, "shops": my_shops(request.user)})
+        pending = pending_invites_for_phone(request.user.phone).count()
+        return Response(
+            {
+                "user": UserSerializer(request.user).data,
+                "shops": my_shops(request.user),
+                "pending_invites": pending,
+            }
+        )
 
     @extend_schema(request=ProfileUpdateSerializer, responses={200: dict}, summary="Update profile")
     def patch(self, request):
         s = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
         s.is_valid(raise_exception=True)
         s.save()
-        return Response({"user": UserSerializer(request.user).data, "shops": my_shops(request.user)})
+        pending = pending_invites_for_phone(request.user.phone).count()
+        return Response(
+            {
+                "user": UserSerializer(request.user).data,
+                "shops": my_shops(request.user),
+                "pending_invites": pending,
+            }
+        )
 
 
 def _current_device(request):

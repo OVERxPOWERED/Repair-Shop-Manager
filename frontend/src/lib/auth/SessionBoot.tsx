@@ -21,9 +21,15 @@ export function SessionBoot({ children }: { children: React.ReactNode }) {
       const currentTokens = useAuthStore.getState().tokens;
       if (currentTokens) {
         try {
-          const data = await api<{ user: User; shops: MyShop[] }>("/auth/me/", { shop: false });
+          const data = await api<{ user: User; shops: MyShop[]; pending_invites?: number }>("/auth/me/", {
+            shop: false,
+          });
           if (!mounted) return;
-          await setSession({ user: data.user, shops: data.shops });
+          await setSession({
+            user: data.user,
+            shops: data.shops,
+            pendingInvites: data.pending_invites ?? 0,
+          });
           if (data.user?.preferred_locale) {
             const loc = data.user.preferred_locale as Locale;
             if (loc === "en" || loc === "hi" || loc === "hi-Latn") {

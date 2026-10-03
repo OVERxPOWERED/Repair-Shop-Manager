@@ -10,7 +10,7 @@ import { nextRoute } from "@/lib/auth/route";
 export default function SplashPage() {
   const router = useRouter();
   const t = useTranslations("auth");
-  const { status, user, shops } = useAuthStore();
+  const { status, user, shops, pendingInvites } = useAuthStore();
 
   useEffect(() => {
     if (status === "booting") return;
@@ -19,13 +19,13 @@ export default function SplashPage() {
       status,
       hasName: Boolean(user?.name && user.name.trim().length >= 2),
       shopCount: shops.length,
-      pendingInvites: 0,
+      pendingInvites,
     });
 
     if (target) {
       router.replace(target);
     }
-  }, [status, user, shops, router]);
+  }, [status, user, shops, pendingInvites, router]);
 
   return (
     <div className="min-h-screen w-full max-w-md mx-auto flex flex-col justify-between items-center p-6 bg-background text-foreground animate-in fade-in duration-300">

@@ -181,6 +181,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invites/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description X-Shop-Id -> request.shop/membership, then permission_map[action] is required. */
+        get: operations["invites_list"];
+        put?: never;
+        /** @description X-Shop-Id -> request.shop/membership, then permission_map[action] is required. */
+        post: operations["invites_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invites/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description X-Shop-Id -> request.shop/membership, then permission_map[action] is required. */
+        delete: operations["invites_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/invites/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pending invites for current user */
+        get: operations["me_invites_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/invites/{id}/accept/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept a shop invite */
+        post: operations["me_invites_accept_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/invites/{id}/decline/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline a shop invite */
+        post: operations["me_invites_decline_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/roles/": {
         parameters: {
             query?: never;
@@ -395,6 +481,11 @@ export interface components {
             /** Format: uuid */
             role_id: string;
         };
+        CreateInviteRequest: {
+            phone: string;
+            /** Format: uuid */
+            role_id: string;
+        };
         Device: {
             /** Format: uuid */
             readonly id: string;
@@ -417,6 +508,23 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        Invite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly shop_id: string;
+            readonly phone: string;
+            /** Format: uuid */
+            readonly role_id: string;
+            readonly role_name: string;
+            readonly invited_by_name: string | null;
+            /** Format: date-time */
+            readonly expires_at: string;
+            /** Format: date-time */
+            readonly accepted_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
         Membership: {
             /** Format: uuid */
             readonly id: string;
@@ -437,6 +545,21 @@ export interface components {
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+        };
+        MyInvite: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly shop_id: string;
+            readonly shop_name: string;
+            /** Format: uuid */
+            readonly role_id: string;
+            readonly role_name: string;
+            readonly inviter_name: string;
+            /** Format: date-time */
+            readonly expires_at: string;
+            /** Format: date-time */
+            readonly created_at: string;
         };
         OnboardShopRequest: {
             name: string;
@@ -474,6 +597,17 @@ export interface components {
         };
         PaginatedAuditLogList: {
             data: components["schemas"]["AuditLog"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
+        PaginatedInviteList: {
+            data: components["schemas"]["Invite"][];
             meta: {
                 count?: number;
                 page?: number;
@@ -925,6 +1059,148 @@ export interface operations {
                         data: components["schemas"]["HealthCheckResponse"];
                     };
                 };
+            };
+        };
+    };
+    invites_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedInviteList"];
+                    };
+                };
+            };
+        };
+    };
+    invites_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateInviteRequest"];
+                "multipart/form-data": components["schemas"]["CreateInviteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreateInviteRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Invite"];
+                    };
+                };
+            };
+        };
+    };
+    invites_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this Shop Invite. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_invites_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MyInvite"][];
+                    };
+                };
+            };
+        };
+    };
+    me_invites_accept_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    me_invites_decline_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

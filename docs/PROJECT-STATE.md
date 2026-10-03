@@ -2,13 +2,18 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.16 (Staff invites and the Staff / Roles screens)  **Last updated:** 2026-10-03
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.17 (Pilot deployment, monitoring, scheduled jobs and backups)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.15 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.16 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Staff Invites and Staff / Roles Screens (Subphase 0.16):**
+  - Backend: `apps/tenancy/invites.py` (`pending_invites_for_phone`, `create_invite`, `accept_invite`, `decline_invite`), `InviteSerializer`, `CreateInviteSerializer`, `MyInviteSerializer`, `InviteViewSet` (list, create, revoke with audit), `MyInvitesListView` (GET `/me/invites/`), `AcceptInviteView` (POST `/me/invites/<id>/accept/` with `staff.invite_accepted` audit), `DeclineInviteView` (POST `/me/invites/<id>/decline/`), and updated `/auth/me/` & OTP verification to return `pending_invites` count.
+  - Added 6 unit tests in `apps/tenancy/tests/test_invites.py` covering invite creation, duplicates/already-member prevention, non-owner role requirement, cross-user phone verification on accept, and tenant isolation (85/85 tests passing).
+  - Frontend: regenerated API types schema; updated session store, SessionBoot, login/verify, profile-setup, and layout to handle `pendingInvites`; created `features/staff/api.ts` React Query hooks; built `InviteSheet.tsx` bottom sheet; built `(app)/more/staff/page.tsx` (staff list, status indicators, pending invites with revoke), `(app)/more/staff/detail/page.tsx` (role change dialog, suspend/reactivate, remove dialog), `(app)/more/roles/page.tsx` (system roles and permission matrix with translated descriptions), `(app)/invites/page.tsx` (accept/decline invites screen outside shell), enabled staff and roles rows on More screen, added pending invites alert banner on Home screen.
+  - Added 111 new translation keys with 100% parity across `en`, `hi`, and `hi-Latn` (296 total keys), and verified static export (19/19 pages).
 - **Append-Only Audit Log (Subphase 0.15):**
   - Created `apps/audit` with `AuditLog` model (UUID PK, shop FK PROTECT, actor FK PROTECT, action, entity_type/id, before/after JSON diffs, ip, user_agent, request_id, created_at, objects=AppendOnlyQuerySet).
   - Enforced append-only guarantees at Model/QuerySet levels (`update()` and `delete()` raise RuntimeError) and at PostgreSQL database level via row trigger `audit_no_update_delete` blocking UPDATE and DELETE.

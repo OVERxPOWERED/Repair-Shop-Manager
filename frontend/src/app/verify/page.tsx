@@ -68,13 +68,19 @@ function VerifyContent() {
           shop: false,
         });
 
-        await setSession({ user: data.user, tokens: data.tokens, shops: data.shops });
+        const pending = (data as { pending_invites?: number }).pending_invites ?? 0;
+        await setSession({
+          user: data.user,
+          tokens: data.tokens,
+          shops: data.shops,
+          pendingInvites: pending,
+        });
 
         const target = nextRoute({
           status: "signedIn",
           hasName: Boolean(data.user?.name && data.user.name.trim().length >= 2),
           shopCount: data.shops?.length ?? 0,
-          pendingInvites: 0,
+          pendingInvites: pending,
         });
 
         router.replace(target ?? "/home/");
