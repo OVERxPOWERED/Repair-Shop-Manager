@@ -991,7 +991,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | (pending commit) |
+| ✅ Done | 2026-10-03 | 2026-10-03 | e06e6d9 |
 
 - [x] 1.14.1 Invoice query hooks
 - [x] 1.14.2 Create/View invoice from job detail
