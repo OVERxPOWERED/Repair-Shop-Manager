@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from django.core.files.base import ContentFile
@@ -10,6 +11,7 @@ from apps.core.api.errors import ConflictError, DomainError
 from apps.core.crypto import decrypt_str, encrypt_str
 from apps.core.images import normalise_photo
 from apps.core.phone import normalize_phone
+from apps.core.time import today_ist
 from apps.customers.models import Customer
 from apps.devices.services import create_device
 from apps.jobs.models import (
@@ -21,6 +23,8 @@ from apps.jobs.models import (
     JobStatus,
     JobStatusHistory,
 )
+from apps.jobs.state_machine import TERMINAL, TRANSITIONS, required_permission
+from apps.tenancy.models import Membership
 
 
 def allocate_job_no(shop) -> int:
@@ -34,6 +38,24 @@ def allocate_job_no(shop) -> int:
 def on_job_created(job: Job) -> None:
     """Hook: extended in 1.11 (advance payment) and 1.19 (intake notification)."""
     pass
+
+
+def on_job_status_changed(job: Job, from_status: str) -> None:
+    """Hook: extended in 1.19 (status notification) and 2.3 (SMS/WhatsApp triggers)."""
+    pass
+
+
+def notify_assignment(job: Job) -> None:
+    """Hook: logs assignment; push notification arrives in Phase 3."""
+    pass
+
+
+def can_edit_job(membership, job: Job) -> bool:
+    if not membership:
+        return False
+    return membership.has_perm("jobs.edit") and (
+        membership.has_perm("jobs.view_all") or job.assigned_to_id == membership.id
+    )
 
 
 @transaction.atomic
@@ -214,6 +236,13 @@ def update_job(*, job: Job, actor, membership, data: dict, expected_version: int
     if job.is_locked:
         raise ConflictError("This repair job is locked and cannot be edited.", code="job.locked")
 
+    if not can_edit_job(membership, job):
+        raise DomainError(
+            "You do not have permission to edit this job.",
+            code="job.not_assigned_to_you",
+            status=403,
+        )
+
     before_audit = {
         "fault_description": job.fault_description,
         "device_condition": job.device_condition,
@@ -391,3 +420,208 @@ def delete_job_photo(*, photo: JobPhoto, actor, request=None) -> None:
         },
     )
     photo.delete()
+
+
+@transaction.atomic
+def change_status(
+    *,
+    job: Job,
+    to_status: str,
+    actor,
+    membership,
+    note: str = "",
+    cancel_reason: str = "",
+    expected_version: int | None = None,
+    request=None,
+) -> Job:
+    """Transitions job to a new status with validation, side effects, history and audit."""
+    job = Job.objects.select_for_update().get(id=job.id)
+
+    if expected_version is not None and job.version != expected_version:
+        raise ConflictError(
+            "Record version changed concurrently; reload and try again.",
+            code="concurrency.version_mismatch",
+        )
+
+    if job.is_locked:
+        raise ConflictError("This repair job is locked and cannot be edited.", code="job.locked")
+
+    if to_status not in TRANSITIONS.get(job.status, set()):
+        raise ConflictError(
+            f"Cannot transition repair job from '{job.status}' to '{to_status}'.",
+            code="job.invalid_transition",
+        )
+
+    req_perm = required_permission(to_status)
+    if not membership.has_perm(req_perm):
+        raise DomainError(
+            f"You do not have permission ({req_perm}) to transition to '{to_status}'.",
+            code="permission.denied",
+            status=403,
+        )
+
+    if not membership.has_perm("jobs.view_all") and job.assigned_to_id != membership.id:
+        raise DomainError(
+            "You can only change the status of jobs assigned to you.",
+            code="job.not_assigned_to_you",
+            status=403,
+        )
+
+    if to_status == JobStatus.CANCELLED:
+        clean_reason = (cancel_reason or "").strip()
+        if not clean_reason:
+            raise DomainError(
+                "A cancellation reason is required to cancel a job.",
+                code="job.cancel_reason_required",
+                status=400,
+            )
+        job.cancel_reason = clean_reason
+
+    if to_status == JobStatus.READY_FOR_PICKUP:
+        job.ready_at = timezone.now()
+    elif to_status == JobStatus.DELIVERED:
+        job.delivered_at = timezone.now()
+        job.delivered_by = actor
+        days = job.warranty_days or job.shop.default_warranty_days
+        job.warranty_until = today_ist() + datetime.timedelta(days=days)
+        if job.shop.lock_order_after_delivery:
+            job.is_locked = True
+
+    from_status = job.status
+    JobStatusHistory.objects.create(
+        shop=job.shop,
+        job=job,
+        from_status=from_status,
+        to_status=to_status,
+        changed_by=actor,
+        changed_at=timezone.now(),
+        note=note or "",
+    )
+
+    job.status = to_status
+    job.version += 1
+    job.save()
+
+    record_audit(
+        actor=actor,
+        shop=job.shop,
+        request=request,
+        action="job.status_changed",
+        entity=job,
+        before={"status": from_status},
+        after={"status": to_status},
+    )
+
+    on_job_status_changed(job, from_status)
+    return job
+
+
+@transaction.atomic
+def reopen_job(*, job: Job, actor, membership, reason: str, request=None) -> Job:
+    """Reopens a delivered, cancelled or returned unrepaired job back to in_repair."""
+    job = Job.objects.select_for_update().get(id=job.id)
+
+    if job.status not in TERMINAL:
+        raise ConflictError(
+            "Only delivered, cancelled, or returned unrepaired jobs can be reopened.",
+            code="job.cannot_reopen",
+        )
+
+    if not membership.has_perm("jobs.reopen"):
+        raise DomainError(
+            "You do not have permission to reopen this repair job.",
+            code="permission.denied",
+            status=403,
+        )
+
+    if job.is_locked:
+        raise ConflictError("This repair job is locked and cannot be reopened.", code="job.locked")
+
+    clean_reason = (reason or "").strip()
+    if not clean_reason:
+        raise DomainError(
+            "A reason is required to reopen this job.",
+            code="job.reopen_reason_required",
+            status=400,
+        )
+
+    from_status = job.status
+    job.status = JobStatus.IN_REPAIR
+    job.warranty_until = None
+    job.version += 1
+    job.save()
+
+    JobStatusHistory.objects.create(
+        shop=job.shop,
+        job=job,
+        from_status=from_status,
+        to_status=JobStatus.IN_REPAIR,
+        changed_by=actor,
+        changed_at=timezone.now(),
+        note=clean_reason,
+    )
+
+    record_audit(
+        actor=actor,
+        shop=job.shop,
+        request=request,
+        action="job.reopened",
+        entity=job,
+        before={"status": from_status},
+        after={"status": JobStatus.IN_REPAIR, "reason": clean_reason},
+    )
+
+    on_job_status_changed(job, from_status)
+    return job
+
+
+reopen = reopen_job
+
+
+@transaction.atomic
+def assign_job(*, job: Job, membership_id: uuid.UUID | str | None, actor, membership, request=None) -> Job:
+    """Assigns or unassigns a technician to a job."""
+    job = Job.objects.select_for_update().get(id=job.id)
+
+    if not membership.has_perm("jobs.assign"):
+        raise DomainError(
+            "You do not have permission to assign technicians.",
+            code="permission.denied",
+            status=403,
+        )
+
+    if job.is_locked:
+        raise ConflictError("This repair job is locked and cannot be edited.", code="job.locked")
+
+    target = None
+    if membership_id:
+        target = Membership.objects.filter(
+            shop=job.shop, id=membership_id, status=Membership.StatusChoices.ACTIVE
+        ).first()
+        if not target:
+            raise DomainError(
+                "Assigned staff member not found in this shop.",
+                code="job.invalid_assignee",
+                status=400,
+            )
+
+    before_assignee = str(job.assigned_to_id) if job.assigned_to_id else None
+    job.assigned_to = target
+    job.version += 1
+    job.save(update_fields=["assigned_to", "version", "updated_at"])
+
+    record_audit(
+        actor=actor,
+        shop=job.shop,
+        request=request,
+        action="job.assigned",
+        entity=job,
+        before={"assigned_to_id": before_assignee},
+        after={"assigned_to_id": str(target.id) if target else None},
+    )
+
+    notify_assignment(job)
+    return job
+
+
+assign = assign_job

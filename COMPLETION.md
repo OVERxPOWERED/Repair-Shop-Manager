@@ -62,7 +62,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.5](#15-jobs-core-api-job-sheet-numbering-lock-encryption) | Jobs core API (job sheet, numbering, lock encryption) | ✅ Done | 2026-10-03 |
 | 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ✅ Done | 2026-10-03 |
 | 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ✅ Done | 2026-10-03 |
-| 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ⬜ Not started | — |
+| 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ✅ Done | 2026-10-03 |
 | 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ⬜ Not started | — |
 | 1 | [1.10](#110-imei-barcode-scan-ocr-capture-and-check-imei) | IMEI barcode scan, OCR capture and "Check IMEI" | ⬜ Not started | — |
 | 1 | [1.11](#111-line-items-and-payments-api) | Line items and payments API | ⬜ Not started | — |
@@ -810,20 +810,25 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | a0fdb13 |
 
-- [ ] 1.8.1 State machine (`apps/jobs/state_machine.py`)
-- [ ] 1.8.2 Services
-- [ ] 1.8.3 Visibility in `JobViewSet.get_queryset`
-- [ ] 1.8.4 Endpoints
-- [ ] 1.8.5 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.8.1 State machine (`apps/jobs/state_machine.py`)
+- [x] 1.8.2 Services
+- [x] 1.8.3 Visibility in `JobViewSet.get_queryset`
+- [x] 1.8.4 Endpoints
+- [x] 1.8.5 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest apps/jobs/tests/test_workflow.py: 109 passed in 6.07s
+- pytest (full backend): 234 passed in 9.97s
+- ruff check .: All checks passed! (0 errors)
+- ruff format --check .: 137 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+- pnpm run lint && pnpm run typecheck && pnpm run test: 14 passed (90 tests), 0 lint/tsc errors, 555 keys across 3 locales
 ```
-**Notes:** —
+**Notes:** State machine defined in `apps/jobs/state_machine.py` (`TRANSITIONS`, `TERMINAL`, `GROUPS`, `required_permission`, `allowed_next`). Implemented atomic `change_status`, `reopen`, `assign`, and `can_edit_job` in `apps/jobs/services.py` with optimistic concurrency version check, locked job validation, granular permissions (`jobs.deliver`, `jobs.change_status`, `jobs.reopen`, `jobs.assign`), side effects (`ready_at`, `delivered_at`, `delivered_by`, `warranty_until`, `is_locked` via `shop.lock_order_after_delivery`), `JobStatusHistory`, and audit logs. Wired engineer visibility scoping (`engineers_see_assigned_only`) in `JobViewSet.get_queryset` and comprehensive `JobFilter` supporting comma-separated `status`, `group`, `assigned_to` (`me`/uuid/`unassigned`), `customer`, `created_after/before`, and smart `q` search (digits <= 6 -> exact `job_no`, phone contains, IMEI suffix; 7+ digits -> phone/IMEI contains; text -> customer name / device model icontains). Built endpoints `POST /jobs/{id}/status/`, `GET /jobs/{id}/transitions/`, `POST /jobs/{id}/reopen/`, `POST /jobs/{id}/assign/`, `GET /jobs/{id}/history/`, `GET /jobs/counts/`, and `GET /dashboard/summary/?date=YYYY-MM-DD` with IST midnight boundaries. Added `jobs.assign` to Front Desk role in `SYSTEM_ROLES`. All 109 transition, permission, concurrency, scoping, and calculation unit tests passing.
 
 ## 1.9 Home dashboard, Jobs list and Job detail screens
 

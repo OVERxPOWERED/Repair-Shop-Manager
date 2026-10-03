@@ -11,7 +11,7 @@ from apps.customers.visibility import can_see_customer_phone, present_phone
 from apps.devices.models import Device
 from apps.devices.serializers import DeviceIdentifierSerializer
 from apps.jobs.constants import CONDITION_TAGS
-from apps.jobs.models import Job, JobNote, JobPhoto
+from apps.jobs.models import Job, JobNote, JobPhoto, JobStatus, JobStatusHistory
 from apps.tenancy.models import Membership
 
 
@@ -309,3 +309,54 @@ class JobPhotoUploadSerializer(serializers.Serializer):
     file = serializers.FileField(required=True)
     kind = serializers.ChoiceField(choices=JobPhoto.Kind.choices, default=JobPhoto.Kind.BEFORE)
     caption = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
+
+
+class JobStatusChangeSerializer(serializers.Serializer):
+    to_status = serializers.ChoiceField(choices=JobStatus.choices, required=True)
+    note = serializers.CharField(required=False, allow_blank=True, default="")
+    cancel_reason = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class JobReopenSerializer(serializers.Serializer):
+    reason = serializers.CharField(required=True, allow_blank=False, min_length=2)
+
+
+class JobAssignSerializer(serializers.Serializer):
+    membership_id = serializers.UUIDField(required=False, allow_null=True)
+
+
+class JobStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JobStatusHistory
+        fields = (
+            "id",
+            "from_status",
+            "to_status",
+            "changed_by",
+            "changed_by_name",
+            "changed_at",
+            "note",
+        )
+        read_only_fields = fields
+
+    def get_changed_by_name(self, obj) -> str:
+        return obj.changed_by.name if (obj.changed_by and obj.changed_by.name) else "Staff"
+
+
+class JobCountsSerializer(serializers.Serializer):
+    all = serializers.IntegerField()
+    pending = serializers.IntegerField()
+    in_progress = serializers.IntegerField()
+    repaired = serializers.IntegerField()
+    delivered = serializers.IntegerField()
+    closed = serializers.IntegerField()
+
+
+class DashboardSummarySerializer(serializers.Serializer):
+    received_today = serializers.IntegerField()
+    pending = serializers.IntegerField()
+    in_progress = serializers.IntegerField()
+    repaired = serializers.IntegerField()
+    delivered_today = serializers.IntegerField()

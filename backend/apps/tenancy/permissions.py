@@ -73,6 +73,7 @@ SYSTEM_ROLES = {
         "jobs.create",
         "jobs.edit",
         "jobs.change_status",
+        "jobs.assign",
         "jobs.deliver",
         "jobs.view_device_lock",
         "customers.view",

@@ -2,12 +2,32 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.8 (Status workflow, assignment, visibility and dashboard API)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.9 (Home dashboard, Jobs list and Job detail screens)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Status Workflow, Assignment, Visibility, and Dashboard API (Subphase 1.8):**
+  - State machine in `apps/jobs/state_machine.py`: defined `TRANSITIONS`, `TERMINAL`, `GROUPS`, `required_permission`, and `allowed_next`.
+  - Service functions in `apps/jobs/services.py`:
+    - `change_status`: concurrency check (`If-Match` version), lock validation, transition matrix validation, granular permissions (`jobs.deliver` for delivered, `jobs.change_status` for others), engineer assignment scope (`jobs.not_assigned_to_you`), mandatory cancel reason, side effects (`ready_at`, `delivered_at`, `delivered_by`, `warranty_until`, `is_locked` via `shop.lock_order_after_delivery`), `JobStatusHistory`, audit logging, and `on_job_status_changed` hook.
+    - `reopen`: only from terminal statuses, validates `jobs.reopen`, locked check, mandatory reason, transitions to `in_repair`, clears `warranty_until`, writes history and audit log.
+    - `assign`: validates `jobs.assign`, active shop membership check, unassign support (`membership_id=None`), writes audit log and triggers `notify_assignment`.
+    - `can_edit_job`: checks `jobs.edit` and (`jobs.view_all` or `job.assigned_to_id == membership.id`), wired into `update_job`.
+  - Scoping & filtering:
+    - `JobViewSet.get_queryset` applies `engineers_see_assigned_only` filter when membership lacks `jobs.view_all`.
+    - `JobFilter` supports `status` (comma-separated), `group`, `assigned_to` (`me`, UUID, `unassigned`), `customer`, `created_after`, `created_before`, and smart `q` search (digits <= 6 -> exact `job_no`, phone contains, IMEI ends with; digits 7+ -> phone/IMEI contains; text -> customer name / device model icontains).
+  - Endpoints:
+    - `POST /api/v1/jobs/{id}/status/`
+    - `GET /api/v1/jobs/{id}/transitions/`
+    - `POST /api/v1/jobs/{id}/reopen/`
+    - `POST /api/v1/jobs/{id}/assign/`
+    - `GET /api/v1/jobs/{id}/history/`
+    - `GET /api/v1/jobs/counts/`
+    - `GET /api/v1/dashboard/summary/?date=YYYY-MM-DD` (IST midnight boundaries).
+  - Granted `jobs.assign` permission to Front Desk role in `apps.tenancy.permissions.SYSTEM_ROLES`.
+  - Added 109 test cases in `apps/jobs/tests/test_workflow.py` testing every transition pair, permission checks, side effects, visibility toggles, counts, and search filters. All 234 backend pytest tests passing.
 - **Job Intake Wizard (8 Steps) (Subphase 1.7):**
   - Added `GET /api/v1/staff/assignable/` on `StaffViewSet` returning active non-suspended staff members (`AssignableStaffSerializer`) with unit tests in `apps/tenancy/tests/test_staff.py` (125 total backend pytest tests passing).
   - Built `useIntakeStore` with Zustand `persist` to `localStorage` key `fixpro.intakeDraft` with strict exclusion of lock secret (`lockValue`) and photo blobs. Supports draft restoration banner with discard action.
