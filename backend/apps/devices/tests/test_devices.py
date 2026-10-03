@@ -182,6 +182,20 @@ def test_search_by_imei_suffix_and_tenant_isolation(world, client_for):
     assert len(data) == 1
     assert data[0]["id"] == dev_a_id
 
+    # Create a job for dev_a in shop_a
+    from django.utils import timezone
+
+    from apps.jobs.models import Job
+
+    job = Job.objects.create(
+        shop=world.shop_a,
+        customer=cust_a,
+        device=Device.objects.get(id=dev_a_id),
+        fault_description="Broken screen",
+        job_no=101,
+        received_at=timezone.now(),
+    )
+
     # Lookup action /devices/imei-lookup/?value=490154203237518 in Shop A
     r_lookup_a = c_a.get("/api/v1/devices/imei-lookup/?value=490154203237518")
     assert r_lookup_a.status_code == 200
@@ -190,6 +204,8 @@ def test_search_by_imei_suffix_and_tenant_isolation(world, client_for):
     assert len(lookup_data["matches"]) == 1
     assert lookup_data["matches"][0]["device_id"] == dev_a_id
     assert lookup_data["matches"][0]["customer_name"] == "Customer A"
+    assert lookup_data["matches"][0]["last_job_no"] == 101
+    assert lookup_data["matches"][0]["last_job_id"] == str(job.id)
 
     # Cross-tenant isolation on detail endpoint
     assert_other_shop_hidden(c_a, f"/api/v1/devices/{dev_b_id}/")

@@ -476,7 +476,31 @@
     "deviceCreatedSuccess": "Device successfully add ho gaya",
     "deviceUpdatedSuccess": "Device successfully update ho gaya",
     "imeiCheckDigitError": "IMEI check-digit galat hai. Please verify karein ya confirmation box check karein.",
-    "imeiFormatError": "Galat identifier format"
+    "imeiFormatError": "Galat identifier format",
+    "imeiCapture": {
+      "scanBtn": "Scan Karein",
+      "photoBtn": "Photo Lein",
+      "sourceManual": "Typed",
+      "sourceBarcode": "Scanned",
+      "sourceOcr": "Photo se read kiya",
+      "confirmCandidateTitle": "Scanned IMEI Confirm Karein",
+      "confirmCandidateDesc": "Save karne se pehle captured IMEI digits review aur confirm karein.",
+      "useThis": "Ye IMEI Use Karein",
+      "noCandidatesFound": "Image/barcode mein koi valid IMEI nahi mila",
+      "convertedImeisvBadge": "IMEISV se convert kiya gaya",
+      "duplicateWarning": "Pehle dekha gaya: {customer} (Job #{jobNo})",
+      "duplicateWarningNoJob": "{customer} ke paas pehle dekha gaya"
+    },
+    "checkImei": {
+      "title": "Check IMEI",
+      "subtitle": "Check karein ki device blocked, stolen ya genuine hai ya nahi.",
+      "disclaimer": "FixPro directly IMEI check nahi karta. Verification Govt of India portal ke through hota hai.",
+      "smsOptionTitle": "14422 par SMS bhejein (KYM)",
+      "smsOptionDesc": "Official telecom verification gateway par 'KYM <IMEI>' bhejta hai.",
+      "webOptionTitle": "Sanchar Saathi Portal Kholein",
+      "webOptionDesc": "Direct official CEIR portal par blacklist status check karein.",
+      "enterImeiPlaceholder": "Check karne ke liye 15-digit IMEI enter karein..."
+    }
   },
   "jobs": {
     "status": {

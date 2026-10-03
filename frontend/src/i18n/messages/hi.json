@@ -476,7 +476,31 @@
     "deviceCreatedSuccess": "डिवाइस सफलतापूर्वक जोड़ा गया",
     "deviceUpdatedSuccess": "डिवाइस सफलतापूर्वक अपडेट किया गया",
     "imeiCheckDigitError": "IMEI चेक-डिजिट अमान्य है। कृपया जांचें या पुष्टि बॉक्स चेक करें।",
-    "imeiFormatError": "अमान्य पहचानकर्ता प्रारूप"
+    "imeiFormatError": "अमान्य पहचानकर्ता प्रारूप",
+    "imeiCapture": {
+      "scanBtn": "स्कैन करें",
+      "photoBtn": "फ़ोटो लें",
+      "sourceManual": "टाइप किया गया",
+      "sourceBarcode": "स्कैन किया गया",
+      "sourceOcr": "फ़ोटो से पढ़ा गया",
+      "confirmCandidateTitle": "स्कैन किए गए IMEI की पुष्टि करें",
+      "confirmCandidateDesc": "सहेजने से पहले कैप्चर किए गए IMEI अंकों की समीक्षा करें और पुष्टि करें।",
+      "useThis": "यह IMEI इस्तेमाल करें",
+      "noCandidatesFound": "छवि/बारकोड में कोई मान्य IMEI नहीं मिला",
+      "convertedImeisvBadge": "IMEISV से परिवर्तित",
+      "duplicateWarning": "पहले देखा गया: {customer} (जॉब #{jobNo})",
+      "duplicateWarningNoJob": "{customer} के पास पहले देखा गया"
+    },
+    "checkImei": {
+      "title": "IMEI जांचें",
+      "subtitle": "जांचें कि डिवाइस ब्लॉक, चोरी या असली है या नहीं।",
+      "disclaimer": "FixPro सीधे IMEI की जांच नहीं करता है। सत्यापन भारत सरकार के पोर्टल के माध्यम से किया जाता है।",
+      "smsOptionTitle": "14422 पर SMS भेजें (KYM)",
+      "smsOptionDesc": "आधिकारिक दूरसंचार सत्यापन गेटवे पर 'KYM <IMEI>' भेजता है।",
+      "webOptionTitle": "संचार साथी पोर्टल खोलें",
+      "webOptionDesc": "आधिकारिक CEIR पोर्टल पर सीधे ब्लैकलिस्ट स्थिति की जांच करें।",
+      "enterImeiPlaceholder": "जांच के लिए 15-अंकीय IMEI दर्ज करें..."
+    }
   },
   "jobs": {
     "status": {

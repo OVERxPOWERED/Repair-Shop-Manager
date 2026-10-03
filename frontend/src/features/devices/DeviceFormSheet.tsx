@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useCreateDevice, useUpdateDevice, useBrands, type Device, type DeviceIdentifier } from "./api";
 import { isValidIMEI, formatIMEI } from "@/lib/validation/imei";
 import { ApiError } from "@/lib/api/client";
+import { ImeiCaptureField } from "./ImeiCaptureField";
 
 interface DeviceFormSheetProps {
   open: boolean;
@@ -331,9 +332,6 @@ export function DeviceFormSheet({ open, onOpenChange, customerId, device, onSave
 
             {identifiers.map((ident, idx) => {
               const isImei = ident.type === "imei1" || ident.type === "imei2";
-              const cleanDigits = ident.value.replace(/[\s-]/g, "");
-              const is15Digits = cleanDigits.length === 15 && /^\d+$/.test(cleanDigits);
-              const luhnPassed = isImei && is15Digits ? isValidIMEI(cleanDigits) : null;
 
               return (
                 <div key={idx} className="rounded-xl border p-3 space-y-2 bg-card">
@@ -366,47 +364,33 @@ export function DeviceFormSheet({ open, onOpenChange, customerId, device, onSave
                     )}
                   </div>
 
-                  <div className="relative">
-                    <Input
+                  {isImei ? (
+                    <ImeiCaptureField
+                      id={`ident-${idx}`}
                       value={ident.value}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        handleIdentifierChange(idx, "value", val);
+                      capturedVia={ident.captured_via ?? "manual"}
+                      confirmInvalid={Boolean(ident.confirm_invalid)}
+                      onChange={(newVal, source) => {
+                        const next = [...identifiers];
+                        next[idx] = {
+                          ...next[idx],
+                          value: newVal,
+                          captured_via: source,
+                        };
+                        setIdentifiers(next);
                       }}
-                      placeholder={isImei ? t("imeiPlaceholder") : t("serialPlaceholder")}
-                      className="h-10 rounded-xl font-mono text-sm"
+                      onConfirmInvalidChange={(confirmed) => {
+                        handleIdentifierChange(idx, "confirm_invalid", confirmed);
+                      }}
                     />
-                    {isImei && is15Digits && (
-                      <div className="absolute right-3 top-2.5">
-                        {luhnPassed ? (
-                          <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                        ) : (
-                          <AlertCircle className="h-5 w-5 text-amber-500" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Warning and confirm checkbox for invalid Luhn */}
-                  {isImei && is15Digits && luhnPassed === false && (
-                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-800 dark:text-amber-200 space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-medium">
-                        <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                        <span>{t("invalidLuhnWarning")}</span>
-                      </div>
-                      <div className="flex items-center gap-2 pt-0.5">
-                        <Checkbox
-                          id={`confirm-luhn-${idx}`}
-                          checked={Boolean(ident.confirm_invalid)}
-                          onCheckedChange={(checked) => handleIdentifierChange(idx, "confirm_invalid", Boolean(checked))}
-                        />
-                        <label
-                          htmlFor={`confirm-luhn-${idx}`}
-                          className="text-xs cursor-pointer select-none font-medium"
-                        >
-                          {t("confirmSaveInvalidImei")}
-                        </label>
-                      </div>
+                  ) : (
+                    <div>
+                      <Input
+                        value={ident.value}
+                        onChange={(e) => handleIdentifierChange(idx, "value", e.target.value)}
+                        placeholder={t("serialPlaceholder")}
+                        className="h-10 rounded-xl font-mono text-sm"
+                      />
                     </div>
                   )}
                 </div>

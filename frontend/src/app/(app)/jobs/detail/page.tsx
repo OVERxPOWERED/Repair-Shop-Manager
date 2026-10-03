@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Edit,
   ShieldAlert,
+  ShieldCheck,
   Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -42,6 +43,7 @@ import { AssignTechnicianSheet } from "@/features/jobs/components/AssignTechnici
 import { StatusChangeSheet } from "@/features/jobs/components/StatusChangeSheet";
 import { ReopenJobDialog } from "@/features/jobs/components/ReopenJobDialog";
 import { EditJobSheet } from "@/features/jobs/components/EditJobSheet";
+import { CheckImeiSheet } from "@/features/devices/CheckImeiSheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -55,9 +57,13 @@ import { useLocaleStore } from "@/i18n/store";
 function JobDetailContent() {
   const t = useTranslations("jobs");
   const tNav = useTranslations("nav");
+  const tDevices = useTranslations("devices");
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocaleStore((s) => s.locale);
+
+  const [checkImeiOpen, setCheckImeiOpen] = useState(false);
+  const [checkImeiTarget, setCheckImeiTarget] = useState<string>("");
 
   const jobId = searchParams.get("id");
 
@@ -361,24 +367,40 @@ function JobDetailContent() {
         {/* Identifiers List (IMEI with formatting) */}
         {job.device.identifiers && job.device.identifiers.length > 0 && (
           <div className="space-y-1.5 pt-1 border-t border-neutral-100 dark:border-neutral-800">
-            {job.device.identifiers.map((ident, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-2 rounded-xl bg-neutral-50 dark:bg-neutral-900/60 text-xs font-mono"
-              >
-                <span className="text-[10px] uppercase font-bold text-neutral-400">
-                  {ident.type}:
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-neutral-900 dark:text-neutral-100">
-                    {ident.type.startsWith("imei") ? formatIMEI(ident.value) : ident.value}
+            {job.device.identifiers.map((ident, idx) => {
+              const isImei = ident.type.startsWith("imei");
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-2 rounded-xl bg-neutral-50 dark:bg-neutral-900/60 text-xs font-mono"
+                >
+                  <span className="text-[10px] uppercase font-bold text-neutral-400">
+                    {ident.type}:
                   </span>
-                  {ident.is_valid_luhn === true && (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-neutral-900 dark:text-neutral-100">
+                      {isImei ? formatIMEI(ident.value) : ident.value}
+                    </span>
+                    {ident.is_valid_luhn === true && (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    )}
+                    {isImei && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCheckImeiTarget(ident.value);
+                          setCheckImeiOpen(true);
+                        }}
+                        className="ml-1 px-2 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 hover:bg-sky-100 text-[10px] font-sans font-semibold transition-colors flex items-center gap-1"
+                      >
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>{tDevices("checkImei.title")}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -716,6 +738,12 @@ function JobDetailContent() {
         open={isEditSheetOpen}
         onOpenChange={setIsEditSheetOpen}
         onJobRefresh={refetchJob}
+      />
+
+      <CheckImeiSheet
+        open={checkImeiOpen}
+        onOpenChange={setCheckImeiOpen}
+        defaultImei={checkImeiTarget}
       />
     </div>
   );

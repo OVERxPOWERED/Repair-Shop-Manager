@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useBrands, useDevices, Device as ExistingDevice } from "@/features/devices/api";
+import { ImeiCaptureField } from "@/features/devices/ImeiCaptureField";
 import { isValidIMEI } from "@/lib/validation/imei";
 import { useIntakeStore } from "../intake-store";
 
@@ -71,10 +72,10 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
   // Primary IMEI identifier helper
   const primaryImei = draft.device.identifiers.find((i) => i.type === "imei1");
   const imeiValue = primaryImei?.value || "";
-  const isImeiLuhnValid = imeiValue.length === 15 ? isValidIMEI(imeiValue) : null;
   const isConfirmInvalid = primaryImei?.confirmInvalid || false;
+  const capturedVia = primaryImei?.capturedVia || "manual";
 
-  const handleImeiChange = (val: string) => {
+  const handleImeiChange = (val: string, source: "manual" | "barcode" | "ocr" = "manual") => {
     const cleaned = val.replace(/\D/g, "").slice(0, 15);
     const existing = draft.device.identifiers.filter((i) => i.type !== "imei1");
     if (!cleaned) {
@@ -86,7 +87,7 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
           {
             type: "imei1",
             value: cleaned,
-            capturedVia: "manual",
+            capturedVia: source,
             confirmInvalid: primaryImei?.confirmInvalid ?? false,
           },
         ],
@@ -324,66 +325,16 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
           </div>
 
           {/* IMEI 1 */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                {t("deviceImei1")}
-              </label>
-              {imeiValue.length > 0 && (
-                <span className="text-[11px] font-mono text-neutral-400">
-                  {imeiValue.length}/15 digits
-                </span>
-              )}
-            </div>
-
-            <div className="relative">
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="356938035643809"
-                value={imeiValue}
-                onChange={(e) => handleImeiChange(e.target.value)}
-                className={`h-11 text-sm font-mono tracking-wider rounded-xl pr-9 ${
-                  isImeiLuhnValid === false && !isConfirmInvalid
-                    ? "border-amber-500"
-                    : isImeiLuhnValid === true
-                    ? "border-emerald-500"
-                    : ""
-                }`}
-              />
-              <div className="absolute right-3 top-3.5 pointer-events-none">
-                {isImeiLuhnValid === true && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                )}
-                {isImeiLuhnValid === false && (
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                )}
-              </div>
-            </div>
-
-            {/* Non-standard IMEI Override */}
-            {isImeiLuhnValid === false && (
-              <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl flex items-start gap-2.5">
-                <Checkbox
-                  id="confirm-invalid-imei"
-                  checked={isConfirmInvalid}
-                  onCheckedChange={handleToggleConfirmInvalid}
-                  className="mt-0.5"
-                />
-                <label
-                  htmlFor="confirm-invalid-imei"
-                  className="text-xs text-amber-900 dark:text-amber-200 leading-tight cursor-pointer"
-                >
-                  {t("nonStandardImeiConfirmation")}
-                </label>
-              </div>
-            )}
-            {errors?.["identifiers.0.value"] && (
-              <p className="text-xs text-red-500 font-medium mt-1">
-                {errors["identifiers.0.value"]}
-              </p>
-            )}
-          </div>
+          <ImeiCaptureField
+            id="intake-imei-1"
+            label={t("deviceImei1")}
+            value={imeiValue}
+            capturedVia={capturedVia}
+            confirmInvalid={isConfirmInvalid}
+            onConfirmInvalidChange={handleToggleConfirmInvalid}
+            onChange={(val, source) => handleImeiChange(val, source)}
+            error={errors?.["identifiers.0.value"]}
+          />
         </div>
       )}
     </div>

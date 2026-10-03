@@ -67,15 +67,19 @@ class DeviceViewSet(ShopScopedViewSet):
             device__deleted_at__isnull=True,
         ).select_related("device__customer")
         matches = []
+        from apps.jobs.models import Job
+
         for ident in matching_identifiers:
             dev = ident.device
+            last_job = Job.objects.filter(shop=request.shop, device=dev).order_by("-job_no").first()
             matches.append(
                 {
                     "device_id": str(dev.id),
                     "customer_id": str(dev.customer_id),
                     "customer_name": dev.customer.name,
                     "model": dev.model,
-                    "last_job_no": None,
+                    "last_job_no": last_job.job_no if last_job else None,
+                    "last_job_id": str(last_job.id) if last_job else None,
                 }
             )
 

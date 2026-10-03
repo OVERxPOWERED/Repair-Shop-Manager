@@ -476,7 +476,31 @@
     "deviceCreatedSuccess": "Device added successfully",
     "deviceUpdatedSuccess": "Device updated successfully",
     "imeiCheckDigitError": "IMEI check-digit is invalid. Please verify or check the confirmation box.",
-    "imeiFormatError": "Invalid identifier format"
+    "imeiFormatError": "Invalid identifier format",
+    "imeiCapture": {
+      "scanBtn": "Scan",
+      "photoBtn": "Photo",
+      "sourceManual": "Typed",
+      "sourceBarcode": "Scanned",
+      "sourceOcr": "Read from photo",
+      "confirmCandidateTitle": "Confirm Scanned IMEI",
+      "confirmCandidateDesc": "Review and confirm the captured IMEI digits before saving.",
+      "useThis": "Use this IMEI",
+      "noCandidatesFound": "No valid IMEI found in image/barcode",
+      "convertedImeisvBadge": "Converted from IMEISV",
+      "duplicateWarning": "Seen before: {customer} (Job #{jobNo})",
+      "duplicateWarningNoJob": "Seen before with {customer}"
+    },
+    "checkImei": {
+      "title": "Check IMEI",
+      "subtitle": "Verify if device is blocked, stolen, or genuine.",
+      "disclaimer": "FixPro does not check the IMEI directly. Verification is performed via the Government of India portal.",
+      "smsOptionTitle": "Send SMS to 14422 (KYM)",
+      "smsOptionDesc": "Sends 'KYM <IMEI>' to the official telecom verification gateway.",
+      "webOptionTitle": "Open Sanchar Saathi Portal",
+      "webOptionDesc": "Check blacklist status directly on the official CEIR portal.",
+      "enterImeiPlaceholder": "Enter 15-digit IMEI to check..."
+    }
   },
   "jobs": {
     "status": {

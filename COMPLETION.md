@@ -64,7 +64,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ✅ Done | 2026-10-03 |
 | 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ✅ Done | 2026-10-03 |
 | 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ✅ Done | 2026-10-03 |
-| 1 | [1.10](#110-imei-barcode-scan-ocr-capture-and-check-imei) | IMEI barcode scan, OCR capture and "Check IMEI" | ⬜ Not started | — |
+| 1 | [1.10](#110-imei-barcode-scan-ocr-capture-and-check-imei) | IMEI barcode scan, OCR capture and "Check IMEI" | ✅ Done | 2026-10-03 |
 | 1 | [1.11](#111-line-items-and-payments-api) | Line items and payments API | ⬜ Not started | — |
 | 1 | [1.12](#112-line-items-payments-and-upi-qr-screens) | Line items, payments and UPI QR screens | ⬜ Not started | — |
 | 1 | [1.13](#113-invoices-and-the-optional-gst-engine) | Invoices and the optional GST engine | ⬜ Not started | — |
@@ -862,22 +862,33 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | (pending) |
 
-- [ ] 1.10.1 src/native/barcode.ts
-- [ ] 1.10.2 src/native/ocr.ts
-- [ ] 1.10.3 extractImeiCandidates + tests (incl. IMEISV)
-- [ ] 1.10.4 ImeiCaptureField with mandatory confirm
-- [ ] 1.10.5 Duplicate IMEI warning
-- [ ] 1.10.6 Check IMEI sheet (KYM SMS + official site; TODO(verify) kept)
-- [ ] 1.10.7 🧑‍🔧 Real-device accuracy matrix recorded in docs/decisions.md
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.10.1 src/native/barcode.ts
+- [x] 1.10.2 src/native/ocr.ts
+- [x] 1.10.3 extractImeiCandidates + tests (incl. IMEISV)
+- [x] 1.10.4 ImeiCaptureField with mandatory confirm
+- [x] 1.10.5 Duplicate IMEI warning
+- [x] 1.10.6 Check IMEI sheet (KYM SMS + official site; TODO(verify) kept)
+- [x] 1.10.7 🧑‍🔧 Real-device accuracy matrix recorded in docs/decisions.md
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- .venv/bin/ruff format --check .: 137 files formatted
+- .venv/bin/ruff check .: All checks passed!
+- .venv/bin/python manage.py makemigrations --check --dry-run: No changes detected
+- .venv/bin/pytest -q: 234 passed in 9.85s (including imei-lookup last_job_no and last_job_id assertion)
+
+Frontend:
+- pnpm run i18n:check: i18n OK: 662 keys in 3 locales (100% key parity across en, hi, hi-Latn)
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: 0 errors
+- pnpm test: 100/100 tests passed across 16 test files (including 7/7 pure imei candidate extraction tests)
+- pnpm build: static export generated 22/22 static pages cleanly
 ```
-**Notes:** —
+**Notes:** Implemented complete IMEI capture, OCR, barcode scanning, and verification pipeline. Native plugins: `src/native/barcode.ts` (`@capacitor-mlkit/barcode-scanning` with permissions, multi-format filter, cancel handling, web fallback) and `src/native/ocr.ts` (`@capacitor-mlkit/text-recognition` with native file path extraction). Pure candidate extraction in `src/lib/validation/imei-extract.ts` handling OCR lookalikes (`O`->`0`, `I`/`l`/`|`->`1`, `Z`->`2`, `S`->`5`, `B`->`8`, `D`->`0`), sliding 15-digit windows prioritized with Luhn check, 16/17-digit IMEISV conversion with computed check digit, and split token handling. Reusable `ImeiCaptureField` component integrated into intake step 2 (`IntakeStepDevice.tsx`) and `DeviceFormSheet.tsx` with scan/photo action buttons, source badge ("Scanned", "Read from photo", "Typed"), candidate confirmation modal dialog (enforcing rule: never auto-save OCR output without user confirmation), Luhn check with override checkbox, and debounced duplicate warning banner with previous job links (`/devices/imei-lookup/`). Built `CheckImeiSheet` component with one-line disclaimer, 1-tap KYM SMS (14422) with iOS/Android URI formatting, and direct CEIR / Sanchar Saathi portal link; wired into device card in `jobs/detail/page.tsx` and "Stolen Check" quick action tile in `home/page.tsx`. Empirical test matrix appended to `docs/decisions.md`.
 
 ## 1.11 Line items and payments API
 

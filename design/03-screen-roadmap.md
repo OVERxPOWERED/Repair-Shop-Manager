@@ -347,8 +347,6 @@ This is where the documented manual IMEI, camera scanning and OCR requirement be
 
 # 3.3 Job Detail
 
-### Screens
-
 19. Job overview
 20. Job timeline
 21. Device details

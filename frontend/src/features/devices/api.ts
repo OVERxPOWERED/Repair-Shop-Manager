@@ -56,6 +56,7 @@ export type ImeiLookupResult = {
     customer_name: string;
     model: string;
     last_job_no: string | null;
+    last_job_id?: string | null;
   }>;
 };
 

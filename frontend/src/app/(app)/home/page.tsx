@@ -24,10 +24,12 @@ import { useDashboardSummary, useJobs } from "@/features/jobs/api";
 import { JobCard } from "@/features/jobs/components/JobCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { CheckImeiSheet } from "@/features/devices/CheckImeiSheet";
 
 export default function HomePage() {
   const t = useTranslations("home");
   const { user, pendingInvites } = useAuthStore();
+  const [stolenCheckOpen, setStolenCheckOpen] = React.useState(false);
 
   const today = todayIst();
   const {
@@ -269,14 +271,11 @@ export default function HomePage() {
           {/* Tile 7: Stolen Check */}
           <button
             type="button"
-            disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            onClick={() => setStolenCheckOpen(true)}
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-800 dark:text-neutral-200 hover:border-sky-500 hover:bg-sky-50/30 dark:hover:bg-sky-950/20 flex flex-col items-center justify-center p-2 text-center shadow-sm active:scale-95 transition-all"
           >
-            <ShieldCheck className="w-5 h-5 mb-1 text-neutral-400" />
-            <span className="text-[11px] font-medium leading-tight">Stolen Check</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
-              Soon
-            </span>
+            <ShieldCheck className="w-5 h-5 mb-1 text-sky-600 dark:text-sky-400" />
+            <span className="text-[11px] font-bold leading-tight">Stolen Check</span>
           </button>
 
           {/* Tile 8: Dealers */}
@@ -340,6 +339,11 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      <CheckImeiSheet
+        open={stolenCheckOpen}
+        onOpenChange={setStolenCheckOpen}
+      />
     </div>
   );
 }

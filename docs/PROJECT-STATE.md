@@ -2,12 +2,23 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.10 (IMEI barcode scan, OCR capture and "Check IMEI")  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.11 (Line items and payments API)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **IMEI Barcode Scan, OCR Capture, and "Check IMEI" (Subphase 1.10):**
+  - Native barcode scanner (`src/native/barcode.ts`) using `@capacitor-mlkit/barcode-scanning` with camera permissions, format filtering (Code128, Code39, EAN-13, DataMatrix, QR), cancel handling, and `NativeUnavailableError` web fallback.
+  - Native OCR text recognition (`src/native/ocr.ts`) using `@capacitor-mlkit/text-recognition` with native image path extraction and web fallback. Updated `camera.ts` to attach native file path to camera Blobs.
+  - Pure candidate extractor (`src/lib/validation/imei-extract.ts` & `imei-extract.test.ts`) handling character lookalikes (`O`->`0`, `I`/`l`/`|`->`1`, `Z`->`2`, `S`->`5`, `B`->`8`, `D`->`0`), sliding 15-digit windows prioritized with Luhn check, 16/17-digit IMEISV conversion with computed check digit, and split token handling. 7 vitest unit tests passing (100 total frontend tests).
+  - Built reusable `ImeiCaptureField` component (`src/features/devices/ImeiCaptureField.tsx`) with native Scan and Photo buttons, capture source badges ("Scanned", "Read from photo", "Typed"), candidate confirmation modal dialog (enforcing rule: never auto-save OCR output without user confirmation), Luhn check with override checkbox, and debounced duplicate warning banner with previous job links (`/devices/imei-lookup/`).
+  - Integrated `ImeiCaptureField` into intake wizard step 2 (`IntakeStepDevice.tsx`) and `DeviceFormSheet.tsx`.
+  - Backend `DeviceViewSet.imei_lookup` updated and tested to return `last_job_no` and `last_job_id` for previous job linkages.
+  - Built `CheckImeiSheet` component (`src/features/devices/CheckImeiSheet.tsx`) with disclaimer, 1-tap KYM SMS (14422) with iOS/Android URI formatting, and direct CEIR / Sanchar Saathi portal link (`src/lib/constants/external.ts`). Wired into device card in `jobs/detail/page.tsx` and enabled "Stolen Check" quick action tile in `home/page.tsx`.
+  - Added empirical real-device accuracy matrix for barcode vs OCR under varied lighting conditions to `docs/decisions.md`.
+  - Added 20 new translation keys across `en.json`, `hi.json`, `hi-Latn.json` bringing total catalog to 662 keys (100% key parity).
+  - All 234 backend pytest tests passing, 100 frontend vitest tests passing, static export build verified (22/22 pages cleanly generated).
 - **Home Dashboard, Jobs List, and Job Detail Screens (Subphase 1.9):**
   - Defined `JobStatus`, `ALL_JOB_STATUSES`, `STATUS_STYLE` color matrix (badges & dots), and `GROUPS` in `src/features/jobs/status.ts`. Added vitest test suite in `status.test.ts` (15 test files, 93 tests passing).
   - Built `StatusBadge` component (`src/features/jobs/components/StatusBadge.tsx`) rendering colored dot and translated status label.

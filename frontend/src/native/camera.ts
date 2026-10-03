@@ -16,7 +16,13 @@ export async function takePhoto(): Promise<Blob> {
     }
 
     const response = await fetch(photo.webPath);
-    return await response.blob();
+    const blob = await response.blob();
+    Object.defineProperty(blob, "path", {
+      value: photo.path || photo.webPath,
+      writable: true,
+      enumerable: true,
+    });
+    return blob;
   }
 
   // Web fallback: a hidden <input type="file" accept="image/*" capture="environment">
