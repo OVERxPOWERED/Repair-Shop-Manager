@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Document{% endblock %}</title>
+  <style>
+    @font-face {
+      font-family: "Noto Sans";
+      font-weight: 400;
+      font-style: normal;
+      src: url("file://{{ fonts_dir }}/NotoSans-Regular.ttf");
+    }
+    @font-face {
+      font-family: "Noto Sans";
+      font-weight: 700;
+      font-style: normal;
+      src: url("file://{{ fonts_dir }}/NotoSans-Bold.ttf");
+    }
+    @font-face {
+      font-family: "Noto Sans Devanagari";
+      font-weight: 400;
+      font-style: normal;
+      src: url("file://{{ fonts_dir }}/NotoSansDevanagari-Regular.ttf");
+    }
+    @font-face {
+      font-family: "Noto Sans Devanagari";
+      font-weight: 700;
+      font-style: normal;
+      src: url("file://{{ fonts_dir }}/NotoSansDevanagari-Bold.ttf");
+    }
+
+    @page {
+      size: {% if is_a5 %}A5{% else %}A4{% endif %} portrait;
+      margin: {% if is_a5 %}8mm{% else %}12mm{% endif %};
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Noto Sans", "Noto Sans Devanagari", sans-serif;
+      font-size: 11pt;
+      line-height: 1.4;
+      color: #1f2937;
+      margin: 0;
+      padding: 0;
+    }
+
+    body.a5 {
+      font-size: 9.5pt;
+    }
+
+    /* Watermark for draft documents */
+    .watermark {
+      position: fixed;
+      top: 35%;
+      left: 10%;
+      right: 10%;
+      text-align: center;
+      font-size: 80pt;
+      font-weight: 700;
+      color: rgba(239, 68, 68, 0.12);
+      transform: rotate(-35deg);
+      z-index: 9999;
+      pointer-events: none;
+      text-transform: uppercase;
+      letter-spacing: 12px;
+    }
+
+    body.a5 .watermark {
+      font-size: 50pt;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .table th {
+      background-color: #f3f4f6;
+      font-weight: 700;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 8px;
+      border-bottom: 1.5px solid #d1d5db;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 9.5pt;
+    }
+
+    body.a5 .table th {
+      font-size: 8pt;
+      padding: 4px 6px;
+    }
+
+    body.a5 .table td {
+      font-size: 8.5pt;
+      padding: 4px 6px;
+    }
+
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .text-left { text-align: left; }
+    .font-bold { font-weight: 700; }
+    .font-mono { font-family: monospace; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+
+    .border-b { border-bottom: 1px solid #e5e7eb; }
+    .border-t { border-top: 1px solid #e5e7eb; }
+    .border { border: 1px solid #e5e7eb; }
+
+    .muted { color: #6b7280; }
+    .small { font-size: 8.5pt; }
+    body.a5 .small { font-size: 7.5pt; }
+
+    .qr-container svg {
+      width: 90px;
+      height: 90px;
+      display: block;
+    }
+
+    body.a5 .qr-container svg {
+      width: 70px;
+      height: 70px;
+    }
+  </style>
+  {% block extra_style %}{% endblock %}
+</head>
+<body class="{% if is_a5 %}a5{% endif %}">
+  {% if is_draft %}
+    <div class="watermark">DRAFT</div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</body>
+</html>

@@ -69,7 +69,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.12](#112-line-items-payments-and-upi-qr-screens) | Line items, payments and UPI QR screens | ✅ Done | 2026-10-03 |
 | 1 | [1.13](#113-invoices-and-the-optional-gst-engine) | Invoices and the optional GST engine | ✅ Done | 2026-10-03 |
 | 1 | [1.14](#114-invoice-screens) | Invoice screens | ✅ Done | 2026-10-03 |
-| 1 | [1.15](#115-pdf-documents-weasyprint) | PDF documents (WeasyPrint) | ⬜ Not started | — |
+| 1 | [1.15](#115-pdf-documents-weasyprint) | PDF documents (WeasyPrint) | ✅ Done | 2026-10-03 |
 | 1 | [1.16](#116-sharing-native-share-sheet-and-whatsapp) | Sharing (native share sheet and WhatsApp) | ⬜ Not started | — |
 | 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ⬜ Not started | — |
 | 1 | [1.18](#118-public-tracking-page) | Public tracking page | ⬜ Not started | — |
@@ -1023,18 +1023,48 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
 
-- [ ] 1.15.1 Dependencies
-- [ ] 1.15.2 App `apps/documents`
-- [ ] 1.15.3 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.15.1 Dependencies
+- [x] 1.15.2 App `apps/documents`
+- [x] 1.15.3 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- weasyprint==70.0, segno==1.6.6, pypdf==6.19.0 installed
+- host libraries verified: libpango, libcairo, libharfbuzz
+- Dockerfile updated with Debian bookworm weasyprint dependencies
+- .github/workflows/ci.yml updated with apt-get install for pango/harfbuzz
+- NotoSans and NotoSansDevanagari (Regular, Bold) fonts and OFL.txt downloaded to apps/documents/fonts/
+- apps/core/amount_words.py created with unit tests in apps/core/tests/test_amount_words.py (2/2 passed)
+- templates created in apps/documents/templates/documents/: base.html, invoice.html, job_receipt.html
+- services created in apps/documents/services.py: render_pdf, qr_svg, invoice_pdf, job_receipt_pdf
+- views created in apps/documents/views.py: InvoicePdfView, JobReceiptPdfView with ShopScopedAPIView
+- endpoints mapped in apps/documents/urls.py and connected in config/urls.py
+- pytest apps/documents/tests/: 8/8 passed in 5.67s
+- pytest full suite: 281/281 passed in 13.90s
+- ruff check .: All checks passed!
+- ruff format --check .: 165 files already formatted
+- python manage.py makemigrations --check --dry-run: No changes detected
+
+Frontend:
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: 0 errors
+- vitest: 110/110 passed across 18 test files
 ```
-**Notes:** —
+**Notes:** Implemented server-side PDF document generation using WeasyPrint and Segno QR codes with embedded Noto Sans and Noto Sans Devanagari fonts.
+Created `backend/apps/core/amount_words.py` converting integer paise to Indian English financial words ("Rupees ... and ... Paise Only") with unit tests in `apps/core/tests/test_amount_words.py`.
+Created `backend/apps/documents/`:
+- `fonts/`: Downloaded `NotoSans-Regular.ttf`, `NotoSans-Bold.ttf`, `NotoSansDevanagari-Regular.ttf`, `NotoSansDevanagari-Bold.ttf`, and `OFL.txt`.
+- `templates/documents/`:
+  - `base.html`: Embedded `@font-face` referencing local fonts via absolute `file://` URLs, dynamic `@page` sizing (A4 default: 595.28x841.89 pt, A5 variant: 419.53x595.28 pt), and prominent "DRAFT" watermark for drafts.
+  - `invoice.html`: Full invoice layout with optional shop logo, shop snapshot/details, title by kind (Tax Invoice, Bill of Supply, Invoice, Credit Note), Place of Supply, Bill-to customer details, repair reference (job #, device, IMEI), line items table (HSN/SAC and tax columns conditional on GST), tax summary (CGST/SGST or IGST), whole-rupee round-off, amount in words, dynamic UPI QR (via Segno when balance > 0 and shop has UPI ID), repair tracking QR, terms, and computer-generated document footer.
+  - `job_receipt.html`: Intake receipt with job number, date, customer details, device details with identifiers (IMEI/Serial), fault description, physical condition tags, accessories received, financials (estimate, advance, balance), tracking QR, terms, and customer/shop signature lines. Strict security rule: never includes lock values (PIN/pattern/password).
+- `services.py`: `render_pdf`, `qr_svg`, `invoice_pdf` (uses immutable shop & customer snapshots for issued invoices, caches PDF in storage under `shops/{shop.id}/invoices/{id}-{size}.pdf`, updates `pdf_key`), and `job_receipt_pdf`.
+- `views.py`: `InvoicePdfView` (`invoices.print`) and `JobReceiptPdfView` (`jobs.view`) returning direct `HttpResponse(pdf_bytes, content_type="application/pdf")` with `Content-Disposition: inline; filename="...pdf"`.
+- `tests/test_documents.py`: 8 comprehensive tests covering Devanagari rendering, font embedding verification with `pypdf`, issued invoice immutability after shop rename, job receipt lock value security assertion, A4 vs A5 dimensions, draft watermark, dynamic UPI/tracking QR codes, storage caching, and multi-tenant isolation / permission enforcement (200, 401, 403, 404).
 
 ## 1.16 Sharing (native share sheet and WhatsApp)
 

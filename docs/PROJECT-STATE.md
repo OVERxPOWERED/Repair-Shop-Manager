@@ -2,12 +2,23 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.15 (PDF documents WeasyPrint)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.16 (Sharing native share sheet and WhatsApp)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **PDF Documents via WeasyPrint (Subphase 1.15):**
+  - Server-side PDF document generation service via `WeasyPrint` and `Segno` QR codes with embedded official `Noto Sans` and `Noto Sans Devanagari` fonts (OFL licensed).
+  - Python amount-to-words helper in `apps/core/amount_words.py` converting integer paise to Indian English financial words ("Rupees ... and ... Paise Only") with unit tests in `apps/core/tests/test_amount_words.py`.
+  - Document templates in `apps/documents/templates/documents/`:
+    - `base.html`: Embedded `@font-face` referencing local fonts via absolute `file://` URLs, dynamic `@page` sizing (A4 portrait default: 595.28x841.89 pt, A5 portrait variant: 419.53x595.28 pt), and prominent "DRAFT" watermark for drafts.
+    - `invoice.html`: Full invoice layout with optional shop logo, shop snapshot/details, title by kind (Tax Invoice, Bill of Supply, Invoice, Credit Note), Place of Supply, Bill-to customer details, repair reference (job #, device, IMEI), line items table (HSN/SAC and tax columns conditional on GST), tax summary (CGST/SGST or IGST), whole-rupee round-off, amount in words, dynamic UPI QR (via Segno when balance > 0 and shop has UPI ID), repair tracking QR, terms, and computer-generated document footer.
+    - `job_receipt.html`: Intake receipt with job number, date, customer details, device details with identifiers (IMEI/Serial), fault description, physical condition tags, accessories received, financials (estimate, advance, balance), tracking QR, terms, and customer/shop signature lines. Strict security rule: never includes lock values (PIN/pattern/password).
+  - Services in `apps/documents/services.py`: `render_pdf`, `qr_svg`, `invoice_pdf` (uses immutable shop & customer snapshots for issued invoices, caches PDF in storage under `shops/{shop.id}/invoices/{id}-{size}.pdf`, updates `pdf_key`), and `job_receipt_pdf`.
+  - API endpoints: `InvoicePdfView` (`invoices.print`) and `JobReceiptPdfView` (`jobs.view`) returning direct `HttpResponse(pdf_bytes, content_type="application/pdf")` with `Content-Disposition: inline; filename="...pdf"`.
+  - Comprehensive unit and integration test suite in `apps/documents/tests/test_documents.py` (8/8 tests passing) covering Devanagari rendering, font embedding verification with `pypdf`, issued invoice immutability after shop rename, job receipt lock value security assertion, A4 vs A5 dimensions, draft watermark, dynamic UPI/tracking QR codes, storage caching, and multi-tenant isolation / permission enforcement (200, 401, 403, 404).
+  - All 281 backend pytest tests passing; ruff check and format clean; makemigrations clean; 110 frontend vitest tests passing.
 - **Invoice Screens (Subphase 1.14):**
   - Indian English financial amount-to-words helper in `src/lib/format/amount-words.ts` ("Rupees ... and ... Paise Only") with comprehensive 8-test unit suite in `src/lib/format/amount-words.test.ts`.
   - Frontend invoice API hooks in `src/features/invoices/api.ts`: `useInvoice`, `useInvoices`, `useJobInvoice`, `useCreateDraftFromJob`, `useUpdateDraftInvoice`, `useIssueInvoice` (supports idempotency keys), `useCancelInvoice`, and `useDeleteDraftInvoice`.
