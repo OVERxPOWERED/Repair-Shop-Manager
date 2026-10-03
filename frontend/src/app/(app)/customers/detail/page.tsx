@@ -32,6 +32,8 @@ import { CustomerFormSheet } from "@/features/customers/CustomerFormSheet";
 import { DeviceFormSheet } from "@/features/devices/DeviceFormSheet";
 import { useCustomer, useDeleteCustomer } from "@/features/customers/api";
 import { useDevices, type Device } from "@/features/devices/api";
+import { useJobs } from "@/features/jobs/api";
+import { JobCard } from "@/features/jobs/components/JobCard";
 import { toast } from "sonner";
 
 function CustomerDetailContent() {
@@ -44,6 +46,10 @@ function CustomerDetailContent() {
 
   const { data: customer, isLoading, isError, error, refetch } = useCustomer(customerId);
   const { data: devices = [], isLoading: isLoadingDevices, refetch: refetchDevices } = useDevices(customerId);
+  const { data: customerJobsData, isLoading: isLoadingJobs } = useJobs(
+    customerId ? { customer: customerId } : undefined
+  );
+  const customerJobs = customerJobsData?.items ?? [];
 
   const [isEditCustomerOpen, setIsEditCustomerOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -313,15 +319,31 @@ function CustomerDetailContent() {
           )}
         </div>
 
-        {/* Repair History Card (Placeholder filled in 1.9) */}
-        <div className="rounded-2xl border bg-card p-4 space-y-2 shadow-sm">
-          <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary" />
-            <span>{t("repairHistoryTitle")}</span>
-          </h3>
-          <div className="rounded-xl border border-dashed p-6 text-center text-xs text-muted-foreground">
-            {t("repairHistoryPlaceholder")}
+        {/* Repair History Card */}
+        <div className="rounded-2xl border bg-card p-4 space-y-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <span>{t("repairHistoryTitle")}</span>
+              <span className="text-xs text-muted-foreground font-normal">({customerJobs.length})</span>
+            </h3>
           </div>
+
+          {isLoadingJobs ? (
+            <div className="space-y-2 pt-1">
+              <div className="h-16 rounded-xl bg-muted/50 animate-pulse" />
+            </div>
+          ) : customerJobs.length === 0 ? (
+            <div className="rounded-xl border border-dashed p-6 text-center text-xs text-muted-foreground">
+              {t("repairHistoryPlaceholder")}
+            </div>
+          ) : (
+            <div className="space-y-2 pt-1">
+              {customerJobs.map((j) => (
+                <JobCard key={j.id} job={j} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

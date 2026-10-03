@@ -2,12 +2,22 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.9 (Home dashboard, Jobs list and Job detail screens)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.10 (IMEI barcode scan, OCR capture and "Check IMEI")  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Home Dashboard, Jobs List, and Job Detail Screens (Subphase 1.9):**
+  - Defined `JobStatus`, `ALL_JOB_STATUSES`, `STATUS_STYLE` color matrix (badges & dots), and `GROUPS` in `src/features/jobs/status.ts`. Added vitest test suite in `status.test.ts` (15 test files, 93 tests passing).
+  - Built `StatusBadge` component (`src/features/jobs/components/StatusBadge.tsx`) rendering colored dot and translated status label.
+  - Built `JobCard` component (`src/features/jobs/components/JobCard.tsx`) showing `#job_no`, priority chip, customer name, device model, first-line fault, formatted expected/created date, status badge, technician name, and permission-gated total amount (`money.see_cost_profit` or `invoices.view`).
+  - Rewrote Home dashboard (`src/app/(app)/home/page.tsx`) with live dashboard summary from `/dashboard/summary/?date=todayIst()`, interactive counters linking to filtered jobs list (`in_progress`, `pending`, `repaired`, `delivered`), last 5 recent jobs list with `JobCard`, and quick action tiles.
+  - Rewrote Jobs list screen (`src/app/(app)/jobs/page.tsx`) with debounced search query (`q`), horizontal scrollable filter pills with real-time count badges from `/jobs/counts/`, state stored in URL query params, and floating action button linking to `/jobs/new/`. Wrapped with `React.Suspense` for Next.js static export compatibility.
+  - Built comprehensive Job Detail screen (`src/app/(app)/jobs/detail/page.tsx`) with customer profile shortcut, conditional phone call & WhatsApp buttons (strictly hidden when phone is masked), device specs and formatted IMEI with Luhn badge, fault & condition details with interactive `PhotoStrip` (direct photo upload & delete), permission-gated lock reveal (`jobs.view_device_lock`) with 30s countdown and read-only `PatternInput` playback, accessories checklist, vertical timeline from `/jobs/{id}/history/`, internal vs customer visible notes, technician reassignment sheet (`AssignTechnicianSheet`), status transition sheet (`StatusChangeSheet`) with mandatory cancel reason, terminal reopen dialog (`ReopenJobDialog`), and inline edit sheet (`EditJobSheet`) with optimistic concurrency (409) version checking.
+  - Wired live customer repair history list in `src/app/(app)/customers/detail/page.tsx` replacing previous placeholder.
+  - Added 87 new translation keys across `en.json`, `hi.json`, `hi-Latn.json` bringing total catalog to 642 keys (100% key parity).
+  - Clean static export build generated (22/22 pages, `/home` 3.88 kB, `/jobs` 2.76 kB, `/jobs/detail` 12 kB).
 - **Status Workflow, Assignment, Visibility, and Dashboard API (Subphase 1.8):**
   - State machine in `apps/jobs/state_machine.py`: defined `TRANSITIONS`, `TERMINAL`, `GROUPS`, `required_permission`, and `allowed_next`.
   - Service functions in `apps/jobs/services.py`:

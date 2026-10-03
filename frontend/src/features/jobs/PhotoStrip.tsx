@@ -37,7 +37,7 @@ export interface JobPhotoItem {
   size_bytes?: number;
   width?: number;
   height?: number;
-  taken_by_name?: string;
+  taken_by_name?: string | null;
   created_at?: string;
 }
 

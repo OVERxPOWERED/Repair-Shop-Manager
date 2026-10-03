@@ -128,15 +128,103 @@ export type AccessoryOption = {
   is_default: boolean;
 };
 
+export type DashboardSummary = {
+  received_today: number;
+  pending: number;
+  in_progress: number;
+  repaired: number;
+  delivered_today: number;
+  collected_today_paise?: number;
+};
+
+export type JobCounts = {
+  all: number;
+  pending: number;
+  in_progress: number;
+  repaired: number;
+  delivered: number;
+  closed: number;
+};
+
+export type JobStatusHistoryItem = {
+  id: string;
+  from_status: JobStatus;
+  to_status: JobStatus;
+  note: string;
+  cancel_reason: string;
+  changed_by_name: string;
+  created_at: string;
+};
+
+export type JobTransitions = {
+  allowed: JobStatus[];
+};
+
+export type JobNote = {
+  id: string;
+  content: string;
+  is_internal: boolean;
+  author_name: string;
+  created_at: string;
+};
+
 export const jobKeys = {
   all: ["jobs"] as const,
   lists: () => [...jobKeys.all, "list"] as const,
   list: (filters: Record<string, unknown>) => [...jobKeys.lists(), filters] as const,
+  counts: () => [...jobKeys.all, "counts"] as const,
+  summary: (date: string) => [...jobKeys.all, "summary", date] as const,
   details: () => [...jobKeys.all, "detail"] as const,
   detail: (id: string | null) => [...jobKeys.details(), id] as const,
+  transitions: (id: string | null) => [...jobKeys.detail(id), "transitions"] as const,
+  history: (id: string | null) => [...jobKeys.detail(id), "history"] as const,
+  notes: (id: string | null) => [...jobKeys.detail(id), "notes"] as const,
   photos: (id: string) => [...jobKeys.detail(id), "photos"] as const,
   accessories: ["accessory-options"] as const,
 };
+
+function buildQueryString(params?: Record<string, unknown>): string {
+  if (!params) return "";
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== null && v !== "") {
+      sp.set(k, String(v));
+    }
+  }
+  const s = sp.toString();
+  return s ? `?${s}` : "";
+}
+
+export function useDashboardSummary(date?: string) {
+  const shopId = useAuthStore((s) => s.shopId);
+  const targetDate = date || new Date().toISOString().slice(0, 10);
+  return useQuery({
+    queryKey: [...jobKeys.summary(targetDate), shopId],
+    queryFn: () => api<DashboardSummary>(`/dashboard/summary/?date=${targetDate}`),
+    enabled: Boolean(shopId),
+    staleTime: 15_000,
+  });
+}
+
+export function useJobCounts() {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: [...jobKeys.counts(), shopId],
+    queryFn: () => api<JobCounts>("/jobs/counts/"),
+    enabled: Boolean(shopId),
+    staleTime: 15_000,
+  });
+}
+
+export function useJobs(filters?: Record<string, unknown>) {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: [...jobKeys.list(filters || {}), shopId],
+    queryFn: () => apiList<Job>(`/jobs/${buildQueryString(filters)}`),
+    enabled: Boolean(shopId),
+    staleTime: 10_000,
+  });
+}
 
 export function useAccessoryOptions() {
   const shopId = useAuthStore((s) => s.shopId);
@@ -159,6 +247,154 @@ export function useJob(jobId: string | null) {
   });
 }
 
+export function useJobTransitions(jobId: string | null) {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: jobKeys.transitions(jobId),
+    queryFn: () => api<JobTransitions>(`/jobs/${jobId}/transitions/`),
+    enabled: Boolean(shopId && jobId),
+  });
+}
+
+export function useJobHistory(jobId: string | null) {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: jobKeys.history(jobId),
+    queryFn: () => api<JobStatusHistoryItem[]>(`/jobs/${jobId}/history/`),
+    enabled: Boolean(shopId && jobId),
+  });
+}
+
+export function useJobNotes(jobId: string | null) {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: jobKeys.notes(jobId),
+    queryFn: () => api<JobNote[]>(`/jobs/${jobId}/notes/`),
+    enabled: Boolean(shopId && jobId),
+  });
+}
+
+export function useChangeJobStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      toStatus,
+      note,
+      cancelReason,
+      expectedVersion,
+    }: {
+      jobId: string;
+      toStatus: JobStatus;
+      note?: string;
+      cancelReason?: string;
+      expectedVersion: number;
+    }) =>
+      api<Job>(`/jobs/${jobId}/status/`, {
+        method: "POST",
+        body: { to_status: toStatus, note, cancel_reason: cancelReason },
+        ifMatch: expectedVersion,
+      }),
+    onSuccess: (updatedJob) => {
+      qc.invalidateQueries({ queryKey: jobKeys.detail(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.transitions(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.history(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.lists() });
+      qc.invalidateQueries({ queryKey: jobKeys.counts() });
+      qc.invalidateQueries({ queryKey: [...jobKeys.all, "summary"] });
+    },
+  });
+}
+
+export function useReopenJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, reason }: { jobId: string; reason: string }) =>
+      api<Job>(`/jobs/${jobId}/reopen/`, {
+        method: "POST",
+        body: { reason },
+      }),
+    onSuccess: (updatedJob) => {
+      qc.invalidateQueries({ queryKey: jobKeys.detail(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.transitions(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.history(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.lists() });
+      qc.invalidateQueries({ queryKey: jobKeys.counts() });
+      qc.invalidateQueries({ queryKey: [...jobKeys.all, "summary"] });
+    },
+  });
+}
+
+export function useAssignJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, membershipId }: { jobId: string; membershipId: string | null }) =>
+      api<Job>(`/jobs/${jobId}/assign/`, {
+        method: "POST",
+        body: { membership_id: membershipId },
+      }),
+    onSuccess: (updatedJob) => {
+      qc.invalidateQueries({ queryKey: jobKeys.detail(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.lists() });
+    },
+  });
+}
+
+export function useRevealJobLock() {
+  return useMutation({
+    mutationFn: (jobId: string) =>
+      api<{ lock_type: string; lock_value: string }>(`/jobs/${jobId}/lock/`, {
+        method: "POST",
+      }),
+  });
+}
+
+export function useAddJobNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      content,
+      isInternal,
+    }: {
+      jobId: string;
+      content: string;
+      isInternal: boolean;
+    }) =>
+      api<JobNote>(`/jobs/${jobId}/notes/`, {
+        method: "POST",
+        body: { content, is_internal: isInternal },
+      }),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: jobKeys.notes(variables.jobId) });
+    },
+  });
+}
+
+export function useUpdateJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      body,
+      expectedVersion,
+    }: {
+      jobId: string;
+      body: Partial<JobCreatePayload>;
+      expectedVersion: number;
+    }) =>
+      api<Job>(`/jobs/${jobId}/`, {
+        method: "PATCH",
+        body,
+        ifMatch: expectedVersion,
+      }),
+    onSuccess: (updatedJob) => {
+      qc.invalidateQueries({ queryKey: jobKeys.detail(updatedJob.id) });
+      qc.invalidateQueries({ queryKey: jobKeys.lists() });
+    },
+  });
+}
+
 export function useCreateJob() {
   const qc = useQueryClient();
   return useMutation({
@@ -170,6 +406,19 @@ export function useCreateJob() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: jobKeys.lists() });
+      qc.invalidateQueries({ queryKey: jobKeys.counts() });
+      qc.invalidateQueries({ queryKey: [...jobKeys.all, "summary"] });
+    },
+  });
+}
+
+export function useDeleteJobPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, photoId }: { jobId: string; photoId: string }) =>
+      api(`/jobs/${jobId}/photos/${photoId}/`, { method: "DELETE" }),
+    onSuccess: (_, { jobId }) => {
+      qc.invalidateQueries({ queryKey: jobKeys.detail(jobId) });
     },
   });
 }

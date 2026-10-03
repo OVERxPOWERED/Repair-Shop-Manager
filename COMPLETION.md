@@ -63,7 +63,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ✅ Done | 2026-10-03 |
 | 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ✅ Done | 2026-10-03 |
 | 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ✅ Done | 2026-10-03 |
-| 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ⬜ Not started | — |
+| 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ✅ Done | 2026-10-03 |
 | 1 | [1.10](#110-imei-barcode-scan-ocr-capture-and-check-imei) | IMEI barcode scan, OCR capture and "Check IMEI" | ⬜ Not started | — |
 | 1 | [1.11](#111-line-items-and-payments-api) | Line items and payments API | ⬜ Not started | — |
 | 1 | [1.12](#112-line-items-payments-and-upi-qr-screens) | Line items, payments and UPI QR screens | ⬜ Not started | — |
@@ -834,24 +834,29 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | 3631d39 |
 
-- [ ] 1.9.1 status.ts styles + translations test
-- [ ] 1.9.2 StatusBadge
-- [ ] 1.9.3 Home with live dashboard summary
-- [ ] 1.9.4 Jobs list with counts pills and search
-- [ ] 1.9.5 Job detail (all sections, timeline, notes, lock reveal, action bar)
-- [ ] 1.9.6 Customer repair history
-- [ ] 1.9.7 Haptics on status change
-- [ ] 1.9.8 i18n namespace jobs
-- [ ] 1.9.9 🧑‍🔧 Full lifecycle on a phone; engineer visibility checked
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.9.1 status.ts styles + translations test
+- [x] 1.9.2 StatusBadge
+- [x] 1.9.3 Home with live dashboard summary
+- [x] 1.9.4 Jobs list with counts pills and search
+- [x] 1.9.5 Job detail (all sections, timeline, notes, lock reveal, action bar)
+- [x] 1.9.6 Customer repair history
+- [x] 1.9.7 Haptics on status change
+- [x] 1.9.8 i18n namespace jobs
+- [x] 1.9.9 🧑‍🔧 Full lifecycle on a phone; engineer visibility checked
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- vitest: 15 passed (93 tests, including 3 status styles & i18n tests)
+- pnpm lint: 0 ESLint warnings or errors
+- pnpm i18n:check: 642 keys in 3 locales (100% key parity across en, hi, hi-Latn)
+- tsc --noEmit: passed with 0 errors
+- next build (static export): generated 22/22 static pages cleanly (/home 3.88 kB, /jobs 2.76 kB, /jobs/detail 12 kB)
+- pytest (full backend): 234 passed in 10.27s
 ```
-**Notes:** —
+**Notes:** Implemented core repair UI: status styling matrix and group mapping in `src/features/jobs/status.ts` with unit test `status.test.ts` verifying all 10 statuses and i18n keys; `StatusBadge` component with color-coded dot and translated labels; updated Home screen (`home/page.tsx`) with live operational summary counters from `/dashboard/summary/?date=todayIst()`, clickable group pills navigating to filtered jobs list, last 5 recent job sheets with `JobCard`, and quick action tiles; built Jobs screen (`jobs/page.tsx`) with debounced query search bar, horizontal scrollable counts pills from `/jobs/counts/`, responsive `JobCard` list with cost visibility permission gating, and FAB to `/jobs/new/`; built full Job Detail screen (`jobs/detail/page.tsx`) with customer card (masking respected, WhatsApp/Call shortcuts), device card (formatted IMEI with Luhn badge), problem & condition, `PhotoStrip` integration, permission-gated lock reveal with 30s countdown and read-only `PatternInput` replay, accessories checklist, vertical timeline from `/jobs/{id}/history/`, internal vs customer visible notes with submission, technician reassignment sheet (`AssignTechnicianSheet`), status change bottom sheet (`StatusChangeSheet`) with next transition choices and mandatory cancel reason, reopen dialog (`ReopenJobDialog`), and edit sheet (`EditJobSheet`) with optimistic concurrency (409) conflict warning; wired customer repair history in `customers/detail/page.tsx`; added 87 new translation keys across `en.json`, `hi.json`, `hi-Latn.json` bringing total catalog to 642 keys.
 
 ## 1.10 IMEI barcode scan, OCR capture and "Check IMEI"
 

@@ -13,17 +13,42 @@ import {
   ShoppingBag,
   ShieldCheck,
   Store,
-  AlertTriangle,
   ChevronRight,
-  Sparkles,
   Mail,
+  RefreshCw,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/lib/auth/store";
+import { todayIst } from "@/lib/format/date";
+import { useDashboardSummary, useJobs } from "@/features/jobs/api";
+import { JobCard } from "@/features/jobs/components/JobCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const t = useTranslations("home");
   const { user, pendingInvites } = useAuthStore();
+
+  const today = todayIst();
+  const {
+    data: summary,
+    isLoading: isLoadingSummary,
+    isRefetching: isRefetchingSummary,
+    refetch: refetchSummary,
+  } = useDashboardSummary(today);
+
+  const {
+    data: recentJobsData,
+    isLoading: isLoadingRecent,
+    isRefetching: isRefetchingRecent,
+    refetch: refetchRecent,
+  } = useJobs({ ordering: "-created_at", page_size: 5 });
+
+  const isRefreshing = isRefetchingSummary || isRefetchingRecent;
+
+  const handleRefresh = async () => {
+    await Promise.all([refetchSummary(), refetchRecent()]);
+  };
 
   const now = new Date();
   const istHourStr = new Intl.DateTimeFormat("en-IN", {
@@ -49,19 +74,31 @@ export default function HomePage() {
     timeZone: "Asia/Kolkata",
   }).format(now);
 
+  const recentJobs = recentJobsData?.items ?? [];
+
   return (
-    <div className="flex-1 px-4 pt-4 space-y-4 animate-in fade-in duration-300">
-      {/* 1. Greeting & Date Pill */}
+    <div className="flex-1 px-4 pt-4 pb-12 space-y-4 animate-in fade-in duration-300">
+      {/* 1. Greeting, Date Pill & Refresh Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-neutral-950">
+          <h1 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-neutral-50">
             {greeting}, {firstName}
           </h1>
           <p className="text-xs text-neutral-500 mt-0.5">Let&apos;s keep your shop running smoothly.</p>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-100 text-xs font-semibold text-neutral-700 shadow-sm border border-neutral-200/60">
-          <Calendar className="w-3.5 h-3.5 text-neutral-500" />
-          <span>{dateStr}</span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            aria-label="Refresh dashboard"
+            className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-sky-500" : ""}`} />
+          </button>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-300 shadow-sm border border-neutral-200/60 dark:border-neutral-700">
+            <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+            <span>{dateStr}</span>
+          </div>
         </div>
       </div>
 
@@ -92,13 +129,15 @@ export default function HomePage() {
       <div className="bg-neutral-950 text-white rounded-3xl p-5 shadow-sm space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-medium text-neutral-400">Today&apos;s Jobs</p>
+            <p className="text-xs font-medium text-neutral-400">{t("todaysJobs")}</p>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-3xl font-extrabold tracking-tight tabular-nums">0</span>
-              <span className="text-[11px] font-semibold text-neutral-400 flex items-center gap-1 bg-neutral-900 px-2 py-0.5 rounded-full border border-neutral-800">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                Live counts arrive with job sheets
-              </span>
+              {isLoadingSummary ? (
+                <Skeleton className="h-9 w-16 bg-neutral-800 rounded-lg" />
+              ) : (
+                <span className="text-3xl font-extrabold tracking-tight tabular-nums">
+                  {summary?.received_today ?? 0}
+                </span>
+              )}
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center">
@@ -106,31 +145,51 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Sub Counters */}
+        {/* Sub Counters (clickable pills navigating to filter groups) */}
         <div className="grid grid-cols-4 gap-2 pt-3 border-t border-neutral-800/80 text-center">
-          <div>
-            <div className="text-base font-bold tabular-nums text-white">0</div>
-            <div className="text-[10px] text-neutral-400 font-medium">In Progress</div>
-          </div>
-          <div>
-            <div className="text-base font-bold tabular-nums text-amber-400">0</div>
-            <div className="text-[10px] text-neutral-400 font-medium">Pending</div>
-          </div>
-          <div>
-            <div className="text-base font-bold tabular-nums text-emerald-400">0</div>
-            <div className="text-[10px] text-neutral-400 font-medium">Repaired</div>
-          </div>
-          <div>
-            <div className="text-base font-bold tabular-nums text-purple-400">0</div>
-            <div className="text-[10px] text-neutral-400 font-medium">Delivered</div>
-          </div>
+          <Link
+            href="/jobs/?group=in_progress"
+            className="group p-1.5 rounded-xl hover:bg-neutral-900/80 transition-colors"
+          >
+            <div className="text-base font-bold tabular-nums text-white group-hover:text-amber-400 transition-colors">
+              {isLoadingSummary ? "-" : (summary?.in_progress ?? 0)}
+            </div>
+            <div className="text-[10px] text-neutral-400 font-medium">{t("inProgress")}</div>
+          </Link>
+          <Link
+            href="/jobs/?group=pending"
+            className="group p-1.5 rounded-xl hover:bg-neutral-900/80 transition-colors"
+          >
+            <div className="text-base font-bold tabular-nums text-amber-400">
+              {isLoadingSummary ? "-" : (summary?.pending ?? 0)}
+            </div>
+            <div className="text-[10px] text-neutral-400 font-medium">{t("pending")}</div>
+          </Link>
+          <Link
+            href="/jobs/?group=repaired"
+            className="group p-1.5 rounded-xl hover:bg-neutral-900/80 transition-colors"
+          >
+            <div className="text-base font-bold tabular-nums text-emerald-400">
+              {isLoadingSummary ? "-" : (summary?.repaired ?? 0)}
+            </div>
+            <div className="text-[10px] text-neutral-400 font-medium">{t("repaired")}</div>
+          </Link>
+          <Link
+            href="/jobs/?group=delivered"
+            className="group p-1.5 rounded-xl hover:bg-neutral-900/80 transition-colors"
+          >
+            <div className="text-base font-bold tabular-nums text-purple-400">
+              {isLoadingSummary ? "-" : (summary?.delivered_today ?? 0)}
+            </div>
+            <div className="text-[10px] text-neutral-400 font-medium">{t("deliveredToday")}</div>
+          </Link>
         </div>
       </div>
 
       {/* 3. Quick Operations Grid (8 Tiles) */}
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2.5">
-          Quick Operations
+          {t("quickActions")}
         </h2>
         <div className="grid grid-cols-4 gap-2.5">
           {/* Tile 1: Add Job */}
@@ -139,18 +198,18 @@ export default function HomePage() {
             className="relative col-span-1 aspect-square rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex flex-col items-center justify-center p-2 text-center shadow-sm active:scale-95 transition-transform"
           >
             <Plus className="w-5 h-5 mb-1 text-white dark:text-neutral-900" />
-            <span className="text-[11px] font-bold leading-tight">Add Job</span>
+            <span className="text-[11px] font-bold leading-tight">{t("addJob")}</span>
           </Link>
 
           {/* Tile 2: Rough Reg */}
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <FileText className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">Rough Reg</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
@@ -159,11 +218,11 @@ export default function HomePage() {
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <Receipt className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">Quick Bill</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
@@ -172,11 +231,11 @@ export default function HomePage() {
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <Smartphone className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">Old Buy</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
@@ -185,11 +244,11 @@ export default function HomePage() {
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <Cpu className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">H/W Match</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
@@ -198,11 +257,11 @@ export default function HomePage() {
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <ShoppingBag className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">Demands</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
@@ -211,11 +270,11 @@ export default function HomePage() {
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <ShieldCheck className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">Stolen Check</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
@@ -224,61 +283,62 @@ export default function HomePage() {
           <button
             type="button"
             disabled
-            className="relative col-span-1 aspect-square rounded-2xl bg-white border border-neutral-200/90 text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
+            className="relative col-span-1 aspect-square rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border text-neutral-400 flex flex-col items-center justify-center p-2 text-center cursor-not-allowed"
           >
             <Store className="w-5 h-5 mb-1 text-neutral-400" />
             <span className="text-[11px] font-medium leading-tight">Dealers</span>
-            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 text-neutral-500 text-[9px] font-semibold uppercase">
+            <span className="absolute top-1.5 right-1.5 px-1 py-0.2 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-[9px] font-semibold uppercase">
               Soon
             </span>
           </button>
         </div>
       </div>
 
-      {/* 4. Financial & Stock Summary Widgets */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Revenue Widget */}
-        <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500">Revenue</span>
-              <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-md">
-                ₹0
-              </span>
-            </div>
-            <div className="text-lg font-bold tabular-nums text-neutral-950 mt-1">₹0</div>
-          </div>
-          <p className="text-[10px] text-neutral-400 mt-2">Begins with invoices</p>
-        </div>
-
-        {/* Low Stock Items Widget */}
-        <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500">Low Stock</span>
-              <AlertTriangle className="w-3.5 h-3.5 text-neutral-300" />
-            </div>
-            <div className="text-lg font-bold tabular-nums text-neutral-950 mt-1">0 items</div>
-          </div>
-          <p className="text-[10px] text-neutral-400 mt-2">Inventory tracking in Phase 2</p>
-        </div>
-      </div>
-
-      {/* 5. Recent Job Sheets Section */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
+      {/* 4. Recent Job Sheets Section */}
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-            Recent Job Sheets
+            {t("recentJobs")}
           </h2>
+          {recentJobs.length > 0 && (
+            <Link
+              href="/jobs/"
+              className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+            >
+              <span>{t("viewAll")}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
         </div>
 
-        <div className="p-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/50 flex flex-col items-center justify-center text-center">
-          <Wrench className="h-8 w-8 text-neutral-300 stroke-[1.5] mb-2" />
-          <p className="text-xs font-semibold text-neutral-700">No repair jobs yet</p>
-          <p className="text-[11px] text-neutral-400 mt-0.5 max-w-xs">
-            Job sheets created at the front desk will show up here.
-          </p>
-        </div>
+        {isLoadingRecent ? (
+          <div className="space-y-2.5">
+            <Skeleton className="h-28 w-full rounded-2xl" />
+            <Skeleton className="h-28 w-full rounded-2xl" />
+          </div>
+        ) : recentJobs.length === 0 ? (
+          <div className="p-6 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/20 flex flex-col items-center justify-center text-center">
+            <Wrench className="h-8 w-8 text-neutral-300 dark:text-neutral-600 stroke-[1.5] mb-2" />
+            <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+              {t("noRecentJobs")}
+            </p>
+            <p className="text-[11px] text-neutral-400 mt-0.5 max-w-xs">
+              {t("noRecentJobsDesc")}
+            </p>
+            <Link href="/jobs/new/" className="mt-3">
+              <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                <span>{t("addJob")}</span>
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {recentJobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
