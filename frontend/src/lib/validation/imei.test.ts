@@ -6,6 +6,8 @@ describe("IMEI Luhn Algorithm & Validation (Week 2 Spike B)", () => {
     expect(isValidIMEI("864501041234560")).toBe(true);
     expect(isValidIMEI("352099001761481")).toBe(true);
     expect(isValidIMEI("990000862471853")).toBe(true);
+    expect(isValidIMEI("490154203237518")).toBe(true);
+    expect(isValidIMEI("356938035643809")).toBe(true);
     expect(isValidIMEI("864501-04-123456-0")).toBe(true);
     expect(isValidIMEI("864501 04 123456 0")).toBe(true);
   });

@@ -2,12 +2,20 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.3 (Devices and IMEI API)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.4 (Customers and devices screens)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Devices and IMEI API (Subphase 1.3):**
+  - Moved `DeviceCategory` choices to `apps.core.choices` for clean cross-app reusability without cyclical imports.
+  - Created `apps/devices` with `Device(ShopScopedModel)` and `DeviceIdentifier(ShopScopedModel)` with GIN trigram index on identifier `value`, unique constraint `devid_uniq_type_per_device` (`device`, `type`), and registered in Django admin with tabular inlines.
+  - Implemented IMEI validation policy in `apps/devices/services.py` (`clean_identifier`, `create_device`, `update_device`) enforcing 15-digit formatting, Luhn check-digit verification with explicit user override (`confirm_invalid`), duplicate type prevention, and atomic device + identifiers management.
+  - Built `DeviceSerializer` with nested `identifiers` and `ShopScopedPKField` validation for `customer_id` and `brand_id`.
+  - Built `DeviceViewSet(ShopScopedViewSet)` supporting search by `?customer=` and `?imei=` (suffix matching), plus action `GET /devices/imei-lookup/?value=<15 digits>` for tenant-scoped duplicate detection.
+  - Verified Luhn algorithm test parity across Python (`test_devices.py`) and TypeScript (`imei.test.ts`) on canonical IMEIs `490154203237518` and `356938035643809`.
+  - Added 6 unit tests in `apps/devices/tests/test_devices.py` covering validation matrix, dual-SIM device creation, cross-tenant customer validation, and IMEI suffix search (108 total backend pytest tests passing; 52 frontend vitest tests passing).
 - **Customers API (Subphase 1.2):**
   - Created `apps/customers` with `Customer(ShopScopedModel)` carrying GIN trigram indexes on `name` and `phone`, unique constraint `cust_uniq_phone_per_shop` (`shop`, `phone` for non-deleted rows), and registered in Django admin.
   - Implemented phone masking helpers in `apps/customers/visibility.py` (`can_see_customer_phone`, `present_phone`) checking shop setting `mask_phone_for_engineers` and user permission `customers.see_phone`.

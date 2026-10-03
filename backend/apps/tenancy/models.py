@@ -9,6 +9,7 @@ from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.choices import DeviceCategory
 from apps.core.models import ShopScopedModel, SoftDeletableModel, TimeStampedModel, UUIDModel
 
 
@@ -203,14 +204,6 @@ class Invite(UUIDModel, TimeStampedModel):
     @property
     def is_accepted(self) -> bool:
         return self.accepted_at is not None
-
-
-class DeviceCategory(models.TextChoices):
-    MOBILE = "mobile", _("Mobile")
-    LAPTOP = "laptop", _("Laptop / Computer")
-    TV = "tv", _("TV")
-    APPLIANCE = "appliance", _("Appliance")
-    OTHER = "other", _("Other")
 
 
 class ShopBrand(ShopScopedModel):

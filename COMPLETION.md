@@ -57,7 +57,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | **0** | **Exit** | **Phase 0 exit checklist** | ✅ Done | 2026-10-03 |
 | 1 | [1.1](#11-postgres-search-and-per-shop-catalogs-brands-accessories) | Postgres search and per-shop catalogs (brands, accessories) | ✅ Done | 2026-10-03 |
 | 1 | [1.2](#12-customers-api) | Customers API | ✅ Done | 2026-10-03 |
-| 1 | [1.3](#13-devices-and-imei-api) | Devices and IMEI API | ⬜ Not started | — |
+| 1 | [1.3](#13-devices-and-imei-api) | Devices and IMEI API | ✅ Done | 2026-10-03 |
 | 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | ⬜ Not started | — |
 | 1 | [1.5](#15-jobs-core-api-job-sheet-numbering-lock-encryption) | Jobs core API (job sheet, numbering, lock encryption) | ⬜ Not started | — |
 | 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ⬜ Not started | — |
@@ -672,17 +672,21 @@ makemigrations --check --dry-run: No changes detected
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | `f51964e` |
 
-- [ ] 1.3.1 Models (`apps/devices`)
-- [ ] 1.3.2 IMEI policy (`apps/devices/services.py`)
-- [ ] 1.3.3 Endpoints
-- [ ] 1.3.4 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.3.1 Models (`apps/devices`)
+- [x] 1.3.2 IMEI policy (`apps/devices/services.py`)
+- [x] 1.3.3 Endpoints
+- [x] 1.3.4 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+pytest apps/devices/tests/test_devices.py: 6 passed (full backend suite: 108 passed)
+vitest src/lib/validation/imei.test.ts: passed (full frontend suite: 52 passed)
+ruff check .: All checks passed!
+ruff format --check .: 120 files already formatted
+makemigrations --check --dry-run: No changes detected
 ```
 **Notes:** —
 

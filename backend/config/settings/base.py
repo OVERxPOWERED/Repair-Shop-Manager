@@ -55,6 +55,7 @@ LOCAL_APPS = [
     "apps.tenancy.apps.TenancyConfig",
     "apps.audit.apps.AuditConfig",
     "apps.customers.apps.CustomersConfig",
+    "apps.devices.apps.DevicesConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
