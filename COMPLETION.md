@@ -1070,7 +1070,7 @@ Created `backend/apps/documents/`:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
+| ✅ Done | 2026-10-03 | 2026-10-03 | ee9c2f5 |
 
 - [x] 1.16.1 src/native/share.ts (+ apiBlob)
 - [x] 1.16.2 WhatsApp message builders (3 locales) + tests
