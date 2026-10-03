@@ -6,6 +6,9 @@ import { IntlProvider } from "@/i18n/IntlProvider";
 import { SessionBoot } from "@/lib/auth/SessionBoot";
 import { Toaster } from "@/components/ui/sonner";
 import { ApiError } from "@/lib/api/client";
+import { initMonitoring } from "@/lib/monitoring";
+
+initMonitoring();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

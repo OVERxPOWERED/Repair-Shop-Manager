@@ -48,3 +48,11 @@ CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 SILENCED_SYSTEM_CHECKS = ["security.W021"]  # HSTS preload is a long-term commitment; decide later
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
+CRON_SECRET = os.environ.get("CRON_SECRET", "")

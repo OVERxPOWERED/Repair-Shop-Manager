@@ -1,0 +1,17 @@
+name: Scheduled jobs
+on:
+  schedule:
+    - cron: "30 21 * * *"   # 03:00 IST daily
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job: [purge-otp, purge-idempotency]
+    steps:
+      - name: Trigger cron maintenance task
+        run: |
+          curl --fail --max-time 120 -X POST \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.API_BASE_URL }}/internal/cron/${{ matrix.job }}/"

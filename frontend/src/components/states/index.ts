@@ -4,3 +4,4 @@ export { EmptyState } from "./EmptyState";
 export { PermissionDenied } from "./PermissionDenied";
 export { ErrorState } from "./ErrorState";
 export { OfflineBanner } from "./OfflineBanner";
+export { ServerWakeBanner } from "./ServerWakeBanner";

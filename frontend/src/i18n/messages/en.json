@@ -24,7 +24,8 @@
     "empty": "No records found",
     "error": "Something went wrong",
     "offline": "You are currently offline",
-    "permissionDenied": "Access Denied"
+    "permissionDenied": "Access Denied",
+    "serverWaking": "Waking up the server… this can take up to a minute"
   },
   "errors": {
     "generic": "An unexpected error occurred. Please try again.",

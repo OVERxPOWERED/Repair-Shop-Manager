@@ -210,3 +210,5 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
 }
+
+CRON_SECRET = os.environ.get("CRON_SECRET", "dev-cron-secret")

@@ -52,7 +52,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.14](#014-app-shell-navigation-and-shared-states--iphone) | App shell, navigation and shared states (+ iPhone) | ✅ Done | 2026-10-03 |
 | 0 | [0.15](#015-audit-log) | Audit log | ✅ Done | 2026-10-03 |
 | 0 | [0.16](#016-staff-invites-and-the-staff--roles-screens) | Staff invites and the Staff / Roles screens | ✅ Done | 2026-10-03 |
-| 0 | [0.17](#017-pilot-deployment-monitoring-scheduled-jobs-and-backups) | Pilot deployment, monitoring, scheduled jobs and backups | ⬜ Not started | — |
+| 0 | [0.17](#017-pilot-deployment-monitoring-scheduled-jobs-and-backups) | Pilot deployment, monitoring, scheduled jobs and backups | ✅ Done | 2026-10-03 |
 | 0 | [0.18](#018-phase-0-exit-review) | Phase 0 exit review | ⬜ Not started | — |
 | **0** | **Exit** | **Phase 0 exit checklist** | ⬜ Not started | — |
 | 1 | [1.1](#11-postgres-search-and-per-shop-catalogs-brands-accessories) | Postgres search and per-shop catalogs (brands, accessories) | ⬜ Not started | — |
@@ -553,22 +553,30 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | c6ceeaa |
 
-- [ ] 0.17.1 Production cache and cron endpoint
-- [ ] 0.17.2 Render (API) + Neon (database)
-- [ ] 0.17.3 Static web app (Cloudflare Pages or similar)
-- [ ] 0.17.4 Cold-start UX
-- [ ] 0.17.5 Sentry
-- [ ] 0.17.6 Scheduled jobs and backups (GitHub Actions)
-- [ ] 0.17.7 Docs
-- [ ] Verify commands from ROADMAP passed
+- [x] 0.17.1 Production cache and cron endpoint
+- [x] 0.17.2 Render (API) + Neon (database)
+- [x] 0.17.3 Static web app (Cloudflare Pages or similar)
+- [x] 0.17.4 Cold-start UX
+- [x] 0.17.5 Sentry
+- [x] 0.17.6 Scheduled jobs and backups (GitHub Actions)
+- [x] 0.17.7 Docs
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- pytest: 90 passed (3.73s)
+- ruff check .: clean
+- ruff format --check .: clean (95 files formatted)
+Frontend:
+- pnpm lint: clean (297 i18n keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 52 passed across 11 test files
+- pnpm build: next build static export generated (19/19 pages)
 ```
-**Notes:** —
+**Notes:** Implemented pilot deployment, monitoring, scheduled jobs, cold-start handling, and backups. Backend: configured database cache and CRON_SECRET in base.py/prod.py; built apps/core/cron.py with CronView executing management commands (purge-otp, purge-idempotency) behind constant-time HMAC header verification; added 5 unit tests in apps/core/tests/test_cron.py (90/90 backend tests passing); created render.yaml blueprint for Docker service deployment on Render. Frontend: implemented cold-start UX in src/lib/server-wake.ts, instrumented api client with 4-second request timer, built ServerWakeBanner displayed in shell layout with translations in en/hi/hi-Latn; integrated @sentry/capacitor (4.4.0) and @sentry/react (10.69.0) in src/lib/monitoring.ts with sendDefaultPii: false; created GitHub Actions workflows .github/workflows/cron.yml and .github/workflows/backup.yml (pg_dump + age encryption + S3/R2 upload); authored docs/runbooks/restore.md; updated docs/release.md with environments table, secret names directory, and mobile build instructions.
 
 ## 0.18 Phase 0 exit review
 

@@ -9,6 +9,7 @@ import { setAppStatusBar } from "@/native/status-bar";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { OfflineBanner } from "@/components/states/OfflineBanner";
+import { ServerWakeBanner } from "@/components/states/ServerWakeBanner";
 import { Loader2 } from "lucide-react";
 
 const TAB_ROOTS = [
@@ -73,6 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen w-full max-w-md mx-auto flex flex-col bg-background text-foreground">
       <AppHeader />
       <OfflineBanner />
+      <ServerWakeBanner />
       <main className="flex-1 pb-20">{children}</main>
       <BottomNav />
     </div>

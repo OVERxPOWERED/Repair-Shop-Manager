@@ -2,13 +2,17 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.17 (Pilot deployment, monitoring, scheduled jobs and backups)  **Last updated:** 2026-10-03
+**Phase:** 0 (Foundations)  **Subphase:** next is 0.18 (Phase 0 exit review)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.16 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Subphases 0.1 through 0.17 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Pilot Deployment, Monitoring, Scheduled Jobs and Backups (Subphase 0.17):**
+  - Backend: configured database cache and `CRON_SECRET` in `base.py`/`prod.py`; implemented `apps/core/cron.py` with `CronView` executing management commands (`purge-otp`, `purge-idempotency`) with constant-time HMAC header verification; added 5 unit tests in `apps/core/tests/test_cron.py` (90/90 backend tests passing); created `render.yaml` blueprint for Docker service deployment on Render.
+  - Frontend: implemented cold-start UX in `src/lib/server-wake.ts`, instrumented API client with 4-second request timer, built `ServerWakeBanner` displayed in shell layout with translations in en/hi/hi-Latn; integrated `@sentry/capacitor` (4.4.0) and `@sentry/react` (10.69.0) in `src/lib/monitoring.ts` with `sendDefaultPii: false`; verified 52 vitest tests, lint, and static export (19/19 pages).
+  - Infrastructure: created GitHub Actions workflows `.github/workflows/cron.yml` and `.github/workflows/backup.yml` (pg_dump + age encryption + S3/R2 upload); authored `docs/runbooks/restore.md`; updated `docs/release.md` with environments table, secret names directory, and mobile build instructions.
 - **Staff Invites and Staff / Roles Screens (Subphase 0.16):**
   - Backend: `apps/tenancy/invites.py` (`pending_invites_for_phone`, `create_invite`, `accept_invite`, `decline_invite`), `InviteSerializer`, `CreateInviteSerializer`, `MyInviteSerializer`, `InviteViewSet` (list, create, revoke with audit), `MyInvitesListView` (GET `/me/invites/`), `AcceptInviteView` (POST `/me/invites/<id>/accept/` with `staff.invite_accepted` audit), `DeclineInviteView` (POST `/me/invites/<id>/decline/`), and updated `/auth/me/` & OTP verification to return `pending_invites` count.
   - Added 6 unit tests in `apps/tenancy/tests/test_invites.py` covering invite creation, duplicates/already-member prevention, non-owner role requirement, cross-user phone verification on accept, and tenant isolation (85/85 tests passing).

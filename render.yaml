@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: fixpro-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /api/v1/health/
+    dockerCommand: >-
+      sh -c "python manage.py migrate --noinput && python manage.py createcachetable &&
+      python manage.py collectstatic --noinput &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false          # e.g. fixpro-api.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false          # e.g. https://fixpro-api.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false          # https://<pages-domain>,https://localhost,capacitor://localhost
+      - key: NUM_PROXIES
+        value: "1"           # TODO(verify) Render's proxy hop count
+      - key: CRON_SECRET
+        generateValue: true
+      - key: SENTRY_DSN
+        sync: false
+      - key: APP_VERSION
+        sync: false
+      - key: OTP_TEST_NUMBERS
+        sync: false          # pilot only: owner's number with a NON-trivial code until DLT SMS works

@@ -1,6 +1,9 @@
 import { useLocaleStore } from "@/i18n/store";
 import { useAuthStore } from "@/lib/auth/store";
+import { useServerWakeStore } from "@/lib/server-wake";
 import { env } from "@/lib/env";
+
+export { useServerWakeStore };
 
 export class ApiError extends Error {
   constructor(
@@ -57,7 +60,9 @@ export function refreshTokens(): Promise<RefreshResult> {
   return refreshing;
 }
 
-async function request(path: string, opts: RequestOptions, canRetry = true): Promise<unknown> {
+let activeSlowRequests = 0;
+
+async function doFetch(path: string, opts: RequestOptions, canRetry: boolean): Promise<unknown> {
   const { tokens, shopId } = useAuthStore.getState();
   const headers: Record<string, string> = {
     Accept: "application/json",
@@ -85,7 +90,7 @@ async function request(path: string, opts: RequestOptions, canRetry = true): Pro
 
   if (res.status === 401 && canRetry && opts.auth !== false && tokens?.refresh) {
     const result = await refreshTokens();
-    if (result === "ok") return request(path, opts, false);
+    if (result === "ok") return doFetch(path, opts, false);
     if (result === "network") throw new ApiError(0, "network.offline", "Network error");
     await useAuthStore.getState().signOut();
   }
@@ -96,6 +101,27 @@ async function request(path: string, opts: RequestOptions, canRetry = true): Pro
     throw new ApiError(res.status, e?.code ?? "server.error", e?.message ?? res.statusText, e?.fields ?? {}, e?.request_id);
   }
   return body;
+}
+
+async function request(path: string, opts: RequestOptions, canRetry = true): Promise<unknown> {
+  let didFire = false;
+  const timer = setTimeout(() => {
+    didFire = true;
+    activeSlowRequests += 1;
+    useServerWakeStore.setState({ waking: true });
+  }, 4000);
+
+  try {
+    return await doFetch(path, opts, canRetry);
+  } finally {
+    clearTimeout(timer);
+    if (didFire) {
+      activeSlowRequests = Math.max(0, activeSlowRequests - 1);
+      if (activeSlowRequests === 0) {
+        useServerWakeStore.setState({ waking: false });
+      }
+    }
+  }
 }
 
 /** For single-object endpoints: returns envelope.data. */

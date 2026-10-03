@@ -24,7 +24,8 @@
     "empty": "Koi record nahi mila",
     "error": "Kuch galat ho gaya",
     "offline": "Aap abhi offline hain",
-    "permissionDenied": "Access Denied"
+    "permissionDenied": "Access Denied",
+    "serverWaking": "Server wake ho raha hai… isme 1 minute tak lag sakta hai"
   },
   "errors": {
     "generic": "Ek unexpected error aayi. Kripya dobara try karein.",
