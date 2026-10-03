@@ -1098,7 +1098,7 @@ Created `backend/apps/documents/`:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
+| ✅ Done | 2026-10-03 | 2026-10-03 | 17f61a3 |
 
 - [x] 1.17.1 PrinterService types
 - [x] 1.17.2 BLE printer implementation
