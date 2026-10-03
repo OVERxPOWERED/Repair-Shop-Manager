@@ -32,3 +32,6 @@ services:
         sync: false
       - key: OTP_TEST_NUMBERS
         sync: false          # pilot only: owner's number with a NON-trivial code until DLT SMS works
+      - key: FIELD_ENCRYPTION_KEYS
+        sync: false          # comma-separated 32-byte Fernet keys
+

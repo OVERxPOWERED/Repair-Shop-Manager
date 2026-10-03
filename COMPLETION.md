@@ -725,20 +725,29 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | `2a4f028` |
 
-- [ ] 1.5.1 Field encryption
-- [ ] 1.5.2 Models (`apps/jobs/models.py`)
-- [ ] 1.5.3 Services (`apps/jobs/services.py`)
-- [ ] 1.5.4 API
-- [ ] 1.5.5 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.5.1 Field encryption
+- [x] 1.5.2 Models (`apps/jobs/models.py`)
+- [x] 1.5.3 Services (`apps/jobs/services.py`)
+- [x] 1.5.4 API
+- [x] 1.5.5 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- pytest: 116 passed
+- ruff check .: All checks passed!
+- ruff format --check .: 132 files already formatted
+- makemigrations --check --dry-run: No changes detected
+Frontend:
+- pnpm lint: clean (ESLint passed, check-i18n passed with 374 keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 59 passed across 12 test files
 ```
-**Notes:** —
+**Notes:** Built jobs core app with field encryption, sequential job numbering, atomic creation, optimistic locking, and encrypted lock management. Backend: installed `cryptography>=42`; added `FIELD_ENCRYPTION_KEYS` support with dev/test fallback and prod validation; implemented `apps.core.crypto` (`_fernet`, `encrypt_str`, `decrypt_str`); built models `Job`, `JobCounter`, `JobAccessory`, `JobNote`, `JobStatusHistory` with GIN/B-tree indexes, constraints, and migrations; wired `JobCounter` initialization into `on_shop_created` and existing shop seeding; built `apps.jobs.services` (`allocate_job_no` using `select_for_update`, `create_job` supporting existing or nested customer/device creation, `update_job`, `reveal_lock` with audit logging); built serializers (`JobCreateSerializer` with PIN/Pattern/Password validation, `JobUpdateSerializer`, `JobSerializer` masking lock value and conditionally stripping `cost_paise` based on `money.see_cost_profit` permission); built `JobViewSet(ShopScopedViewSet)` with required `@idempotent()` creation, version checking, in-progress deletion protection, and action endpoints `/lock/` and `/notes/`. Added 8 pytest tests in `apps/jobs/tests/test_jobs.py` (concurrency numbering test with 10 threads, idempotency, lock encryption, permission visibility matrix, and customer mismatch check).
+
 
 ## 1.6 File storage and job photos
 

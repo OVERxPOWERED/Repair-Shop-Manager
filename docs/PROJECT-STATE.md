@@ -2,12 +2,19 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.5 (Jobs core API)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.6 (File storage and job photos)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Jobs Core API (Subphase 1.5):**
+  - Integrated `cryptography>=42` and implemented field encryption in `apps/core/crypto.py` (`_fernet`, `encrypt_str`, `decrypt_str`) with multi-key rotation and settings validation in `dev.py`, `test.py`, and `prod.py`.
+  - Created `apps/jobs` with `Job(ShopScopedModel)`, `JobCounter(models.Model)`, `JobAccessory(UUIDModel)`, `JobNote(ShopScopedModel)`, `JobStatusHistory(UUIDModel, TimeStampedModel)` with indexing, unique constraint `job_uniq_no_per_shop`, and admin registration.
+  - Automated `JobCounter` provisioning via `on_shop_created` hook and data migration `0002_seed_job_counters` for existing shops.
+  - Built core repair services in `apps/jobs/services.py`: `allocate_job_no` with row-level pessimistic locking (`select_for_update`), `create_job` with atomic customer/device/accessories/history/note handling and duplicate phone reuse, `update_job` with optimistic concurrency version verification and locked state check, and `reveal_lock` with audit logging.
+  - Built serializers (`JobCreateSerializer` with strict PIN/Pattern/Password rules, `JobUpdateSerializer`, `JobSerializer`, `JobNoteSerializer`) and `JobViewSet(ShopScopedViewSet)` enforcing `@idempotent()` creation, in-progress deletion rejection, and action endpoints `/lock/` and `/notes/`.
+  - Added 8 unit tests in `apps/jobs/tests/test_jobs.py` (concurrency test with 10 threads asserting sequential numbers 1..10, idempotency, lock encryption, role-based cost visibility, mismatch rejection, tenant isolation). Total backend suite: 116 pytest tests passing.
 - **Customers and Devices Screens (Subphase 1.4):**
   - Built customer management query hooks and mutations in `src/features/customers/api.ts` (`useCustomers`, `useCustomer`, `useCustomerByPhone`, `useCreateCustomer`, `useUpdateCustomer`, `useDeleteCustomer`).
   - Built device query hooks and mutations in `src/features/devices/api.ts` (`useDevices`, `useBrands`, `useCreateDevice`, `useUpdateDevice`).

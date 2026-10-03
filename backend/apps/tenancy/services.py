@@ -61,6 +61,9 @@ def seed_shop_catalogs(shop: Shop) -> None:
 def on_shop_created(shop: Shop) -> None:
     """Seeds per-shop defaults; extended in 1.1 and 1.5."""
     seed_shop_catalogs(shop)
+    from apps.jobs.models import JobCounter
+
+    JobCounter.objects.get_or_create(shop=shop, defaults={"last_job_no": 0})
 
 
 @transaction.atomic

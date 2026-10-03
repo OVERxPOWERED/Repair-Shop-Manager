@@ -56,3 +56,6 @@ CACHES = {
     }
 }
 CRON_SECRET = os.environ.get("CRON_SECRET", "")
+
+if not FIELD_ENCRYPTION_KEYS:  # noqa: F405
+    raise ImproperlyConfigured("Set FIELD_ENCRYPTION_KEYS to one or more comma-separated Fernet keys.")

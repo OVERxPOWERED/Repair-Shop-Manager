@@ -56,6 +56,7 @@ LOCAL_APPS = [
     "apps.audit.apps.AuditConfig",
     "apps.customers.apps.CustomersConfig",
     "apps.devices.apps.DevicesConfig",
+    "apps.jobs.apps.JobsConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -214,3 +215,5 @@ LOGGING = {
 }
 
 CRON_SECRET = os.environ.get("CRON_SECRET", "dev-cron-secret")
+
+FIELD_ENCRYPTION_KEYS = [k.strip() for k in os.environ.get("FIELD_ENCRYPTION_KEYS", "").split(",") if k.strip()]
