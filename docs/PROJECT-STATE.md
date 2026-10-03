@@ -2,12 +2,22 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.4 (Customers and devices screens)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.5 (Jobs core API)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Customers and Devices Screens (Subphase 1.4):**
+  - Built customer management query hooks and mutations in `src/features/customers/api.ts` (`useCustomers`, `useCustomer`, `useCustomerByPhone`, `useCreateCustomer`, `useUpdateCustomer`, `useDeleteCustomer`).
+  - Built device query hooks and mutations in `src/features/devices/api.ts` (`useDevices`, `useBrands`, `useCreateDevice`, `useUpdateDevice`).
+  - Created customer form schema with E.164 phone normalization in `src/features/customers/schema.ts` and unit tests in `schema.test.ts`.
+  - Built `CustomerFormSheet`: bottom sheet supporting create and edit, debounced phone lookup warning if number already belongs to another customer with direct link to their profile, and optimistic concurrency (409) conflict warning with reload action.
+  - Built `DeviceFormSheet`: bottom sheet supporting 5 device categories, dynamic shop brand dropdown with "Other (specify below)" fallback, multiple identifiers (IMEI 1, IMEI 2, Serial, MEID), live 15-digit Luhn algorithm feedback, and confirmation checkbox to override non-standard IMEIs.
+  - Built customers directory at `src/app/(app)/customers/page.tsx` with debounced search query, filter chips, monogram avatars, infinite pagination, and floating action button (`+`).
+  - Built customer detail view at `src/app/(app)/customers/detail/page.tsx` with customer info, quick call & WhatsApp action buttons (hidden when phone is masked), devices list with inline edit sheet, delete customer modal with soft-delete, and repair history placeholder.
+  - Added complete i18n translations across `customers` and `devices` namespaces in `en.json`, `hi.json`, and `hi-Latn.json` with 100% key parity (374 total keys across 3 locales).
+  - All 59 frontend vitest tests passing; static export built (20/20 pages); 108 backend tests passing.
 - **Devices and IMEI API (Subphase 1.3):**
   - Moved `DeviceCategory` choices to `apps.core.choices` for clean cross-app reusability without cyclical imports.
   - Created `apps/devices` with `Device(ShopScopedModel)` and `DeviceIdentifier(ShopScopedModel)` with GIN trigram index on identifier `value`, unique constraint `devid_uniq_type_per_device` (`device`, `type`), and registered in Django admin with tabular inlines.

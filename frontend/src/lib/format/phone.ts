@@ -18,3 +18,28 @@ export function formatPhone(phone: string): string {
 export function toWhatsAppDigits(phone: string): string {
   return phone.replace(/\D/g, "");
 }
+
+const E164 = /^\+[1-9]\d{7,14}$/;
+
+/**
+ * Normalizes an Indian or international phone number to E.164.
+ * '98765 43210' -> '+919876543210'.
+ * Throws an Error if the resulting string is not E.164.
+ */
+export function normalizePhone(value: string): string {
+  let cleaned = (value || "").replace(/[\s\-()]/g, "");
+  if (cleaned.startsWith("00")) {
+    cleaned = "+" + cleaned.slice(2);
+  }
+  if (!cleaned.startsWith("+")) {
+    if (cleaned.length === 11 && cleaned.startsWith("0")) {
+      cleaned = cleaned.slice(1);
+    }
+    cleaned = cleaned.length === 10 ? `+91${cleaned}` : `+${cleaned}`;
+  }
+  if (!E164.test(cleaned)) {
+    throw new Error("Enter a valid phone number, for example +919876543210.");
+  }
+  return cleaned;
+}
+

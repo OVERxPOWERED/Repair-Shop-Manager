@@ -58,7 +58,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.1](#11-postgres-search-and-per-shop-catalogs-brands-accessories) | Postgres search and per-shop catalogs (brands, accessories) | ✅ Done | 2026-10-03 |
 | 1 | [1.2](#12-customers-api) | Customers API | ✅ Done | 2026-10-03 |
 | 1 | [1.3](#13-devices-and-imei-api) | Devices and IMEI API | ✅ Done | 2026-10-03 |
-| 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | ⬜ Not started | — |
+| 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | 🟡 In progress | — |
 | 1 | [1.5](#15-jobs-core-api-job-sheet-numbering-lock-encryption) | Jobs core API (job sheet, numbering, lock encryption) | ⬜ Not started | — |
 | 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ⬜ Not started | — |
 | 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ⬜ Not started | — |
@@ -694,23 +694,32 @@ makemigrations --check --dry-run: No changes detected
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | `0cee3d9` |
 
-- [ ] 1.4.1 Customer + device query hooks
-- [ ] 1.4.2 Customers list (search, infinite scroll, FAB)
-- [ ] 1.4.3 CustomerFormSheet with duplicate-phone lookup and 409 handling
-- [ ] 1.4.4 Customer detail (devices, call/WhatsApp, history placeholder)
-- [ ] 1.4.5 DeviceFormSheet with brand picker and live IMEI validation
-- [ ] 1.4.6 i18n keys
-- [ ] 1.4.7 Vitest for schemas / IMEI field
+- [x] 1.4.1 Customer + device query hooks
+- [x] 1.4.2 Customers list (search, infinite scroll, FAB)
+- [x] 1.4.3 CustomerFormSheet with duplicate-phone lookup and 409 handling
+- [x] 1.4.4 Customer detail (devices, call/WhatsApp, history placeholder)
+- [x] 1.4.5 DeviceFormSheet with brand picker and live IMEI validation
+- [x] 1.4.6 i18n keys
+- [x] 1.4.7 Vitest for schemas / IMEI field
 - [ ] 1.4.8 🧑‍🔧 Checked at 360 px on a phone
-- [ ] Verify commands from ROADMAP passed
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Frontend:
+- pnpm lint: clean (ESLint passed, check-i18n passed with 374 keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 59 passed across 12 test files
+- pnpm build: next build static export generated (20/20 pages)
+Backend:
+- pytest: 108 passed
+- ruff check .: All checks passed!
+- ruff format --check .: 120 files already formatted
+- makemigrations --check --dry-run: No changes detected
 ```
-**Notes:** —
+**Notes:** Built Customer & Device UI and queries. `features/customers`: API hooks (`useCustomers`, `useCustomer`, `useCustomerByPhone`, `useCreateCustomer`, `useUpdateCustomer`, `useDeleteCustomer`), Zod validation schema with phone normalization, and `CustomerFormSheet` bottom sheet with debounced phone lookup to catch duplicates and 409 concurrency mismatch handling. `features/devices`: API hooks (`useDevices`, `useBrands`, `useCreateDevice`, `useUpdateDevice`), and `DeviceFormSheet` bottom sheet with category selector, dynamic brand picker with "Other..." option, and live 15-digit Luhn check with confirmation checkbox for non-standard IMEIs. `app/(app)/customers`: directory screen with instant search, filter chips, monogram avatars, pagination, and FAB. `app/(app)/customers/detail`: detail page with quick call and WhatsApp actions (hidden when phone is masked), devices list with inline edit, and delete confirmation dialog. Full i18n parity achieved across `en`, `hi`, and `hi-Latn` (374 keys).
 
 ## 1.5 Jobs core API (job sheet, numbering, lock encryption)
 
