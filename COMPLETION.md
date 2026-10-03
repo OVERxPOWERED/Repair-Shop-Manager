@@ -73,7 +73,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.16](#116-sharing-native-share-sheet-and-whatsapp) | Sharing (native share sheet and WhatsApp) | ✅ Done | 2026-10-03 |
 | 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ✅ Done | 2026-10-03 |
 | 1 | [1.18](#118-public-tracking-page) | Public tracking page | ✅ Done | 2026-10-03 |
-| 1 | [1.19](#119-messaging-templates-sms-adapter-message-log) | Messaging (templates, SMS adapter, message log) | ⬜ Not started | — |
+| 1 | [1.19](#119-messaging-templates-sms-adapter-message-log) | Messaging (templates, SMS adapter, message log) | ✅ Done | 2026-10-03 |
 | 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ⬜ Not started | — |
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ⬜ Not started | — |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ⬜ Not started | — |
@@ -1157,24 +1157,33 @@ Created `backend/apps/documents/`:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | `d99087a` |
 
-- [ ] 1.19.1 messaging app models
-- [ ] 1.19.2 Default templates migration (3 locales)
-- [ ] 1.19.3 Safe template renderer
-- [ ] 1.19.4 SMS provider adapter (TODO(verify) API)
-- [ ] 1.19.5 send_job_message service + logs
-- [ ] 1.19.6 auto_sms_events setting + hooks
-- [ ] 1.19.7 Endpoints (log, manual send, template overrides)
-- [ ] 1.19.8 Real OTP SMS + pilot OTP numbers removed
-- [ ] 1.19.9 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.19.1 messaging app models
+- [x] 1.19.2 Default templates migration (3 locales)
+- [x] 1.19.3 Safe template renderer
+- [x] 1.19.4 SMS provider adapter (TODO(verify) API)
+- [x] 1.19.5 send_job_message service + logs
+- [x] 1.19.6 auto_sms_events setting + hooks
+- [x] 1.19.7 Endpoints (log, manual send, template overrides)
+- [x] 1.19.8 Real OTP SMS + pilot OTP numbers removed
+- [x] 1.19.9 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- pytest: 306 passed (15/15 messaging tests passed)
+- ruff check .: All checks passed!
+- ruff format --check .: 184 files already formatted
+- makemigrations --check --dry-run: No changes detected
+
+Frontend:
+- pnpm lint: 0 errors
+- pnpm typecheck: 0 errors
+- pnpm test: 21 test files, 138 passed (100%)
 ```
-**Notes:** —
+**Notes:** Built `apps.messaging` with `MessageTemplate` (platform defaults where shop is null, shop overrides) and `MessageLog` (stores masked phone numbers only, e.g. `+91XXXXXX3210`). Seeded platform default templates across 3 locales (`en`, `hi`, `hi-Latn`) and 2 channels (`sms`, `whatsapp`) for keys `job_received`, `status_update`, `ready_for_pickup`, `delivered`, `invoice`, and `otp` with exact DLT matches (`# TODO(verify) matches DLT template <id>`). Built safe template renderer using `string.Formatter` with placeholder whitelist (`shop_name`, `job_no`, `device`, `status`, `amount`, `link`, `customer_name`, `otp`). Created MSG91 provider adapter with 10s timeout. Created `send_job_message` service supporting 4-tier template fallback (shop locale > platform locale > shop en > platform en), customer opt-out skipping, and transaction-safe dispatch (`transaction.on_commit`) preventing SMS delivery failures from breaking job transactions. Added `auto_sms_events` to `Shop` (`job_received`, `ready_for_pickup`, `delivered`) and wired hooks `on_job_created` and `on_job_status_changed`. Built endpoints `GET /api/v1/jobs/{id}/messages/`, `POST /api/v1/jobs/{id}/messages/send/`, and `GET/PATCH /api/v1/message-templates/` (strictly rejecting edits to SMS bodies under TRAI DLT regulations).
 
 ## 1.20 Trash, restore, permanent delete and exports
 

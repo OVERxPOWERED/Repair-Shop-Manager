@@ -2,12 +2,34 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.19 (Messaging: templates, SMS adapter, message log)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.20 (Trash, restore, permanent delete and exports)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Messaging: Templates, SMS Adapter, Message Log (Subphase 1.19):**
+  - Data model and migrations (`apps/messaging`):
+    - `MessageTemplate`: platform-wide defaults (`shop=None`) and per-shop overrides across channels (`sms`, `whatsapp`) and locales (`en`, `hi`, `hi-Latn`) with `dlt_template_id`, `wa_template_name`, and `is_active`.
+    - `MessageLog`: `ShopScopedModel` tracking every dispatched/skipped message, storing only masked phone numbers (`+91XXXXXX3210`), template key, channel, status (`queued`, `sent`, `delivered`, `failed`, `skipped`), provider message ID, error codes, and dispatch timestamp.
+    - Data migration (`0002_seed_platform_default_templates.py`): seeded platform default templates for keys `job_received`, `status_update`, `ready_for_pickup`, `delivered`, `invoice`, and `otp` across all 3 locales and 2 channels, exact matching DLT templates (`# TODO(verify) matches DLT template <id>`).
+  - Safe template renderer:
+    - Pure `string.Formatter` parser with strict placeholder whitelist (`shop_name`, `job_no`, `device`, `status`, `amount`, `link`, `customer_name`, `otp`). Replaces unknown or attribute-access injection attempts with empty string without crashing on malformed braces.
+  - SMS provider adapter:
+    - `Msg91SmsProvider` in `apps/messaging/providers/msg91.py` with 10s timeout, reading `SMS_API_KEY`, `SMS_SENDER_ID`, `SMS_DLT_OTP_TE_ID`, masking phone in all log statements.
+  - Dispatch and transaction safety:
+    - `send_job_message` service: respects customer opt-in flags (`sms_opt_in`, `whatsapp_opt_in`) and logs `skipped` when opted out or phone is missing. Resolves template with 4-tier fallback hierarchy (shop locale > platform locale > shop en > platform en). Dispatches network requests inside `transaction.on_commit` so provider failures update log status to `failed` and never break or rollback parent job transactions.
+  - Automated triggers & operational policies:
+    - Added `auto_sms_events = models.JSONField(default=list)` to `Shop` (`job_received`, `ready_for_pickup`, `delivered`) and wired hooks `on_job_created` and `on_job_status_changed` in `apps/jobs/services.py`.
+  - Endpoints and RBAC:
+    - `GET /api/v1/jobs/{id}/messages/`: lists message logs for a job (`jobs.view`, tenant-isolated).
+    - `POST /api/v1/jobs/{id}/messages/send/`: manual message dispatch (`jobs.edit`, audited).
+    - `GET /api/v1/message-templates/`: lists effective templates for the active shop (`shop.settings`).
+    - `PATCH /api/v1/message-templates/{id}/`: shop override for WhatsApp templates (`shop.settings`, audited). Strictly rejects edits to SMS template bodies with 400 validation error in compliance with TRAI DLT regulations.
+  - Test suite and verification:
+    - 15 comprehensive unit tests in `apps/messaging/tests/test_messaging.py` (100% pass) testing safe renderer, fallback hierarchy, opt-out skipping, log masking, failure tolerance, automated triggers, and RBAC endpoints.
+    - All 306 backend tests passing, `ruff check` and `ruff format` clean, dry-run makemigrations clean.
+    - All 138 frontend tests passing, 0 lint/typecheck errors.
 - **Public Tracking Page (Subphase 1.18):**
   - Lightweight, server-rendered public tracking service implemented outside `/api/v1/` under `/t/<token>/` and `/t/<token>/invoice.pdf`.
   - Rate limiting & Fast-reject security layer:
