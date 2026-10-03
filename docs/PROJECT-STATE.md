@@ -2,12 +2,23 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.11 (Line items and payments API)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.12 (Line items, payments and UPI QR screens)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Line Items and Payments API (Subphase 1.11):**
+  - Integer paise money helpers in `backend/apps/core/money.py`: `round_half_up_div`, `mul_qty`, `paise_to_rupees_str` with unit test suite in `apps/core/tests/test_money.py`.
+  - Line items model `JobLineItem` (`apps/jobs/models.py`) with migration `0004_joblineitem`, `quantity` (Decimal), `unit_price_paise`, `unit_cost_paise`, `discount_paise`, and `line_total_paise` property.
+  - Line items service and serializer: `recalculate_job_totals(job)` updating `total_paise` and `cost_paise`, `JobLineItemSerializer` with discount validation (cannot exceed gross) and permission-gated `unit_cost_paise` stripping without `money.see_cost_profit`.
+  - Added line item endpoints to `JobViewSet`: `GET /api/v1/jobs/{id}/line-items/`, `POST /api/v1/jobs/{id}/line-items/`, `PATCH /api/v1/jobs/{id}/line-items/{item_id}/`, `DELETE /api/v1/jobs/{id}/line-items/{item_id}/` with `can_edit_job` permissions, locked job checks, version matching (`If-Match`), and `job.line_items_changed` audit logs.
+  - Created new Django app `backend/apps/billing` registered in `LOCAL_APPS`. Built `Payment` model (`ShopScopedModel`) with direction (`in`/`out`), modes (`cash`, `upi`, `card`, `bank`), `job`, `customer`, `received_by`, `received_at`, `refunds_payment`, `idempotency_key`, and `notes`.
+  - Built payment service functions in `apps/billing/payments.py`: `job_paid_paise`, `job_balance_paise`, `record_payment` (with `select_for_update`, idempotency check, balance check), `refund_payment` (validates direction, prevents refunding a refund, prevents over-refund, writes `payment.refunded` audit), and `record_advance` (wired into `create_job` at intake).
+  - UPI deep-link helper: `apps/billing/upi.py` implementing `build_upi_uri` with NPCI spec compliance, URI encoding, parameter truncation, and paise formatting.
+  - Payment endpoints: `PaymentViewSet` (`ShopScopedMixin`, `ListModelMixin`, `RetrieveModelMixin`, `GenericViewSet`) with `GET /api/v1/payments/?date=YYYY-MM-DD&mode=...` and `@idempotent` `POST /api/v1/payments/{id}/refund/`; `JobViewSet.payments` action for `GET /api/v1/jobs/{id}/payments/` and `POST /api/v1/jobs/{id}/payments/`.
+  - Dashboard summary: updated `DashboardSummaryView` (`GET /api/v1/dashboard/summary/`) to include `collected_today_paise` net daily cashflow aggregation gated by `reports.view_basic`.
+  - Added unit test suites `apps/jobs/tests/test_line_items.py`, `apps/billing/tests/test_payments.py`, and `apps/billing/tests/test_upi.py`. All 251 backend pytest tests passing; full frontend checks and static export build passing.
 - **IMEI Barcode Scan, OCR Capture, and "Check IMEI" (Subphase 1.10):**
   - Native barcode scanner (`src/native/barcode.ts`) using `@capacitor-mlkit/barcode-scanning` with camera permissions, format filtering (Code128, Code39, EAN-13, DataMatrix, QR), cancel handling, and `NativeUnavailableError` web fallback.
   - Native OCR text recognition (`src/native/ocr.ts`) using `@capacitor-mlkit/text-recognition` with native image path extraction and web fallback. Updated `camera.ts` to attach native file path to camera Blobs.

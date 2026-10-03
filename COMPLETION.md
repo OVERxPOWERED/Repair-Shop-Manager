@@ -894,20 +894,31 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | pending |
 
-- [ ] 1.11.1 Money helpers (`apps/core/money.py`)
-- [ ] 1.11.2 Line items (`apps/jobs/models.py`)
-- [ ] 1.11.3 Payments (`apps/billing`)
-- [ ] 1.11.4 UPI helper (`apps/billing/upi.py`)
-- [ ] 1.11.5 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.11.1 Money helpers (`apps/core/money.py`)
+- [x] 1.11.2 Line items (`apps/jobs/models.py`)
+- [x] 1.11.3 Payments (`apps/billing`)
+- [x] 1.11.4 UPI helper (`apps/billing/upi.py`)
+- [x] 1.11.5 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- .venv/bin/ruff format --check .: 151 files already formatted
+- .venv/bin/ruff check .: All checks passed!
+- .venv/bin/python manage.py makemigrations --check --dry-run: No changes detected
+- .venv/bin/pytest -q: 251 passed in 10.97s (17 new tests: test_money, test_line_items, test_payments, test_upi)
+
+Frontend:
+- pnpm run i18n:check: i18n OK: 662 keys in 3 locales (100% key parity across en, hi, hi-Latn)
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: 0 errors
+- pnpm test: 100/100 tests passed across 16 test files
+- pnpm build: static export generated 22/22 static pages cleanly
 ```
-**Notes:** —
+**Notes:** Built integer paise money helpers and comprehensive Line Items + Payments APIs. Money helpers in `apps/core/money.py` (`round_half_up_div`, `mul_qty`, `paise_to_rupees_str` with test coverage in `test_money.py`). Line items in `JobLineItem` (`apps/jobs/models.py` with migration `0004_joblineitem`), `recalculate_job_totals` service updating job `total_paise` and `cost_paise`, serializer stripping `unit_cost_paise` without `money.see_cost_profit`, and `JobViewSet` collection / detail endpoints with `can_edit_job`, `is_locked`, version checking (`If-Match`), and audit logs. Created new `apps/billing` Django app with `Payment` model (IN/OUT direction, cash/upi/card/bank modes, shop/job/customer FKs, idempotency key, audit logging). Built payment operations in `apps/billing/payments.py` (`job_paid_paise`, `job_balance_paise`, `record_payment`, `refund_payment`, `record_advance`), `build_upi_uri` in `apps/billing/upi.py`, `PaymentViewSet` (`ShopScopedMixin`, `mixins.ListModelMixin`, `mixins.RetrieveModelMixin`, `viewsets.GenericViewSet`) with date/mode filtering and `@idempotent` refund action, and `JobViewSet.payments` for GET list and POST payment recording. Updated `DashboardSummaryView` with `collected_today_paise` net daily cashflow aggregation gated by `reports.view_basic`. Tested and verified all permission boundaries (Engineer blocked from payments; Front Desk permitted to record; Manager/Owner permitted to refund) and tenant isolation across shops.
 
 ## 1.12 Line items, payments and UPI QR screens
 

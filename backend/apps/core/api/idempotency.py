@@ -44,6 +44,7 @@ def idempotent(required: bool = True):
                 raise DomainError(
                     "Idempotency-Key must be a UUID.", code="idempotency.key_invalid", status=400
                 ) from None
+            request.idempotency_key = key
 
             req_hash = _request_hash(request)
             try:

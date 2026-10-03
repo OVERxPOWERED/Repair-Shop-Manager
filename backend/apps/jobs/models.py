@@ -1,9 +1,11 @@
 import secrets
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
 
 from apps.core.models import ShopScopedModel, TimeStampedModel, UUIDModel
+from apps.core.money import mul_qty
 
 
 def new_tracking_token() -> str:
@@ -160,3 +162,37 @@ class JobPhoto(ShopScopedModel):
 
     def __str__(self):
         return f"Photo {self.kind} on #{self.job.job_no} ({self.file_key})"
+
+
+class JobLineItem(ShopScopedModel):
+    class Kind(models.TextChoices):
+        PART = "part"
+        LABOUR = "labour"
+        OTHER = "other"
+
+    job = models.ForeignKey(Job, on_delete=models.PROTECT, related_name="line_items")
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    description = models.CharField(max_length=200)
+    item_id = models.UUIDField(null=True, blank=True)  # becomes an FK to inventory.Item in 2.3
+    quantity = models.DecimalField(max_digits=10, decimal_places=3, default=Decimal("1"))
+    unit_cost_paise = models.BigIntegerField(default=0)
+    unit_price_paise = models.BigIntegerField(default=0)
+    discount_paise = models.BigIntegerField(default=0)
+    tax_rate_bp = models.PositiveIntegerField(default=0)  # basis points: 1800 = 18 %
+    hsn_sac = models.CharField(max_length=8, blank=True, default="")
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "created_at"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(quantity__gt=0), name="jli_qty_positive"),
+            models.CheckConstraint(condition=models.Q(unit_price_paise__gte=0), name="jli_price_nonneg"),
+            models.CheckConstraint(condition=models.Q(discount_paise__gte=0), name="jli_discount_nonneg"),
+        ]
+
+    @property
+    def line_total_paise(self) -> int:
+        return mul_qty(self.unit_price_paise, self.quantity) - self.discount_paise
+
+    def __str__(self):
+        return f"{self.kind}: {self.description} ({self.quantity} x {self.unit_price_paise})"

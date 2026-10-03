@@ -10,6 +10,7 @@ from apps.audit.services import record_audit
 from apps.core.api.errors import ConflictError, DomainError
 from apps.core.crypto import decrypt_str, encrypt_str
 from apps.core.images import normalise_photo
+from apps.core.money import mul_qty
 from apps.core.phone import normalize_phone
 from apps.core.time import today_ist
 from apps.customers.models import Customer
@@ -33,6 +34,21 @@ def allocate_job_no(shop) -> int:
     counter.last_job_no += 1
     counter.save(update_fields=["last_job_no"])
     return counter.last_job_no
+
+
+def recalculate_job_totals(job: Job) -> Job:
+    """
+    Recalculates cached total_paise and cost_paise on Job from non-deleted line items.
+    total_paise = Σ line_total_paise
+    cost_paise = Σ mul_qty(unit_cost_paise, quantity)
+    """
+    items = job.line_items.filter(deleted_at__isnull=True)
+    total_paise = sum(item.line_total_paise for item in items)
+    cost_paise = sum(mul_qty(item.unit_cost_paise, item.quantity) for item in items)
+    job.total_paise = total_paise
+    job.cost_paise = cost_paise
+    job.save(update_fields=["total_paise", "cost_paise", "updated_at", "version"])
+    return job
 
 
 def on_job_created(job: Job) -> None:
@@ -216,7 +232,24 @@ def create_job(*, shop, actor, membership, data: dict, request=None) -> Job:
         },
     )
 
-    # 11. Hook
+    # 11. Optional advance payment
+    advance_paise = data.get("advance_paise", 0)
+    if advance_paise and advance_paise > 0:
+        from apps.billing.payments import record_advance
+
+        advance_mode = data.get("advance_mode") or "cash"
+        advance_ref = data.get("advance_reference") or ""
+        record_advance(
+            shop=shop,
+            actor=actor,
+            job=job,
+            amount_paise=advance_paise,
+            mode=advance_mode,
+            reference=advance_ref,
+            request=request,
+        )
+
+    # 12. Hook
     on_job_created(job)
 
     return job

@@ -1,6 +1,6 @@
 import datetime
 
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
@@ -14,12 +14,13 @@ from apps.core.api.errors import ConflictError, DomainError, NotFoundError
 from apps.core.api.idempotency import idempotent
 from apps.core.time import IST, today_ist
 from apps.jobs.filters import JobFilter
-from apps.jobs.models import Job, JobNote, JobPhoto, JobStatus
+from apps.jobs.models import Job, JobLineItem, JobNote, JobPhoto, JobStatus
 from apps.jobs.serializers import (
     DashboardSummarySerializer,
     JobAssignSerializer,
     JobCountsSerializer,
     JobCreateSerializer,
+    JobLineItemSerializer,
     JobNoteSerializer,
     JobPhotoSerializer,
     JobPhotoUploadSerializer,
@@ -32,9 +33,11 @@ from apps.jobs.serializers import (
 from apps.jobs.services import (
     add_job_photo,
     assign_job,
+    can_edit_job,
     change_status,
     create_job,
     delete_job_photo,
+    recalculate_job_totals,
     reopen_job,
     reveal_lock,
     update_job,
@@ -70,6 +73,11 @@ class JobViewSet(ShopScopedViewSet):
         "assign": "jobs.assign",
         "history": "jobs.view",
         "counts": "jobs.view",
+        "line_items": "jobs.view",
+        "add_line_item": "jobs.edit",
+        "line_item_detail": "jobs.edit",
+        "payments": "payments.view",
+        "record_payment": "payments.record",
     }
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
@@ -91,6 +99,10 @@ class JobViewSet(ShopScopedViewSet):
             return self.permission_map.get("add_note")
         if self.action == "photos" and self.request.method.lower() == "post":
             return self.permission_map.get("add_photo")
+        if self.action == "line_items" and self.request.method.lower() == "post":
+            return self.permission_map.get("add_line_item")
+        if self.action == "payments" and self.request.method.lower() == "post":
+            return self.permission_map.get("record_payment")
         return super().get_required_permission()
 
     def get_queryset(self):
@@ -101,6 +113,40 @@ class JobViewSet(ShopScopedViewSet):
         m = getattr(self.request, "membership", None)
         if m and not (m.has_perm("jobs.view_all") or not m.shop.engineers_see_assigned_only):
             qs = qs.filter(assigned_to=m)
+
+        from django.db.models import IntegerField, OuterRef, Subquery, Sum
+        from django.db.models.functions import Coalesce
+
+        from apps.billing.models import Payment
+
+        in_sub = (
+            Payment.objects.filter(
+                shop=self.request.shop,
+                job=OuterRef("pk"),
+                direction=Payment.Direction.IN,
+                deleted_at__isnull=True,
+            )
+            .values("job")
+            .annotate(total=Sum("amount_paise"))
+            .values("total")
+        )
+
+        out_sub = (
+            Payment.objects.filter(
+                shop=self.request.shop,
+                job=OuterRef("pk"),
+                direction=Payment.Direction.OUT,
+                deleted_at__isnull=True,
+            )
+            .values("job")
+            .annotate(total=Sum("amount_paise"))
+            .values("total")
+        )
+
+        qs = qs.annotate(
+            annotated_paid_paise=Coalesce(Subquery(in_sub, output_field=IntegerField()), 0)
+            - Coalesce(Subquery(out_sub, output_field=IntegerField()), 0)
+        )
 
         return qs.select_related(
             "customer", "device", "device__brand", "assigned_to", "assigned_to__user"
@@ -303,6 +349,144 @@ class JobViewSet(ShopScopedViewSet):
         delete_job_photo(photo=photo, actor=request.user, request=request)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=["get", "post"], url_path="line-items")
+    def line_items(self, request, pk=None):
+        job = self.get_object()
+        if request.method.lower() == "get":
+            items = job.line_items.filter(deleted_at__isnull=True).order_by("position", "created_at")
+            return Response(JobLineItemSerializer(items, many=True, context={"request": request}).data)
+
+        # POST: add line item
+        if not can_edit_job(request.membership, job):
+            raise DomainError("You do not have permission to edit this job.", code="permission.denied", status=403)
+        if job.is_locked:
+            raise ConflictError("Cannot modify line items on a locked job.", code="job.locked")
+        if hasattr(job, "invoices") and job.invoices.filter(status="issued", deleted_at__isnull=True).exists():
+            raise ConflictError("Cannot modify line items on an invoiced job.", code="job.invoiced")
+
+        serializer = JobLineItemSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        line_item = serializer.save(shop=request.shop, job=job)
+        recalculate_job_totals(job)
+        record_audit(
+            action="job.line_items_changed",
+            entity=job,
+            actor=request.user,
+            shop=request.shop,
+            request=request,
+            after={
+                "added_item_id": str(line_item.id),
+                "total_paise": job.total_paise,
+                "cost_paise": job.cost_paise,
+            },
+        )
+        data = JobLineItemSerializer(line_item, context={"request": request}).data
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["patch", "delete"], url_path=r"line-items/(?P<item_id>[0-9a-fA-F-]+)")
+    def line_item_detail(self, request, pk=None, item_id=None):
+        job = self.get_object()
+        if not can_edit_job(request.membership, job):
+            raise DomainError("You do not have permission to edit this job.", code="permission.denied", status=403)
+        if job.is_locked:
+            raise ConflictError("Cannot modify line items on a locked job.", code="job.locked")
+        if hasattr(job, "invoices") and job.invoices.filter(status="issued", deleted_at__isnull=True).exists():
+            raise ConflictError("Cannot modify line items on an invoiced job.", code="job.invoiced")
+
+        try:
+            item = job.line_items.get(id=item_id, deleted_at__isnull=True)
+        except (JobLineItem.DoesNotExist, ValueError):
+            raise NotFoundError("Line item not found.", code="line_item.not_found") from None
+
+        if request.method.lower() == "delete":
+            item.soft_delete()
+            recalculate_job_totals(job)
+            record_audit(
+                action="job.line_items_changed",
+                entity=job,
+                actor=request.user,
+                shop=request.shop,
+                request=request,
+                after={
+                    "deleted_item_id": str(item.id),
+                    "total_paise": job.total_paise,
+                    "cost_paise": job.cost_paise,
+                },
+            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # PATCH
+        if_match = request.headers.get("if-match") or request.META.get("HTTP_IF_MATCH")
+        if if_match and int(if_match) != item.version:
+            raise ConflictError(
+                "Record version changed concurrently; reload and try again.",
+                code="concurrency.version_mismatch",
+            )
+
+        serializer = JobLineItemSerializer(item, data=request.data, partial=True, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        updated_item = serializer.save(version=item.version + 1)
+        recalculate_job_totals(job)
+        record_audit(
+            action="job.line_items_changed",
+            entity=job,
+            actor=request.user,
+            shop=request.shop,
+            request=request,
+            after={
+                "updated_item_id": str(updated_item.id),
+                "total_paise": job.total_paise,
+                "cost_paise": job.cost_paise,
+            },
+        )
+        return Response(JobLineItemSerializer(updated_item, context={"request": request}).data)
+
+    @action(detail=True, methods=["get", "post"])
+    @idempotent(required=False)
+    def payments(self, request, pk=None):
+        job = self.get_object()
+        if request.method.lower() == "get":
+            from apps.billing.payments import job_balance_paise, job_paid_paise
+            from apps.billing.serializers import PaymentSerializer
+
+            payments_qs = (
+                job.payments.filter(deleted_at__isnull=True)
+                .select_related("customer", "received_by")
+                .order_by("-received_at")
+            )
+            return Response(
+                {
+                    "items": PaymentSerializer(payments_qs, many=True, context={"request": request}).data,
+                    "paid_paise": job_paid_paise(job),
+                    "balance_paise": job_balance_paise(job),
+                }
+            )
+
+        # POST: record payment
+        if not (request.membership and request.membership.has_perm("payments.record")):
+            raise DomainError("You do not have permission to record payments.", code="permission.denied", status=403)
+
+        import uuid
+
+        from apps.billing.payments import record_payment
+        from apps.billing.serializers import PaymentCreateSerializer, PaymentSerializer
+
+        serializer = PaymentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        idempotency_key = getattr(request, "idempotency_key", None) or uuid.uuid4()
+        payment = record_payment(
+            shop=request.shop,
+            actor=request.user,
+            job=job,
+            mode=serializer.validated_data["mode"],
+            amount_paise=serializer.validated_data["amount_paise"],
+            reference=serializer.validated_data.get("reference", ""),
+            notes=serializer.validated_data.get("notes", ""),
+            idempotency_key=idempotency_key,
+            request=request,
+        )
+        return Response(PaymentSerializer(payment, context={"request": request}).data, status=status.HTTP_201_CREATED)
+
 
 class DashboardSummaryView(APIView):
     permission_classes = [IsShopMember]
@@ -354,4 +538,20 @@ class DashboardSummaryView(APIView):
             repaired=Count("id", filter=Q(status__in=GROUPS["repaired"])),
             delivered_today=Count("id", filter=Q(delivered_at__range=(start_utc, end_utc))),
         )
+
+        if membership.has_perm("reports.view_basic"):
+            from apps.billing.models import Payment
+
+            pay_agg = Payment.objects.filter(
+                shop=request.shop,
+                received_at__range=(start_utc, end_utc),
+                deleted_at__isnull=True,
+            ).aggregate(
+                inn=Sum("amount_paise", filter=Q(direction=Payment.Direction.IN)),
+                out=Sum("amount_paise", filter=Q(direction=Payment.Direction.OUT)),
+            )
+            summary["collected_today_paise"] = (pay_agg["inn"] or 0) - (pay_agg["out"] or 0)
+        else:
+            summary["collected_today_paise"] = None
+
         return Response(summary)

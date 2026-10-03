@@ -363,6 +363,7 @@ def test_counts_and_dashboard_summary_with_ist_boundaries(world, client_for):
         "in_progress": 2,
         "repaired": 1,
         "delivered_today": 1,
+        "collected_today_paise": 0,
     }
 
 

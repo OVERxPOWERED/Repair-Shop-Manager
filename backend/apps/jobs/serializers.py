@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from django.core.files.storage import default_storage
@@ -6,12 +7,20 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from apps.core.api.fields import ShopScopedPKField
+from apps.core.money import mul_qty
 from apps.customers.models import Customer
 from apps.customers.visibility import can_see_customer_phone, present_phone
 from apps.devices.models import Device
 from apps.devices.serializers import DeviceIdentifierSerializer
 from apps.jobs.constants import CONDITION_TAGS
-from apps.jobs.models import Job, JobNote, JobPhoto, JobStatus, JobStatusHistory
+from apps.jobs.models import (
+    Job,
+    JobLineItem,
+    JobNote,
+    JobPhoto,
+    JobStatus,
+    JobStatusHistory,
+)
 from apps.tenancy.models import Membership
 
 
@@ -95,6 +104,9 @@ class JobCreateSerializer(serializers.Serializer):
         allow_null=True,
     )
     internal_note = serializers.CharField(required=False, allow_blank=True)
+    advance_paise = serializers.IntegerField(min_value=0, required=False, default=0)
+    advance_mode = serializers.ChoiceField(choices=["cash", "upi", "card", "bank"], required=False, default="cash")
+    advance_reference = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
 
     def validate(self, attrs):
         # 1. Exactly one of customer_id / new_customer
@@ -204,12 +216,58 @@ class JobUpdateSerializer(serializers.Serializer):
         return attrs
 
 
+class JobLineItemSerializer(serializers.ModelSerializer):
+    line_total_paise = serializers.ReadOnlyField()
+
+    class Meta:
+        model = JobLineItem
+        fields = (
+            "id",
+            "job_id",
+            "kind",
+            "description",
+            "item_id",
+            "quantity",
+            "unit_cost_paise",
+            "unit_price_paise",
+            "discount_paise",
+            "tax_rate_bp",
+            "hsn_sac",
+            "position",
+            "line_total_paise",
+            "version",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "job_id", "line_total_paise", "version", "created_at", "updated_at")
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        membership = getattr(request, "membership", None) if request else None
+        if not membership or not membership.has_perm("money.see_cost_profit"):
+            data.pop("unit_cost_paise", None)
+        return data
+
+    def validate(self, attrs):
+        quantity = attrs.get("quantity", getattr(self.instance, "quantity", Decimal("1")))
+        unit_price = attrs.get("unit_price_paise", getattr(self.instance, "unit_price_paise", 0))
+        discount = attrs.get("discount_paise", getattr(self.instance, "discount_paise", 0))
+
+        gross = mul_qty(unit_price, quantity)
+        if discount > gross:
+            raise serializers.ValidationError({"discount_paise": ["Discount cannot exceed line gross amount."]})
+        return attrs
+
+
 class JobSerializer(serializers.ModelSerializer):
     has_lock = serializers.SerializerMethodField()
     customer = JobCustomerSerializer(read_only=True)
     device = JobDeviceSerializer(read_only=True)
     assigned_to = JobAssignedToSerializer(read_only=True)
     accessories = serializers.SerializerMethodField()
+    paid_paise = serializers.SerializerMethodField()
+    balance_paise = serializers.SerializerMethodField()
 
     class Meta:
         model = Job
@@ -240,6 +298,8 @@ class JobSerializer(serializers.ModelSerializer):
             "cancel_reason",
             "total_paise",
             "cost_paise",
+            "paid_paise",
+            "balance_paise",
             "accessories",
             "version",
             "created_at",
@@ -252,6 +312,18 @@ class JobSerializer(serializers.ModelSerializer):
 
     def get_accessories(self, obj) -> list[str]:
         return [acc.name for acc in obj.accessories.all()]
+
+    def get_paid_paise(self, obj) -> int:
+        if hasattr(obj, "annotated_paid_paise"):
+            return obj.annotated_paid_paise
+        from apps.billing.payments import job_paid_paise
+
+        return job_paid_paise(obj)
+
+    def get_balance_paise(self, obj) -> int:
+        paid = self.get_paid_paise(obj)
+        billable = obj.total_paise if obj.total_paise > 0 else obj.estimate_paise
+        return billable - paid
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -360,3 +432,4 @@ class DashboardSummarySerializer(serializers.Serializer):
     in_progress = serializers.IntegerField()
     repaired = serializers.IntegerField()
     delivered_today = serializers.IntegerField()
+    collected_today_paise = serializers.IntegerField(required=False, allow_null=True)
