@@ -36,4 +36,12 @@ Add a row in the same commit that introduces a code (ROADMAP Recipe R8).
 | staff.role_invalid | 400 | Unknown role |
 | staff.role_not_assignable | 422 | The Owner role cannot be assigned |
 | staff.invalid_status_change | 409 | This status change is not allowed |
+| job.photo_limit | 422 | Maximum 20 photos per job reached |
+| upload.too_large | 400 | Photo is too large (max 8 MB) |
+| upload.invalid_image | 400 | This file is not a supported image |
+| upload.missing_file | 400 | No file was uploaded |
+| photo.not_found | 404 | Photo not found or has been deleted |
+| job.device_customer_mismatch | 400 | Device belongs to another customer |
+| job.locked | 409 | Repair job is locked and cannot be edited |
+| job.cannot_delete_in_progress | 409 | Cannot delete a repair job that is currently in progress |
 | server.error | 500 | Unexpected; quote `request_id` to support |

@@ -135,3 +135,28 @@ class JobStatusHistory(UUIDModel, TimeStampedModel):
 
     def __str__(self):
         return f"#{self.job.job_no}: {self.from_status} -> {self.to_status}"
+
+
+class JobPhoto(ShopScopedModel):
+    class Kind(models.TextChoices):
+        BEFORE = "before"
+        AFTER = "after"
+        DAMAGE = "damage"
+        OTHER = "other"
+
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="photos")
+    file_key = models.CharField(max_length=255)
+    kind = models.CharField(max_length=12, choices=Kind.choices, default=Kind.BEFORE)
+    caption = models.CharField(max_length=255, blank=True, default="")
+    size_bytes = models.PositiveIntegerField()
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    taken_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["shop", "job"], name="job_photo_shop_job_idx"),
+        ]
+
+    def __str__(self):
+        return f"Photo {self.kind} on #{self.job.job_no} ({self.file_key})"

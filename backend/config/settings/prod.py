@@ -29,6 +29,24 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
+MEDIA_BUCKET = os.environ.get("MEDIA_BUCKET")
+if MEDIA_BUCKET:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": MEDIA_BUCKET,
+            "endpoint_url": os.environ.get("MEDIA_S3_ENDPOINT"),
+            "access_key": os.environ.get("MEDIA_S3_KEY_ID"),
+            "secret_key": os.environ.get("MEDIA_S3_SECRET"),
+            "region_name": "auto",
+            "default_acl": "private",
+            "querystring_auth": True,
+            "querystring_expire": 300,  # signed URLs valid for 5 minutes
+            "file_overwrite": False,
+        },
+    }
+
+
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(

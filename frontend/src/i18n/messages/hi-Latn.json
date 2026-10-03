@@ -94,6 +94,20 @@
       "phone_mismatch": "Yeh invite kisi dusre phone number par bheja gaya tha.",
       "membership_suspended": "Is shop ke liye aapki membership filhaal suspended hai.",
       "already_accepted": "Yeh invite pehle hi accept ho chuka hai."
+    },
+    "upload": {
+      "too_large": "Photo bahut badi hai (max 8 MB).",
+      "invalid_image": "Ye file supported image nahi hai.",
+      "missing_file": "Koi photo upload nahi ki gayi."
+    },
+    "photo": {
+      "not_found": "Photo nahi mili ya delete ho chuki hai."
+    },
+    "job": {
+      "photo_limit": "Per job maximum 20 photos allowed hain.",
+      "device_customer_mismatch": "Ye device kisi doosre customer ka hai.",
+      "locked": "Ye repair job locked hai aur edit nahi ho sakti.",
+      "cannot_delete_in_progress": "In-progress repair job delete nahi ki ja sakti."
     }
   },
   "auth": {
@@ -454,5 +468,34 @@
     "deviceUpdatedSuccess": "Device successfully update ho gaya",
     "imeiCheckDigitError": "IMEI check-digit galat hai. Please verify karein ya confirmation box check karein.",
     "imeiFormatError": "Galat identifier format"
+  },
+  "jobs": {
+    "photos": {
+      "title": "Job Photos",
+      "addPhoto": "Photo Add Karein",
+      "takePhoto": "Photo Kheenche",
+      "choosePhoto": "Photo Chunein",
+      "uploading": "Upload ho raha hai...",
+      "deleteConfirm": "Photo delete karein?",
+      "deletePrompt": "Kya aap sure hain ki ye photo delete karni hai?",
+      "deleteBtn": "Delete Karein",
+      "cancelBtn": "Cancel",
+      "limitReached": "Maximum 20 photos limit reach ho gayi",
+      "noPhotos": "Koi photo attach nahi hai",
+      "noPhotosDesc": "Device condition, damage ya repair progress ki photo capture karein.",
+      "kinds": {
+        "before": "Before",
+        "after": "After",
+        "damage": "Damage",
+        "other": "Other"
+      },
+      "kindLabel": "Photo Kind",
+      "captionLabel": "Caption (optional)",
+      "captionPlaceholder": "e.g. Screen scratch",
+      "viewPhoto": "Photo Dekhein",
+      "close": "Band Karein",
+      "prev": "Pichhla",
+      "next": "Agla"
+    }
   }
 }

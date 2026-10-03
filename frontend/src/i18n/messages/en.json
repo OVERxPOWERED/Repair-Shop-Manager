@@ -94,6 +94,20 @@
       "phone_mismatch": "This invite was sent to a different phone number.",
       "membership_suspended": "Your membership for this shop is currently suspended.",
       "already_accepted": "This invite has already been accepted."
+    },
+    "upload": {
+      "too_large": "Photo is too large (max 8 MB).",
+      "invalid_image": "This file is not a supported image.",
+      "missing_file": "No file was uploaded."
+    },
+    "photo": {
+      "not_found": "Photo not found or has been deleted."
+    },
+    "job": {
+      "photo_limit": "Maximum 20 photos per job reached.",
+      "device_customer_mismatch": "This device belongs to a different customer.",
+      "locked": "This repair job is locked and cannot be edited.",
+      "cannot_delete_in_progress": "Cannot delete a repair job that is currently in progress."
     }
   },
   "auth": {
@@ -454,5 +468,34 @@
     "deviceUpdatedSuccess": "Device updated successfully",
     "imeiCheckDigitError": "IMEI check-digit is invalid. Please verify or check the confirmation box.",
     "imeiFormatError": "Invalid identifier format"
+  },
+  "jobs": {
+    "photos": {
+      "title": "Job Photos",
+      "addPhoto": "Add Photo",
+      "takePhoto": "Take Photo",
+      "choosePhoto": "Choose Photo",
+      "uploading": "Uploading...",
+      "deleteConfirm": "Delete photo?",
+      "deletePrompt": "Are you sure you want to delete this photo?",
+      "deleteBtn": "Delete",
+      "cancelBtn": "Cancel",
+      "limitReached": "Maximum 20 photos reached",
+      "noPhotos": "No photos attached",
+      "noPhotosDesc": "Capture photos of device condition, damage, or repairs.",
+      "kinds": {
+        "before": "Before",
+        "after": "After",
+        "damage": "Damage",
+        "other": "Other"
+      },
+      "kindLabel": "Photo Kind",
+      "captionLabel": "Caption (optional)",
+      "captionPlaceholder": "e.g. Scratched display glass",
+      "viewPhoto": "View Photo",
+      "close": "Close",
+      "prev": "Previous",
+      "next": "Next"
+    }
   }
 }

@@ -108,7 +108,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
 # REST Framework Configuration
 REST_FRAMEWORK = {

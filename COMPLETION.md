@@ -58,9 +58,9 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.1](#11-postgres-search-and-per-shop-catalogs-brands-accessories) | Postgres search and per-shop catalogs (brands, accessories) | ✅ Done | 2026-10-03 |
 | 1 | [1.2](#12-customers-api) | Customers API | ✅ Done | 2026-10-03 |
 | 1 | [1.3](#13-devices-and-imei-api) | Devices and IMEI API | ✅ Done | 2026-10-03 |
-| 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | 🟡 In progress | — |
-| 1 | [1.5](#15-jobs-core-api-job-sheet-numbering-lock-encryption) | Jobs core API (job sheet, numbering, lock encryption) | ⬜ Not started | — |
-| 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ⬜ Not started | — |
+| 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | ✅ Done | 2026-10-03 |
+| 1 | [1.5](#15-jobs-core-api-job-sheet-numbering-lock-encryption) | Jobs core API (job sheet, numbering, lock encryption) | ✅ Done | 2026-10-03 |
+| 1 | [1.6](#16-file-storage-and-job-photos) | File storage and job photos | ✅ Done | 2026-10-03 |
 | 1 | [1.7](#17-job-intake-wizard-8-steps) | Job intake wizard (8 steps) | ⬜ Not started | — |
 | 1 | [1.8](#18-status-workflow-assignment-visibility-and-dashboard-api) | Status workflow, assignment, visibility and dashboard API | ⬜ Not started | — |
 | 1 | [1.9](#19-home-dashboard-jobs-list-and-job-detail-screens) | Home dashboard, Jobs list and Job detail screens | ⬜ Not started | — |
@@ -753,20 +753,29 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | `528677e` |
 
-- [ ] 1.6.1 Storage
-- [ ] 1.6.2 Model and image processing
-- [ ] 1.6.3 Endpoints
-- [ ] 1.6.4 Tests
-- [ ] 1.6.5 Frontend
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.6.1 Storage
+- [x] 1.6.2 Model and image processing
+- [x] 1.6.3 Endpoints
+- [x] 1.6.4 Tests
+- [x] 1.6.5 Frontend
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- pytest: 123 passed in 5.44s (15 in apps/jobs)
+- ruff check .: All checks passed!
+- ruff format --check .: 134 files already formatted
+- makemigrations --check --dry-run: No changes detected
+Frontend:
+- pnpm lint: clean (ESLint passed, check-i18n passed with 405 keys across 3 locales)
+- pnpm typecheck: tsc --noEmit passed (0 errors)
+- pnpm test: vitest 66 passed across 13 test files
+- pnpm build: next build static export generated (20/20 pages)
 ```
-**Notes:** —
+**Notes:** Implemented media storage, image normalization, photo endpoints, camera native service, and compression. Backend: added `django-storages[s3]>=1.14` and `Pillow>=10.4`; configured `FileSystemStorage` under `MEDIA_ROOT` in dev/test and private S3/R2 storage in prod with 5-minute signed URLs; built `apps/core/images.py` with `normalise_photo` stripping EXIF/GPS metadata, transposing orientation, resizing to max 1600px, and re-encoding to JPEG; created `JobPhoto` model (`ShopScopedModel`) with migration `0003_jobphoto`; built `add_job_photo` service enforcing 20 photos limit per job; added photo endpoints to `JobViewSet` (`POST /jobs/{id}/photos/`, `GET /jobs/{id}/photos/`, `DELETE /jobs/{id}/photos/{photo_id}/`) with `@idempotent(required=False)`; added 7 pytest tests in `test_photos.py` (123 total backend tests passing). Frontend: created `src/native/camera.ts` wrapping `@capacitor/camera` with file input fallback; created `src/lib/images/compress.ts` with canvas compression and 7 vitest tests; built `PhotoStrip` component with thumbnail strip, full-screen dialog, and delete with permission check; added 31 photo i18n keys across all 3 locales (405 keys total); verified static export (20/20 pages).
 
 ## 1.7 Job intake wizard (8 steps)
 

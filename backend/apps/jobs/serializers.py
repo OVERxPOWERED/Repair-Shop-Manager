@@ -1,6 +1,7 @@
 import re
 from zoneinfo import ZoneInfo
 
+from django.core.files.storage import default_storage
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -10,7 +11,7 @@ from apps.customers.visibility import can_see_customer_phone, present_phone
 from apps.devices.models import Device
 from apps.devices.serializers import DeviceIdentifierSerializer
 from apps.jobs.constants import CONDITION_TAGS
-from apps.jobs.models import Job, JobNote
+from apps.jobs.models import Job, JobNote, JobPhoto
 from apps.tenancy.models import Membership
 
 
@@ -272,3 +273,39 @@ class JobNoteSerializer(serializers.ModelSerializer):
 
     def get_author_name(self, obj) -> str:
         return obj.author.name if (obj.author and obj.author.name) else "Staff"
+
+
+class JobPhotoSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    taken_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JobPhoto
+        fields = (
+            "id",
+            "job_id",
+            "url",
+            "kind",
+            "caption",
+            "size_bytes",
+            "width",
+            "height",
+            "taken_by_name",
+            "created_at",
+        )
+        read_only_fields = fields
+
+    def get_url(self, obj) -> str:
+        try:
+            return default_storage.url(obj.file_key)
+        except Exception:
+            return ""
+
+    def get_taken_by_name(self, obj) -> str:
+        return obj.taken_by.name if (obj.taken_by and obj.taken_by.name) else "Staff"
+
+
+class JobPhotoUploadSerializer(serializers.Serializer):
+    file = serializers.FileField(required=True)
+    kind = serializers.ChoiceField(choices=JobPhoto.Kind.choices, default=JobPhoto.Kind.BEFORE)
+    caption = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")

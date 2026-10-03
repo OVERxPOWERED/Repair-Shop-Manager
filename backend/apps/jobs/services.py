@@ -1,13 +1,26 @@
+import uuid
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils import timezone
 
 from apps.audit.services import record_audit
 from apps.core.api.errors import ConflictError, DomainError
 from apps.core.crypto import decrypt_str, encrypt_str
+from apps.core.images import normalise_photo
 from apps.core.phone import normalize_phone
 from apps.customers.models import Customer
 from apps.devices.services import create_device
-from apps.jobs.models import Job, JobAccessory, JobCounter, JobNote, JobStatus, JobStatusHistory
+from apps.jobs.models import (
+    Job,
+    JobAccessory,
+    JobCounter,
+    JobNote,
+    JobPhoto,
+    JobStatus,
+    JobStatusHistory,
+)
 
 
 def allocate_job_no(shop) -> int:
@@ -310,3 +323,71 @@ def reveal_lock(*, job: Job, actor, request=None) -> dict:
         "lock_type": job.lock_type,
         "lock_value": raw_value,
     }
+
+
+def add_job_photo(
+    *,
+    job: Job,
+    actor,
+    upload,
+    kind: str = JobPhoto.Kind.BEFORE,
+    caption: str = "",
+    request=None,
+) -> JobPhoto:
+    """Validates photo count limit, normalises image (stripping EXIF), saves file, and creates record."""
+    active_count = job.photos.filter(deleted_at__isnull=True).count()
+    if active_count >= 20:
+        raise DomainError("Maximum 20 photos per job reached.", code="job.photo_limit", status=422)
+
+    content_bytes, width, height = normalise_photo(upload)
+    key = f"shops/{job.shop_id}/jobs/{job.id}/photos/{uuid.uuid4()}.jpg"
+    default_storage.save(key, ContentFile(content_bytes))
+
+    photo = JobPhoto.objects.create(
+        shop=job.shop,
+        job=job,
+        file_key=key,
+        kind=kind,
+        caption=caption or "",
+        size_bytes=len(content_bytes),
+        width=width,
+        height=height,
+        taken_by=actor,
+        created_by=actor,
+    )
+
+    record_audit(
+        actor=actor,
+        shop=job.shop,
+        request=request,
+        action="job.photo_added",
+        entity=photo,
+        after={
+            "job_id": str(job.id),
+            "photo_id": str(photo.id),
+            "kind": photo.kind,
+            "file_key": photo.file_key,
+            "size_bytes": photo.size_bytes,
+        },
+    )
+
+    return photo
+
+
+def delete_job_photo(*, photo: JobPhoto, actor, request=None) -> None:
+    """Soft deletes a job photo and logs audit trail."""
+    job = photo.job
+    record_audit(
+        actor=actor,
+        shop=photo.shop,
+        request=request,
+        action="job.photo_deleted",
+        entity=photo,
+        before={
+            "job_id": str(job.id),
+            "photo_id": str(photo.id),
+            "kind": photo.kind,
+            "file_key": photo.file_key,
+        },
+    )
+    photo.delete()

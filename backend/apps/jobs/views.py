@@ -4,16 +4,24 @@ from rest_framework.response import Response
 
 from apps.audit.services import record_audit
 from apps.core.api.concurrency import expected_version
-from apps.core.api.errors import ConflictError, DomainError
+from apps.core.api.errors import ConflictError, DomainError, NotFoundError
 from apps.core.api.idempotency import idempotent
-from apps.jobs.models import Job, JobNote, JobStatus
+from apps.jobs.models import Job, JobNote, JobPhoto, JobStatus
 from apps.jobs.serializers import (
     JobCreateSerializer,
     JobNoteSerializer,
+    JobPhotoSerializer,
+    JobPhotoUploadSerializer,
     JobSerializer,
     JobUpdateSerializer,
 )
-from apps.jobs.services import create_job, reveal_lock, update_job
+from apps.jobs.services import (
+    add_job_photo,
+    create_job,
+    delete_job_photo,
+    reveal_lock,
+    update_job,
+)
 from apps.tenancy.viewsets import ShopScopedViewSet
 
 
@@ -31,6 +39,9 @@ class JobViewSet(ShopScopedViewSet):
         "lock": "jobs.view_device_lock",
         "notes": "jobs.view",
         "add_note": "jobs.edit",
+        "photos": "jobs.view",
+        "add_photo": "jobs.edit",
+        "delete_photo": "jobs.edit",
     }
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
@@ -44,6 +55,8 @@ class JobViewSet(ShopScopedViewSet):
     def get_required_permission(self) -> str | None:
         if self.action == "notes" and self.request.method.lower() == "post":
             return self.permission_map.get("add_note")
+        if self.action == "photos" and self.request.method.lower() == "post":
+            return self.permission_map.get("add_photo")
         return super().get_required_permission()
 
     def get_queryset(self):
@@ -137,3 +150,34 @@ class JobViewSet(ShopScopedViewSet):
             created_by=request.user,
         )
         return Response(JobNoteSerializer(note).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get", "post"])
+    @idempotent(required=False)
+    def photos(self, request, pk=None):
+        job = self.get_object()
+        if request.method.lower() == "get":
+            photos_qs = job.photos.all().order_by("created_at")
+            return Response(JobPhotoSerializer(photos_qs, many=True).data)
+
+        # POST: upload photo
+        serializer = JobPhotoUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        photo = add_job_photo(
+            job=job,
+            actor=request.user,
+            upload=serializer.validated_data["file"],
+            kind=serializer.validated_data.get("kind", JobPhoto.Kind.BEFORE),
+            caption=serializer.validated_data.get("caption", ""),
+            request=request,
+        )
+        return Response(JobPhotoSerializer(photo).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["delete"], url_path=r"photos/(?P<photo_id>[0-9a-fA-F-]+)")
+    def delete_photo(self, request, pk=None, photo_id=None):
+        job = self.get_object()
+        try:
+            photo = job.photos.get(id=photo_id, deleted_at__isnull=True)
+        except (JobPhoto.DoesNotExist, ValueError):
+            raise NotFoundError("Photo not found.", code="photo.not_found") from None
+        delete_job_photo(photo=photo, actor=request.user, request=request)
+        return Response(status=status.HTTP_204_NO_CONTENT)

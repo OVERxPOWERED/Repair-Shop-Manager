@@ -71,6 +71,6 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>FixPro requires Bluetooth access to connect and print receipts to thermal printers.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>FixPro requires Camera access to scan barcodes and read device IMEI numbers.</string>
+	<string>FixPro requires Camera access to capture repair photos, scan barcodes, and read device IMEI numbers.</string>
 </dict>
 </plist>

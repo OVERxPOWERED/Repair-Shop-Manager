@@ -4,6 +4,43 @@
  */
 
 export interface paths {
+    "/api/v1/accessory-options/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["accessory_options_list"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["accessory_options_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accessory-options/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["accessory_options_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        delete: operations["accessory_options_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        patch: operations["accessory_options_partial_update"];
+        trace?: never;
+    };
     "/api/v1/audit-logs/": {
         parameters: {
             query?: never;
@@ -161,6 +198,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/brands/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["brands_list"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["brands_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/brands/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["brands_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        delete: operations["brands_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        patch: operations["brands_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/customers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["customers_list"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["customers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["customers_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        delete: operations["customers_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        patch: operations["customers_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/devices/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["devices_list"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["devices_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["devices_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        delete: operations["devices_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        patch: operations["devices_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/devices/imei-lookup/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["devices_imei_lookup_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/": {
         parameters: {
             query?: never;
@@ -175,6 +340,23 @@ export interface paths {
         get: operations["health_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/internal/cron/{job}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Free hosting has no scheduler; GitHub Actions calls this with X-Cron-Secret. */
+        post: operations["internal_cron_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -211,6 +393,113 @@ export interface paths {
         post?: never;
         /** @description X-Shop-Id -> request.shop/membership, then permission_map[action] is required. */
         delete: operations["invites_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["jobs_list"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["jobs_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["jobs_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        delete: operations["jobs_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        patch: operations["jobs_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/jobs/{id}/lock/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["jobs_lock_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{id}/notes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["jobs_notes_retrieve"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["jobs_notes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{id}/photos/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        get: operations["jobs_photos_retrieve"];
+        put?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        post: operations["jobs_photos_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{id}/photos/{photo_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description CRUD for ShopScopedModel subclasses. Queryset is ALWAYS filtered by the current shop. */
+        delete: operations["jobs_photos_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -458,6 +747,23 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AccessoryOption: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            is_default?: boolean;
+            sort_order?: number;
+            readonly version: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        AccessoryOptionRequest: {
+            name: string;
+            is_default?: boolean;
+            sort_order?: number;
+        };
         AuditLog: {
             /** Format: uuid */
             readonly id: string;
@@ -477,6 +783,22 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description * `manual` - Manual
+         *     * `barcode` - Barcode
+         *     * `ocr` - Ocr
+         * @enum {string}
+         */
+        CapturedViaEnum: "manual" | "barcode" | "ocr";
+        /**
+         * @description * `mobile` - Mobile
+         *     * `laptop` - Laptop / Computer
+         *     * `tv` - TV
+         *     * `appliance` - Appliance
+         *     * `other` - Other
+         * @enum {string}
+         */
+        CategoryEnum: "mobile" | "laptop" | "tv" | "appliance" | "other";
         ChangeRoleRequest: {
             /** Format: uuid */
             role_id: string;
@@ -485,6 +807,38 @@ export interface components {
             phone: string;
             /** Format: uuid */
             role_id: string;
+        };
+        Customer: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            phone?: string | null;
+            alt_phone?: string;
+            email?: string;
+            address?: string;
+            notes?: string;
+            preferred_locale?: string;
+            whatsapp_opt_in?: boolean;
+            sms_opt_in?: boolean;
+            /** Format: date-time */
+            readonly last_job_at: string | null;
+            readonly version: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+            readonly phone_masked: boolean;
+        };
+        CustomerRequest: {
+            name: string;
+            phone?: string | null;
+            alt_phone?: string;
+            email?: string;
+            address?: string;
+            notes?: string;
+            preferred_locale?: string;
+            whatsapp_opt_in?: boolean;
+            sms_opt_in?: boolean;
         };
         Device: {
             /** Format: uuid */
@@ -502,6 +856,44 @@ export interface components {
         };
         DeviceAwareTokenRefreshRequest: {
             refresh: string;
+        };
+        /**
+         * @description * `mobile` - Mobile
+         *     * `laptop` - Laptop / Computer
+         *     * `tv` - TV
+         *     * `appliance` - Appliance
+         *     * `other` - Other
+         * @enum {string}
+         */
+        DeviceCategoryEnum: "mobile" | "laptop" | "tv" | "appliance" | "other";
+        DeviceIdentifier: {
+            /** Format: uuid */
+            readonly id: string;
+            type: components["schemas"]["TypeEnum"];
+            value: string;
+            readonly luhn_valid: boolean | null;
+            /** @default manual */
+            captured_via: components["schemas"]["CapturedViaEnum"];
+        };
+        DeviceIdentifierRequest: {
+            type: components["schemas"]["TypeEnum"];
+            value: string;
+            /** @default manual */
+            captured_via: components["schemas"]["CapturedViaEnum"];
+            /** @default false */
+            confirm_invalid: boolean;
+        };
+        DeviceRequest: {
+            /** Format: uuid */
+            customer_id: string;
+            category?: components["schemas"]["CategoryEnum"];
+            /** Format: uuid */
+            brand_id?: string | null;
+            brand_text?: string;
+            model?: string;
+            color?: string;
+            notes?: string;
+            identifiers?: components["schemas"]["DeviceIdentifierRequest"][];
         };
         HealthCheckResponse: {
             data: {
@@ -525,6 +917,182 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        Job: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly job_no: number;
+            readonly kind: components["schemas"]["KindEnum"];
+            readonly customer: components["schemas"]["JobCustomer"];
+            readonly device: components["schemas"]["JobDevice"];
+            readonly assigned_to: components["schemas"]["JobAssignedTo"];
+            readonly status: components["schemas"]["JobStatusEnum"];
+            readonly priority: components["schemas"]["PriorityEnum"];
+            readonly source: components["schemas"]["SourceEnum"];
+            readonly fault_description: string;
+            readonly device_condition: string;
+            readonly condition_tags: unknown;
+            readonly lock_type: components["schemas"]["LockTypeEnum"];
+            readonly has_lock: boolean;
+            readonly estimate_paise: number;
+            /** Format: date */
+            readonly expected_date: string | null;
+            /** Format: date-time */
+            readonly received_at: string;
+            /** Format: date-time */
+            readonly ready_at: string | null;
+            /** Format: date-time */
+            readonly delivered_at: string | null;
+            readonly warranty_days: number;
+            /** Format: date */
+            readonly warranty_until: string | null;
+            readonly tracking_token: string;
+            readonly is_locked: boolean;
+            readonly cancel_reason: string;
+            readonly total_paise: number;
+            readonly cost_paise: number;
+            readonly accessories: string[];
+            readonly version: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        JobAssignedTo: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly display_name: string;
+        };
+        JobCreate: {
+            /** Format: uuid */
+            customer_id?: string;
+            new_customer?: components["schemas"]["NestedCustomerCreate"];
+            /** Format: uuid */
+            device_id?: string;
+            new_device?: {
+                [key: string]: unknown;
+            };
+            /** @default full */
+            kind: components["schemas"]["KindEnum"];
+            /** @default normal */
+            priority: components["schemas"]["PriorityEnum"];
+            /** @default walk_in */
+            source: components["schemas"]["SourceEnum"];
+            fault_description: string;
+            /** @default  */
+            device_condition: string;
+            condition_tags?: string[];
+            accessories?: string[];
+            /** @default none */
+            lock_type: components["schemas"]["LockTypeEnum"];
+            /** @default 0 */
+            estimate_paise: number;
+            /** Format: date */
+            expected_date?: string | null;
+            /** Format: uuid */
+            assigned_to_id?: string | null;
+            internal_note?: string;
+        };
+        JobCreateRequest: {
+            /** Format: uuid */
+            customer_id?: string;
+            new_customer?: components["schemas"]["NestedCustomerCreateRequest"];
+            /** Format: uuid */
+            device_id?: string;
+            new_device?: {
+                [key: string]: unknown;
+            };
+            /** @default full */
+            kind: components["schemas"]["KindEnum"];
+            /** @default normal */
+            priority: components["schemas"]["PriorityEnum"];
+            /** @default walk_in */
+            source: components["schemas"]["SourceEnum"];
+            fault_description: string;
+            /** @default  */
+            device_condition: string;
+            condition_tags?: string[];
+            accessories?: string[];
+            /** @default none */
+            lock_type: components["schemas"]["LockTypeEnum"];
+            /** @default  */
+            lock_value: string;
+            /** @default 0 */
+            estimate_paise: number;
+            /** Format: date */
+            expected_date?: string | null;
+            /** Format: uuid */
+            assigned_to_id?: string | null;
+            internal_note?: string;
+        };
+        JobCustomer: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            readonly phone: string;
+            readonly phone_masked: boolean;
+        };
+        JobCustomerRequest: {
+            name: string;
+        };
+        JobDevice: {
+            /** Format: uuid */
+            readonly id: string;
+            category?: components["schemas"]["CategoryEnum"];
+            /** Format: uuid */
+            readonly brand_id: string | null;
+            readonly brand_name: string;
+            brand_text?: string;
+            model?: string;
+            color?: string;
+            readonly identifiers: components["schemas"]["DeviceIdentifier"][];
+        };
+        JobDeviceRequest: {
+            category?: components["schemas"]["CategoryEnum"];
+            brand_text?: string;
+            model?: string;
+            color?: string;
+        };
+        /**
+         * @description * `received` - Received
+         *     * `diagnosing` - Diagnosing
+         *     * `awaiting_approval` - Awaiting Approval
+         *     * `awaiting_parts` - Awaiting Parts
+         *     * `in_repair` - In Repair
+         *     * `repaired` - Repaired
+         *     * `ready_for_pickup` - Ready For Pickup
+         *     * `delivered` - Delivered
+         *     * `cancelled` - Cancelled
+         *     * `returned_unrepaired` - Returned Unrepaired
+         * @enum {string}
+         */
+        JobStatusEnum: "received" | "diagnosing" | "awaiting_approval" | "awaiting_parts" | "in_repair" | "repaired" | "ready_for_pickup" | "delivered" | "cancelled" | "returned_unrepaired";
+        JobUpdate: {
+            fault_description?: string;
+            device_condition?: string;
+            condition_tags?: string[];
+            priority?: components["schemas"]["PriorityEnum"];
+            estimate_paise?: number;
+            /** Format: date */
+            expected_date?: string | null;
+            lock_type?: components["schemas"]["LockTypeEnum"];
+            accessories?: string[];
+            /** Format: uuid */
+            assigned_to_id?: string | null;
+        };
+        /**
+         * @description * `full` - Full
+         *     * `rough` - Rough
+         * @enum {string}
+         */
+        KindEnum: "full" | "rough";
+        /**
+         * @description * `none` - None
+         *     * `pin` - Pin
+         *     * `pattern` - Pattern
+         *     * `password` - Password
+         * @enum {string}
+         */
+        LockTypeEnum: "none" | "pin" | "pattern" | "password";
         Membership: {
             /** Format: uuid */
             readonly id: string;
@@ -537,7 +1105,7 @@ export interface components {
             /** Format: uuid */
             readonly role_id: string;
             readonly role_name: string;
-            readonly status: components["schemas"]["StatusEnum"];
+            readonly status: components["schemas"]["MembershipStatusEnum"];
             readonly display_name: string;
             /** Format: date-time */
             readonly joined_at: string;
@@ -546,6 +1114,14 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
         };
+        /**
+         * @description * `invited` - Invited
+         *     * `active` - Active
+         *     * `suspended` - Suspended
+         *     * `removed` - Removed
+         * @enum {string}
+         */
+        MembershipStatusEnum: "invited" | "active" | "suspended" | "removed";
         MyInvite: {
             /** Format: uuid */
             readonly id: string;
@@ -560,6 +1136,41 @@ export interface components {
             readonly expires_at: string;
             /** Format: date-time */
             readonly created_at: string;
+        };
+        NestedCustomerCreate: {
+            name: string;
+            phone?: string | null;
+            alt_phone?: string;
+            email?: string;
+            address?: string;
+            notes?: string;
+            /** @default en */
+            preferred_locale: components["schemas"]["NestedCustomerCreatePreferredLocaleEnum"];
+            /** @default true */
+            whatsapp_opt_in: boolean;
+            /** @default true */
+            sms_opt_in: boolean;
+        };
+        /**
+         * @description * `en` - en
+         *     * `hi` - hi
+         *     * `hi-Latn` - hi-Latn
+         * @enum {string}
+         */
+        NestedCustomerCreatePreferredLocaleEnum: "en" | "hi" | "hi-Latn";
+        NestedCustomerCreateRequest: {
+            name: string;
+            phone?: string | null;
+            alt_phone?: string;
+            email?: string;
+            address?: string;
+            notes?: string;
+            /** @default en */
+            preferred_locale: components["schemas"]["NestedCustomerCreatePreferredLocaleEnum"];
+            /** @default true */
+            whatsapp_opt_in: boolean;
+            /** @default true */
+            sms_opt_in: boolean;
         };
         OnboardShopRequest: {
             name: string;
@@ -595,6 +1206,17 @@ export interface components {
             tracking_expiry_days?: number;
             organization_name?: string;
         };
+        PaginatedAccessoryOptionList: {
+            data: components["schemas"]["AccessoryOption"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
         PaginatedAuditLogList: {
             data: components["schemas"]["AuditLog"][];
             meta: {
@@ -606,8 +1228,41 @@ export interface components {
                 previous?: string | null;
             };
         };
+        PaginatedCustomerList: {
+            data: components["schemas"]["Customer"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
+        PaginatedDeviceList: {
+            data: components["schemas"]["Device"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
         PaginatedInviteList: {
             data: components["schemas"]["Invite"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
+        PaginatedJobList: {
+            data: components["schemas"]["Job"][];
             meta: {
                 count?: number;
                 page?: number;
@@ -639,6 +1294,59 @@ export interface components {
                 previous?: string | null;
             };
         };
+        PaginatedShopBrandList: {
+            data: components["schemas"]["ShopBrand"][];
+            meta: {
+                count?: number;
+                page?: number;
+                /** Format: uri */
+                next?: string | null;
+                /** Format: uri */
+                previous?: string | null;
+            };
+        };
+        PatchedAccessoryOptionRequest: {
+            name?: string;
+            is_default?: boolean;
+            sort_order?: number;
+        };
+        PatchedCustomerRequest: {
+            name?: string;
+            phone?: string | null;
+            alt_phone?: string;
+            email?: string;
+            address?: string;
+            notes?: string;
+            preferred_locale?: string;
+            whatsapp_opt_in?: boolean;
+            sms_opt_in?: boolean;
+        };
+        PatchedDeviceRequest: {
+            /** Format: uuid */
+            customer_id?: string;
+            category?: components["schemas"]["CategoryEnum"];
+            /** Format: uuid */
+            brand_id?: string | null;
+            brand_text?: string;
+            model?: string;
+            color?: string;
+            notes?: string;
+            identifiers?: components["schemas"]["DeviceIdentifierRequest"][];
+        };
+        PatchedJobUpdateRequest: {
+            fault_description?: string;
+            device_condition?: string;
+            condition_tags?: string[];
+            priority?: components["schemas"]["PriorityEnum"];
+            estimate_paise?: number;
+            /** Format: date */
+            expected_date?: string | null;
+            lock_type?: components["schemas"]["LockTypeEnum"];
+            lock_value?: string;
+            accessories?: string[];
+            /** Format: uuid */
+            assigned_to_id?: string | null;
+        };
         PatchedProfileUpdateRequest: {
             name?: string;
             email?: (string) | null;
@@ -649,7 +1357,13 @@ export interface components {
              *     * `hi` - Hindi
              *     * `hi-Latn` - Hinglish
              */
-            preferred_locale?: components["schemas"]["PreferredLocaleEnum"];
+            preferred_locale?: components["schemas"]["ProfileUpdatePreferredLocaleEnum"];
+        };
+        PatchedShopBrandRequest: {
+            device_category?: components["schemas"]["DeviceCategoryEnum"];
+            name?: string;
+            is_active?: boolean;
+            sort_order?: number;
         };
         PatchedShopRequest: {
             name?: string;
@@ -692,12 +1406,19 @@ export interface components {
          */
         PlatformEnum: "android" | "ios" | "web";
         /**
+         * @description * `low` - Low
+         *     * `normal` - Normal
+         *     * `urgent` - Urgent
+         * @enum {string}
+         */
+        PriorityEnum: "low" | "normal" | "urgent";
+        /**
          * @description * `en` - English
          *     * `hi` - Hindi
          *     * `hi-Latn` - Hinglish
          * @enum {string}
          */
-        PreferredLocaleEnum: "en" | "hi" | "hi-Latn";
+        ProfileUpdatePreferredLocaleEnum: "en" | "hi" | "hi-Latn";
         /**
          * @description * `regular` - Regular GST
          *     * `composition` - Composition Scheme
@@ -761,6 +1482,25 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
         };
+        ShopBrand: {
+            /** Format: uuid */
+            readonly id: string;
+            device_category: components["schemas"]["DeviceCategoryEnum"];
+            name: string;
+            is_active?: boolean;
+            sort_order?: number;
+            readonly version: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        ShopBrandRequest: {
+            device_category: components["schemas"]["DeviceCategoryEnum"];
+            name: string;
+            is_active?: boolean;
+            sort_order?: number;
+        };
         /**
          * @description * `mobile` - Mobile Repair
          *     * `computer` - Computer & Laptop Repair
@@ -770,13 +1510,20 @@ export interface components {
          */
         ShopTypeEnum: "mobile" | "computer" | "tv_appliance" | "other";
         /**
-         * @description * `invited` - Invited
-         *     * `active` - Active
-         *     * `suspended` - Suspended
-         *     * `removed` - Removed
+         * @description * `walk_in` - Walk In
+         *     * `phone` - Phone
+         *     * `site_lead` - Site Lead
          * @enum {string}
          */
-        StatusEnum: "invited" | "active" | "suspended" | "removed";
+        SourceEnum: "walk_in" | "phone" | "site_lead";
+        /**
+         * @description * `imei1` - Imei1
+         *     * `imei2` - Imei2
+         *     * `serial` - Serial
+         *     * `meid` - Meid
+         * @enum {string}
+         */
+        TypeEnum: "imei1" | "imei2" | "serial" | "meid";
         VerifyOTPRequest: {
             phone: string;
             code: string;
@@ -795,6 +1542,137 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    accessory_options_list: {
+        parameters: {
+            query?: {
+                is_default?: boolean;
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedAccessoryOptionList"];
+                    };
+                };
+            };
+        };
+    };
+    accessory_options_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessoryOptionRequest"];
+                "multipart/form-data": components["schemas"]["AccessoryOptionRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AccessoryOptionRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AccessoryOption"];
+                    };
+                };
+            };
+        };
+    };
+    accessory_options_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this accessory option. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AccessoryOption"];
+                    };
+                };
+            };
+        };
+    };
+    accessory_options_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this accessory option. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    accessory_options_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this accessory option. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAccessoryOptionRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAccessoryOptionRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAccessoryOptionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AccessoryOption"];
+                    };
+                };
+            };
+        };
+    };
     audit_logs_list: {
         parameters: {
             query?: {
@@ -1041,6 +1919,426 @@ export interface operations {
             };
         };
     };
+    brands_list: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `mobile` - Mobile
+                 *     * `laptop` - Laptop / Computer
+                 *     * `tv` - TV
+                 *     * `appliance` - Appliance
+                 *     * `other` - Other
+                 */
+                device_category?: "appliance" | "laptop" | "mobile" | "other" | "tv";
+                is_active?: boolean;
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedShopBrandList"];
+                    };
+                };
+            };
+        };
+    };
+    brands_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShopBrandRequest"];
+                "multipart/form-data": components["schemas"]["ShopBrandRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ShopBrandRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ShopBrand"];
+                    };
+                };
+            };
+        };
+    };
+    brands_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this shop brand. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ShopBrand"];
+                    };
+                };
+            };
+        };
+    };
+    brands_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this shop brand. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    brands_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this shop brand. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedShopBrandRequest"];
+                "multipart/form-data": components["schemas"]["PatchedShopBrandRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedShopBrandRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ShopBrand"];
+                    };
+                };
+            };
+        };
+    };
+    customers_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedCustomerList"];
+                    };
+                };
+            };
+        };
+    };
+    customers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Customer"];
+                    };
+                };
+            };
+        };
+    };
+    customers_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Customer"];
+                    };
+                };
+            };
+        };
+    };
+    customers_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    customers_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCustomerRequest"];
+                "multipart/form-data": components["schemas"]["PatchedCustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedCustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Customer"];
+                    };
+                };
+            };
+        };
+    };
+    devices_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedDeviceList"];
+                    };
+                };
+            };
+        };
+    };
+    devices_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceRequest"];
+                "multipart/form-data": components["schemas"]["DeviceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["DeviceRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Device"];
+                    };
+                };
+            };
+        };
+    };
+    devices_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this device. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Device"];
+                    };
+                };
+            };
+        };
+    };
+    devices_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this device. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    devices_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this device. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedDeviceRequest"];
+                "multipart/form-data": components["schemas"]["PatchedDeviceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedDeviceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Device"];
+                    };
+                };
+            };
+        };
+    };
+    devices_imei_lookup_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Device"];
+                    };
+                };
+            };
+        };
+    };
     health_retrieve: {
         parameters: {
             query?: never;
@@ -1059,6 +2357,26 @@ export interface operations {
                         data: components["schemas"]["HealthCheckResponse"];
                     };
                 };
+            };
+        };
+    };
+    internal_cron_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1124,6 +2442,278 @@ export interface operations {
             path: {
                 /** @description A UUID string identifying this Shop Invite. */
                 id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    jobs_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaginatedJobList"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JobCreateRequest"];
+                "multipart/form-data": components["schemas"]["JobCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["JobCreateRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["JobCreate"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Job"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    jobs_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedJobUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedJobUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedJobUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["JobUpdate"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_lock_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Job"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_notes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Job"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_notes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Job"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_photos_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Job"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_photos_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Job"];
+                    };
+                };
+            };
+        };
+    };
+    jobs_photos_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this job. */
+                id: string;
+                photo_id: string;
             };
             cookie?: never;
         };

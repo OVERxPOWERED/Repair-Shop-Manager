@@ -2,12 +2,19 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.6 (File storage and job photos)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.7 (Job intake wizard: 8 steps)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **File Storage and Job Photos (Subphase 1.6):**
+  - Integrated `django-storages[s3]>=1.14` and `Pillow>=10.4`; configured `FileSystemStorage` under `MEDIA_ROOT` for dev/test and private S3/R2 storage for prod.
+  - Built image normalization in `apps/core/images.py` (`normalise_photo`) stripping EXIF/GPS metadata, fixing rotation via `exif_transpose`, resizing to max 1600px side, and re-encoding to quality 80 JPEG.
+  - Created `JobPhoto(ShopScopedModel)` with migration `0003_jobphoto` tracking `file_key`, `kind` (`before`/`after`/`damage`/`other`), `caption`, dimensions, size, and `taken_by` user.
+  - Built `add_job_photo` service in `apps/jobs/services.py` enforcing a 20-photo limit (`job.photo_limit`), plus `POST /jobs/{id}/photos/`, `GET /jobs/{id}/photos/`, and `DELETE /jobs/{id}/photos/{photo_id}/` on `JobViewSet`.
+  - Added native camera service in `src/native/camera.ts` (`takePhoto` using `@capacitor/camera` with file-input web fallback), canvas compression in `src/lib/images/compress.ts` with 7 vitest tests, and `PhotoStrip` thumbnail viewer/manager component.
+  - Added 31 translation keys across all 3 locales (405 keys total); 7 backend photo tests in `test_photos.py` (123 total backend pytest tests passing, 66 frontend vitest tests passing).
 - **Jobs Core API (Subphase 1.5):**
   - Integrated `cryptography>=42` and implemented field encryption in `apps/core/crypto.py` (`_fernet`, `encrypt_str`, `decrypt_str`) with multi-key rotation and settings validation in `dev.py`, `test.py`, and `prod.py`.
   - Created `apps/jobs` with `Job(ShopScopedModel)`, `JobCounter(models.Model)`, `JobAccessory(UUIDModel)`, `JobNote(ShopScopedModel)`, `JobStatusHistory(UUIDModel, TimeStampedModel)` with indexing, unique constraint `job_uniq_no_per_shop`, and admin registration.
