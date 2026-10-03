@@ -862,7 +862,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | (pending) |
+| ✅ Done | 2026-10-03 | 2026-10-03 | ed7ade7 |
 
 - [x] 1.10.1 src/native/barcode.ts
 - [x] 1.10.2 src/native/ocr.ts
