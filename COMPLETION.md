@@ -924,7 +924,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | (pending commit) |
+| ✅ Done | 2026-10-03 | 2026-10-03 | e5e7451 |
 
 - [x] 1.12.1 qrcode dependency
 - [x] 1.12.2 src/lib/upi.ts + tests
