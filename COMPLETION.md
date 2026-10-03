@@ -68,7 +68,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.11](#111-line-items-and-payments-api) | Line items and payments API | ✅ Done | 2026-10-03 |
 | 1 | [1.12](#112-line-items-payments-and-upi-qr-screens) | Line items, payments and UPI QR screens | ✅ Done | 2026-10-03 |
 | 1 | [1.13](#113-invoices-and-the-optional-gst-engine) | Invoices and the optional GST engine | ✅ Done | 2026-10-03 |
-| 1 | [1.14](#114-invoice-screens) | Invoice screens | ⬜ Not started | — |
+| 1 | [1.14](#114-invoice-screens) | Invoice screens | ✅ Done | 2026-10-03 |
 | 1 | [1.15](#115-pdf-documents-weasyprint) | PDF documents (WeasyPrint) | ⬜ Not started | — |
 | 1 | [1.16](#116-sharing-native-share-sheet-and-whatsapp) | Sharing (native share sheet and WhatsApp) | ⬜ Not started | — |
 | 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ⬜ Not started | — |
@@ -991,22 +991,33 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | (pending commit) |
 
-- [ ] 1.14.1 Invoice query hooks
-- [ ] 1.14.2 Create/View invoice from job detail
-- [ ] 1.14.3 Draft editor + preview + amount in words (tests)
-- [ ] 1.14.4 Issue confirm flow
-- [ ] 1.14.5 Cancel with credit note
-- [ ] 1.14.6 Invoices list under More
-- [ ] 1.14.7 i18n namespace invoices
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.14.1 Invoice query hooks
+- [x] 1.14.2 Create/View invoice from job detail
+- [x] 1.14.3 Draft editor + preview + amount in words (tests)
+- [x] 1.14.4 Issue confirm flow
+- [x] 1.14.5 Cancel with credit note
+- [x] 1.14.6 Invoices list under More
+- [x] 1.14.7 i18n namespace invoices
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- .venv/bin/ruff format --check .: 156 files already formatted
+- .venv/bin/ruff check .: All checks passed!
+- .venv/bin/pytest apps/billing/tests/ -q: 30 passed in 3.65s (added test_invoice_list_filters)
+- .venv/bin/pytest -q: 271 passed in 10.82s
+
+Frontend:
+- pnpm run i18n:check: i18n OK: 853 keys in 3 locales (100% key parity across en, hi, hi-Latn)
+- pnpm lint: No ESLint warnings or errors
+- pnpm typecheck: 0 errors
+- pnpm test: 110/110 tests passed across 18 test files (including 8 tests in amount-words.test.ts)
+- pnpm build: static export generated 24/24 static pages cleanly (including /invoices and /invoices/detail)
 ```
-**Notes:** —
+**Notes:** Implemented complete invoice interface for drafts, issuing, credit note cancellation, and listing. Created `src/lib/format/amount-words.ts` converting integer paise to Indian English financial words ("Rupees ... and ... Paise Only") with an 8-test unit suite in `src/lib/format/amount-words.test.ts`. Built `src/features/invoices/api.ts` with TanStack Query hooks for `useInvoice`, `useInvoices`, `useJobInvoice`, `useCreateDraftFromJob`, `useUpdateDraftInvoice`, `useIssueInvoice`, `useCancelInvoice`, and `useDeleteDraftInvoice`. Integrated Job detail action bar (`src/app/(app)/jobs/detail/page.tsx`): dynamically renders "Create invoice" when no live invoice exists (gated by `invoices.create_draft`), or "View invoice" with live status badge (`draft`, `issued`, `cancelled`). Built `InvoiceLineSheet` for draft line editing supporting description, HSN/SAC, quantity, unit price, discount, tax-inclusive toggle, and GST rates (0%, 5%, 12%, 18%, 28%). Built `InvoicePreview` supporting full on-screen invoice layout (shop snapshot, customer snapshot, line items table, tax breakdown with CGST/SGST/IGST, whole-rupee round-off, amount in words, amount paid, and balance due). Built `IssueInvoiceDialog` with immutability confirmation warning, and `CancelInvoiceDialog` for issuing compensating credit notes with mandatory reason. Built Invoices list screen (`src/app/(app)/invoices/page.tsx`) with search (number, customer, phone), status chips, and kind chips. Added Invoices navigation row under Sales & Billing in `MorePage`. Added 124 keys to `invoices` namespace and `more.invoices` across all 3 locales (`en.json`, `hi.json`, `hi-Latn.json`). Updated backend `InvoiceViewSet` to filter by `job_id` and added `test_invoice_list_filters`.
 
 ## 1.15 PDF documents (WeasyPrint)
 

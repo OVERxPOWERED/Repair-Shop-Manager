@@ -25,9 +25,11 @@ import {
   ShieldCheck,
   Loader2,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useJobInvoice, useCreateDraftFromJob } from "@/features/invoices/api";
 import {
   useJob,
   useJobHistory,
@@ -65,6 +67,7 @@ function JobDetailContent() {
   const tNav = useTranslations("nav");
   const tDevices = useTranslations("devices");
   const tBilling = useTranslations("billing");
+  const tInvoices = useTranslations("invoices");
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocaleStore((s) => s.locale);
@@ -91,6 +94,7 @@ function JobDetailContent() {
   // Permissions (called unconditionally)
   const canSeeCostProfit = usePermission("money.see_cost_profit");
   const canViewInvoices = usePermission("invoices.view");
+  const canCreateDraft = usePermission("invoices.create_draft");
   const canSeeMoney = canSeeCostProfit || canViewInvoices;
   const canAssign = usePermission("jobs.assign");
   const canViewLock = usePermission("jobs.view_device_lock");
@@ -98,6 +102,22 @@ function JobDetailContent() {
   const canEdit = usePermission("jobs.edit");
   const canRecordPayment = usePermission("payments.record");
   const { data: currentShop } = useCurrentShopDetails();
+
+  // Invoices for this job
+  const { data: jobInvoice } = useJobInvoice(jobId);
+  const createInvoiceMutation = useCreateDraftFromJob();
+
+  const handleCreateInvoice = async () => {
+    if (!job) return;
+    try {
+      const inv = await createInvoiceMutation.mutateAsync(job.id);
+      toast.success(tInvoices("createdDraftToast"));
+      router.push(`/invoices/detail/?id=${inv.id}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : tInvoices("createError");
+      toast.error(msg);
+    }
+  };
 
   // Dialog & Sheet States
   const [isAssignSheetOpen, setIsAssignSheetOpen] = useState(false);
@@ -745,6 +765,45 @@ function JobDetailContent() {
             <span>{tBilling("payment.actionBtn")}</span>
           </Button>
         )}
+
+        {canViewInvoices && jobInvoice ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push(`/invoices/detail/?id=${jobInvoice.id}`)}
+            className="rounded-xl h-11 text-xs font-semibold px-2.5 flex items-center gap-1.5 border-neutral-300"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{tInvoices("viewInvoice")}</span>
+            <Badge
+              variant="secondary"
+              className={`text-[9px] px-1 py-0 uppercase font-bold tracking-wider ${
+                jobInvoice.status === "issued"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : jobInvoice.status === "draft"
+                  ? "bg-amber-100 text-amber-800"
+                  : "bg-rose-100 text-rose-800"
+              }`}
+            >
+              {jobInvoice.status}
+            </Badge>
+          </Button>
+        ) : canCreateDraft && !jobInvoice ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={createInvoiceMutation.isPending || job.is_locked}
+            onClick={handleCreateInvoice}
+            className="rounded-xl h-11 text-xs font-semibold px-2.5 flex items-center gap-1 border-neutral-300"
+          >
+            {createInvoiceMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileText className="w-3.5 h-3.5" />
+            )}
+            <span>{tInvoices("createInvoice")}</span>
+          </Button>
+        ) : null}
 
         {canEdit && !job.is_locked && (
           <Button

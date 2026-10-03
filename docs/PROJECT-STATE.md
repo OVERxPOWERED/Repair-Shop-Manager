@@ -2,12 +2,25 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.14 (Invoice screens)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.15 (PDF documents WeasyPrint)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Invoice Screens (Subphase 1.14):**
+  - Indian English financial amount-to-words helper in `src/lib/format/amount-words.ts` ("Rupees ... and ... Paise Only") with comprehensive 8-test unit suite in `src/lib/format/amount-words.test.ts`.
+  - Frontend invoice API hooks in `src/features/invoices/api.ts`: `useInvoice`, `useInvoices`, `useJobInvoice`, `useCreateDraftFromJob`, `useUpdateDraftInvoice`, `useIssueInvoice` (supports idempotency keys), `useCancelInvoice`, and `useDeleteDraftInvoice`.
+  - Job Detail integration (`src/app/(app)/jobs/detail/page.tsx`): action bar dynamically renders "Create invoice" when no live invoice exists (gated by `invoices.create_draft`), or "View invoice" with live status badge (`draft`, `issued`, `cancelled`).
+  - Invoice Detail screen (`src/app/(app)/invoices/detail/page.tsx?id=`):
+    - Draft mode: live GSTIN validation, state-code Place of Supply auto-detection, Notes, Terms, editable line items table via `InvoiceLineSheet` (supports HSN/SAC, inclusive toggle, GST rates 0–28%), live totals calculation from server response, "Delete draft" button, and "Issue invoice" confirmation dialog warning about immutability.
+    - Issued mode: on-screen invoice preview (`InvoicePreview`) with shop snapshot, customer snapshot, HSN/SAC table, tax breakdown (CGST/SGST/IGST), whole-rupee round-off, amount in Indian English words, paid/balance amounts, and "Cancel with credit note" dialog generating compensating credit notes.
+    - Cancelled mode: prominent cancelled banner, cancellation reason, link to credit note or original invoice.
+  - Invoices list screen (`src/app/(app)/invoices/page.tsx`): search (by invoice #, customer name, or phone), status filter chips, kind filter chips, invoice cards, empty states, and Suspense wrapper.
+  - More page navigation (`src/app/(app)/more/page.tsx`): added Invoices entry in Sales & Billing pointing to `/invoices/`.
+  - Added 124 keys to `invoices` namespace and `more.invoices` across all 3 locales (`en.json`, `hi.json`, `hi-Latn.json`) with 100% key parity (853 total keys).
+  - Updated backend `InvoiceViewSet.get_queryset` to support `job_id` / `job` filtering and added `test_invoice_list_filters` in `apps/billing/tests/test_invoices.py`.
+  - All 271 backend pytest tests passing; all 110 frontend vitest tests passing; static export build verified (24/24 static pages generated).
 - **Invoices and the Optional GST Engine (Subphase 1.13):**
   - Created pure functions tax engine in `backend/apps/billing/tax.py` (`LineInput`, `LineTax`, `compute_line`, `round_off`, `invoice_kind_for`, `is_intra_state`), marked with `TODO(verify): reviewed by CA on <date>`.
   - Built models in `backend/apps/billing/models.py` with migration `0002_invoice_payment_invoice_invoiceseries_invoice_series_and_more`:

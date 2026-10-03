@@ -27,14 +27,19 @@ from apps.tenancy.models import Shop
 pytestmark = pytest.mark.django_db
 
 
-def _create_test_job(world, shop, actor, membership):
-    cust = Customer.objects.create(shop=shop, name="Ramesh Kumar", phone="+919876543201")
+def _create_test_job(world, shop, actor, membership, phone=None):
+    if phone is None:
+        import uuid
+
+        phone = f"+9198{uuid.uuid4().int % 100000000:08d}"
+    cust = Customer.objects.create(shop=shop, name="Ramesh Kumar", phone=phone)
     dev = Device.objects.create(shop=shop, customer=cust, category="mobile", model="Pixel 7")
+    job_no = Job.objects.filter(shop=shop).count() + 1001
     job = Job.objects.create(
         shop=shop,
         customer=cust,
         device=dev,
-        job_no=1001,
+        job_no=job_no,
         status="in_repair",
         estimate_paise=500000,
         assigned_to=membership,
@@ -336,3 +341,19 @@ def test_invoice_permissions_and_scoping(world, client_for):
     c_shop_b = client_for(world.owner_b, world.shop_b)
     res_cross = c_shop_b.get(f"/api/v1/invoices/{invoice_id}/")
     assert res_cross.status_code == 404
+
+
+def test_invoice_list_filters(world, client_for):
+    shop = world.shop_a
+    job1 = _create_test_job(world, shop, world.owner_a, world.membership_owner_a)
+    job2 = _create_test_job(world, shop, world.owner_a, world.membership_owner_a)
+
+    inv1 = create_draft_from_job(job1, actor=world.owner_a)
+    inv2 = create_draft_from_job(job2, actor=world.owner_a)
+
+    c = client_for(world.owner_a, shop)
+    res = c.get(f"/api/v1/invoices/?job_id={job1.id}")
+    assert res.status_code == 200
+    ids = [i["id"] for i in res.json()["data"]]
+    assert str(inv1.id) in ids
+    assert str(inv2.id) not in ids

@@ -140,6 +140,10 @@ class InvoiceViewSet(
                 | Q(customer__phone__icontains=clean_q)
             )
 
+        job_param = self.request.query_params.get("job_id") or self.request.query_params.get("job")
+        if job_param:
+            qs = qs.filter(job_id=job_param)
+
         return qs.order_by("-created_at")
 
     def partial_update(self, request, *args, **kwargs):
