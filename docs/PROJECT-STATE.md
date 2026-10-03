@@ -2,12 +2,18 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.1 (Postgres search and per-shop catalogs)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.2 (Customers API)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Postgres Search and Per-Shop Catalogs (Subphase 1.1):**
+  - Enabled PostgreSQL trigram extension (`pg_trgm`) via migration `core.0002_enable_pg_trgm`.
+  - Added `DeviceCategory` choices, `ShopBrand(ShopScopedModel)`, and `AccessoryOption(ShopScopedModel)` with case-insensitive unique constraint `brand_uniq_name_per_cat` on `(Lower("name"), "shop", "device_category")`.
+  - Created `apps/tenancy/seeds.py` with `DEFAULT_BRANDS` across 4 categories and `DEFAULT_ACCESSORIES`; wired into `on_shop_created` and seeded existing shops via data migration `0004_seed_shop_catalogs`.
+  - Built `ShopBrandSerializer`, `AccessoryOptionSerializer`, `ShopBrandViewSet`, `AccessoryOptionViewSet` using `ShopScopedViewSet`, `permission_map` (`jobs.view` for read, `shop.settings` for mutations), `device_category` filtering, atomic rollback savepoint on `IntegrityError` duplicate name, and registered endpoints `/api/v1/brands/` and `/api/v1/accessory-options/`.
+  - Added 6 unit tests in `apps/tenancy/tests/test_catalogs.py` covering seeding, soft-delete hiding, permission scoping, cross-tenant isolation, and case-insensitive duplicate prevention (96 total backend pytest tests passing).
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
 - **Phase 0 Exit Review (Subphase 0.18):**
   - Full backend verification passed: 90 pytest tests passing, ruff lint and format clean, `makemigrations --check` clean, production `check --deploy` clean.

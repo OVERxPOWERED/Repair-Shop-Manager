@@ -7,7 +7,38 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import normalize_phone
 from apps.core.validators import validate_gstin, validate_state_code, validate_upi_id
-from apps.tenancy.models import Invite, Membership, Organization, Role, Shop
+from apps.tenancy.models import AccessoryOption, Invite, Membership, Organization, Role, Shop, ShopBrand
+
+
+class ShopBrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopBrand
+        fields = (
+            "id",
+            "device_category",
+            "name",
+            "is_active",
+            "sort_order",
+            "version",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "version", "created_at", "updated_at")
+
+
+class AccessoryOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccessoryOption
+        fields = (
+            "id",
+            "name",
+            "is_default",
+            "sort_order",
+            "version",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "version", "created_at", "updated_at")
 
 
 class RoleSerializer(serializers.ModelSerializer):

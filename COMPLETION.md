@@ -55,7 +55,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 0 | [0.17](#017-pilot-deployment-monitoring-scheduled-jobs-and-backups) | Pilot deployment, monitoring, scheduled jobs and backups | ✅ Done | 2026-10-03 |
 | 0 | [0.18](#018-phase-0-exit-review) | Phase 0 exit review | ✅ Done | 2026-10-03 |
 | **0** | **Exit** | **Phase 0 exit checklist** | ✅ Done | 2026-10-03 |
-| 1 | [1.1](#11-postgres-search-and-per-shop-catalogs-brands-accessories) | Postgres search and per-shop catalogs (brands, accessories) | ⬜ Not started | — |
+| 1 | [1.1](#11-postgres-search-and-per-shop-catalogs-brands-accessories) | Postgres search and per-shop catalogs (brands, accessories) | ✅ Done | 2026-10-03 |
 | 1 | [1.2](#12-customers-api) | Customers API | ⬜ Not started | — |
 | 1 | [1.3](#13-devices-and-imei-api) | Devices and IMEI API | ⬜ Not started | — |
 | 1 | [1.4](#14-customers-and-devices-screens) | Customers and devices screens | ⬜ Not started | — |
@@ -622,24 +622,27 @@ Frontend:
 
 # Phase 1: Core Repair MVP
 
-**Phase status:** ⬜ Not started · **Started:** — · **Completed:** —
+**Phase status:** 🟡 In progress · **Started:** 2026-10-03 · **Completed:** —
 
 ## 1.1 Postgres search and per-shop catalogs (brands, accessories)
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | `60e2c7f` |
 
-- [ ] 1.1.1 Enable `pg_trgm`
-- [ ] 1.1.2 Models (`backend/apps/tenancy/models.py`, R1)
-- [ ] 1.1.3 Seed defaults on shop creation
-- [ ] 1.1.4 Endpoints (R2)
-- [ ] 1.1.5 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.1.1 Enable `pg_trgm`
+- [x] 1.1.2 Models (`backend/apps/tenancy/models.py`, R1)
+- [x] 1.1.3 Seed defaults on shop creation
+- [x] 1.1.4 Endpoints (R2)
+- [x] 1.1.5 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+pytest apps/tenancy/tests/test_catalogs.py: 6 passed (full backend suite: 96 passed)
+ruff check .: All checks passed!
+ruff format --check .: 97 files already formatted
+makemigrations --check --dry-run: No changes detected
 ```
 **Notes:** —
 

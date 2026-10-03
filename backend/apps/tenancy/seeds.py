@@ -1,0 +1,36 @@
+DEFAULT_BRANDS = {
+    "mobile": [
+        "Samsung",
+        "Apple",
+        "Xiaomi",
+        "Redmi",
+        "Vivo",
+        "Oppo",
+        "Realme",
+        "OnePlus",
+        "Motorola",
+        "Nokia",
+        "Poco",
+        "iQOO",
+        "Infinix",
+        "Tecno",
+        "Lava",
+        "Google",
+        "Nothing",
+    ],
+    "laptop": ["HP", "Dell", "Lenovo", "Asus", "Acer", "Apple", "MSI"],
+    "tv": ["Samsung", "LG", "Sony", "Mi", "TCL", "OnePlus", "Panasonic"],
+    "appliance": ["LG", "Samsung", "Whirlpool", "Godrej", "Voltas", "Bajaj"],
+}
+
+DEFAULT_ACCESSORIES = [
+    ("SIM tray", True),
+    ("SIM card", False),
+    ("Memory card", False),
+    ("Back cover / case", False),
+    ("Charger", False),
+    ("Cable", False),
+    ("Battery", False),
+    ("Box", False),
+    ("Earphones", False),
+]

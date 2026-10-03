@@ -5,8 +5,9 @@ Handles organization provisioning, default role seeding, and staff invitation.
 
 from django.db import transaction
 
-from apps.tenancy.models import Membership, Organization, Role, Shop
+from apps.tenancy.models import AccessoryOption, Membership, Organization, Role, Shop, ShopBrand
 from apps.tenancy.permissions import SYSTEM_ROLES
+from apps.tenancy.seeds import DEFAULT_ACCESSORIES, DEFAULT_BRANDS
 
 
 def seed_system_roles() -> dict[str, Role]:
@@ -27,9 +28,39 @@ def seed_system_roles() -> dict[str, Role]:
     return roles
 
 
+def seed_shop_catalogs(shop: Shop) -> None:
+    brands = []
+    for category, brand_names in DEFAULT_BRANDS.items():
+        for idx, name in enumerate(brand_names):
+            brands.append(
+                ShopBrand(
+                    shop=shop,
+                    device_category=category,
+                    name=name,
+                    sort_order=idx + 1,
+                    is_active=True,
+                )
+            )
+    if brands:
+        ShopBrand.objects.bulk_create(brands, ignore_conflicts=True)
+
+    accessories = []
+    for idx, (name, is_default) in enumerate(DEFAULT_ACCESSORIES):
+        accessories.append(
+            AccessoryOption(
+                shop=shop,
+                name=name,
+                is_default=is_default,
+                sort_order=idx + 1,
+            )
+        )
+    if accessories:
+        AccessoryOption.objects.bulk_create(accessories, ignore_conflicts=True)
+
+
 def on_shop_created(shop: Shop) -> None:
     """Seeds per-shop defaults; extended in 1.1 and 1.5."""
-    pass
+    seed_shop_catalogs(shop)
 
 
 @transaction.atomic

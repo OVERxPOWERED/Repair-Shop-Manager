@@ -5,10 +5,11 @@ Implements the multi-tenant scoping boundary and role-based access control.
 
 from django.conf import settings
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import SoftDeletableModel, TimeStampedModel, UUIDModel
+from apps.core.models import ShopScopedModel, SoftDeletableModel, TimeStampedModel, UUIDModel
 
 
 class Organization(UUIDModel, TimeStampedModel, SoftDeletableModel):
@@ -202,3 +203,45 @@ class Invite(UUIDModel, TimeStampedModel):
     @property
     def is_accepted(self) -> bool:
         return self.accepted_at is not None
+
+
+class DeviceCategory(models.TextChoices):
+    MOBILE = "mobile", _("Mobile")
+    LAPTOP = "laptop", _("Laptop / Computer")
+    TV = "tv", _("TV")
+    APPLIANCE = "appliance", _("Appliance")
+    OTHER = "other", _("Other")
+
+
+class ShopBrand(ShopScopedModel):
+    device_category = models.CharField(max_length=20, choices=DeviceCategory.choices)
+    name = models.CharField(max_length=60)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=100)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"),
+                "shop",
+                "device_category",
+                condition=models.Q(deleted_at__isnull=True),
+                name="brand_uniq_name_per_cat",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.device_category})"
+
+
+class AccessoryOption(ShopScopedModel):
+    name = models.CharField(max_length=60)
+    is_default = models.BooleanField(default=False)  # pre-ticked in the intake checklist
+    sort_order = models.PositiveSmallIntegerField(default=100)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return self.name

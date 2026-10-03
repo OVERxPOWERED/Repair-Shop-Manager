@@ -1,6 +1,7 @@
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import mixins, permissions, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,9 +13,10 @@ from apps.core.api.errors import DomainError, NotFoundError
 from apps.core.api.idempotency import idempotent
 from apps.tenancy import invites as invite_service
 from apps.tenancy import staff as staff_service
-from apps.tenancy.models import Invite, Membership, Role
+from apps.tenancy.models import AccessoryOption, Invite, Membership, Role, ShopBrand
 from apps.tenancy.permissions import ANY_MEMBER
 from apps.tenancy.serializers import (
+    AccessoryOptionSerializer,
     ChangeRoleSerializer,
     CreateInviteSerializer,
     InviteSerializer,
@@ -22,10 +24,11 @@ from apps.tenancy.serializers import (
     MyInviteSerializer,
     OnboardShopSerializer,
     RoleSerializer,
+    ShopBrandSerializer,
     ShopSerializer,
 )
 from apps.tenancy.services import create_organization_and_shop
-from apps.tenancy.viewsets import ShopScopedAPIView, ShopScopedMixin
+from apps.tenancy.viewsets import ShopScopedAPIView, ShopScopedMixin, ShopScopedViewSet
 
 
 class OnboardShopView(APIView):
@@ -102,6 +105,50 @@ class RoleViewSet(ShopScopedMixin, viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return Role.objects.none()
         return staff_service.assignable_roles(self.request.shop).order_by("name")
+
+
+class ShopBrandViewSet(ShopScopedViewSet):
+    queryset = ShopBrand.objects.all()
+    serializer_class = ShopBrandSerializer
+    permission_map = {
+        "list": "jobs.view",
+        "retrieve": "jobs.view",
+        "create": "shop.settings",
+        "update": "shop.settings",
+        "partial_update": "shop.settings",
+        "destroy": "shop.settings",
+    }
+    filterset_fields = ["device_category", "is_active"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def perform_create(self, serializer):
+        try:
+            with transaction.atomic():
+                super().perform_create(serializer)
+        except IntegrityError as err:
+            raise serializers.ValidationError({"name": ["Already exists"]}) from err
+
+    def perform_update(self, serializer):
+        try:
+            with transaction.atomic():
+                super().perform_update(serializer)
+        except IntegrityError as err:
+            raise serializers.ValidationError({"name": ["Already exists"]}) from err
+
+
+class AccessoryOptionViewSet(ShopScopedViewSet):
+    queryset = AccessoryOption.objects.all()
+    serializer_class = AccessoryOptionSerializer
+    permission_map = {
+        "list": "jobs.view",
+        "retrieve": "jobs.view",
+        "create": "shop.settings",
+        "update": "shop.settings",
+        "partial_update": "shop.settings",
+        "destroy": "shop.settings",
+    }
+    filterset_fields = ["is_default"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
 
 class StaffViewSet(ShopScopedMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):

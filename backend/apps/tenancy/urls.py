@@ -7,6 +7,8 @@ router = DefaultRouter()
 router.register("roles", views.RoleViewSet, basename="role")
 router.register("staff", views.StaffViewSet, basename="staff")
 router.register("invites", views.InviteViewSet, basename="invite")
+router.register("brands", views.ShopBrandViewSet, basename="brand")
+router.register("accessory-options", views.AccessoryOptionViewSet, basename="accessory-option")
 
 urlpatterns = [
     path("tenancy/onboard/", views.OnboardShopView.as_view(), name="tenancy-onboard"),
