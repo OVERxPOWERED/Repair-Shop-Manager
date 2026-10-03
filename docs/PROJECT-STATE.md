@@ -2,13 +2,18 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 0 (Foundations)  **Subphase:** next is 0.18 (Phase 0 exit review)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.1 (Postgres search and per-shop catalogs)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Subphases 0.1 through 0.17 completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+> Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
 - **Master Unified Roadmap & Design Hub:** `ROADMAP.md` and `design/` catalog.
+- **Phase 0 Exit Review (Subphase 0.18):**
+  - Full backend verification passed: 90 pytest tests passing, ruff lint and format clean, `makemigrations --check` clean, production `check --deploy` clean.
+  - Full frontend verification passed: ESLint clean, 100% i18n parity (297 keys across `en`, `hi`, `hi-Latn`), TypeScript clean, Vitest 52/52 tests passing across 11 files, static production export generated cleanly (19/19 pages).
+  - Playwright E2E smoke test passing: full flow verified at mobile viewport (phone login -> OTP verify -> profile setup -> shop onboarding -> home dashboard & navigation tabs).
+  - Phase 0 exit checklist satisfied; ready for Phase 1.
 - **Pilot Deployment, Monitoring, Scheduled Jobs and Backups (Subphase 0.17):**
   - Backend: configured database cache and `CRON_SECRET` in `base.py`/`prod.py`; implemented `apps/core/cron.py` with `CronView` executing management commands (`purge-otp`, `purge-idempotency`) with constant-time HMAC header verification; added 5 unit tests in `apps/core/tests/test_cron.py` (90/90 backend tests passing); created `render.yaml` blueprint for Docker service deployment on Render.
   - Frontend: implemented cold-start UX in `src/lib/server-wake.ts`, instrumented API client with 4-second request timer, built `ServerWakeBanner` displayed in shell layout with translations in en/hi/hi-Latn; integrated `@sentry/capacitor` (4.4.0) and `@sentry/react` (10.69.0) in `src/lib/monitoring.ts` with `sendDefaultPii: false`; verified 52 vitest tests, lint, and static export (19/19 pages).

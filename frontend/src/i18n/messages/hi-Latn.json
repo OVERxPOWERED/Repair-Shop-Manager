@@ -294,43 +294,69 @@
     "permissionsHeader": "Permissions ({count})"
   },
   "permissions": {
-    "jobs.view": "Repair jobs dekhein",
-    "jobs.view_all": "Shop ke saare jobs dekhein",
-    "jobs.create": "Nayi digital job sheet banayein",
-    "jobs.edit": "Job details edit karein",
-    "jobs.change_status": "Repair status update karein",
-    "jobs.assign": "Technician ko job assign karein",
-    "jobs.deliver": "Customer ko device deliver karein",
-    "jobs.reopen": "Delivered job dobara kholein",
-    "jobs.delete": "Job sheet delete karein",
-    "jobs.restore": "Deleted job restore karein",
-    "jobs.delete_permanent": "Job permanently delete karein",
-    "jobs.view_device_lock": "Pattern lock ya PIN password dekhein",
-    "customers.view": "Customer list aur profiles dekhein",
-    "customers.create": "Naya customer add karein",
-    "customers.edit": "Customer details edit karein",
-    "customers.see_phone": "Customer ka poora phone number dekhein",
-    "customers.delete": "Customer profile delete karein",
-    "invoices.view": "Invoices aur estimates dekhein",
-    "invoices.create_draft": "Draft estimate/invoice banayein",
-    "invoices.issue": "Immutable tax invoice issue karein",
-    "invoices.cancel": "Invoice cancel ya credit note banayein",
-    "invoices.print": "A4 ya thermal receipt print karein",
-    "payments.view": "Payment history dekhein",
-    "payments.record": "Payment record karein (Cash, UPI)",
-    "payments.refund": "Payment refund karein",
-    "money.see_cost_profit": "Part cost aur profit margin dekhein",
-    "reports.view_basic": "Daily intake reports dekhein",
-    "reports.view_profit": "Profit aur loss reports dekhein",
-    "data.export": "Data Excel ya PDF mein export karein",
-    "data.bulk_delete": "Bulk records delete karein",
-    "staff.view": "Staff member list dekhein",
-    "staff.manage": "Staff invite, edit ya remove karein",
-    "roles.manage": "Roles aur permissions manage karein",
-    "shop.settings": "Shop profile aur GST settings update karein",
-    "printers.configure": "Bluetooth thermal printers configure karein",
-    "billing.subscription": "App subscription aur billing manage karein",
-    "audit.view": "Shop ka audit log dekhein"
+    "jobs": {
+      "view": "Repair jobs dekhein",
+      "view_all": "Shop ke saare jobs dekhein",
+      "create": "Nayi digital job sheet banayein",
+      "edit": "Job details edit karein",
+      "change_status": "Repair status update karein",
+      "assign": "Technician ko job assign karein",
+      "deliver": "Customer ko device deliver karein",
+      "reopen": "Delivered job dobara kholein",
+      "delete": "Job sheet delete karein",
+      "restore": "Deleted job restore karein",
+      "delete_permanent": "Job permanently delete karein",
+      "view_device_lock": "Pattern lock ya PIN password dekhein"
+    },
+    "customers": {
+      "view": "Customer list aur profiles dekhein",
+      "create": "Naya customer add karein",
+      "edit": "Customer details edit karein",
+      "see_phone": "Customer ka poora phone number dekhein",
+      "delete": "Customer profile delete karein"
+    },
+    "invoices": {
+      "view": "Invoices aur estimates dekhein",
+      "create_draft": "Draft estimate/invoice banayein",
+      "issue": "Immutable tax invoice issue karein",
+      "cancel": "Invoice cancel ya credit note banayein",
+      "print": "A4 ya thermal receipt print karein"
+    },
+    "payments": {
+      "view": "Payment history dekhein",
+      "record": "Payment record karein (Cash, UPI)",
+      "refund": "Payment refund karein"
+    },
+    "money": {
+      "see_cost_profit": "Part cost aur profit margin dekhein"
+    },
+    "reports": {
+      "view_basic": "Daily intake reports dekhein",
+      "view_profit": "Profit aur loss reports dekhein"
+    },
+    "data": {
+      "export": "Data Excel ya PDF mein export karein",
+      "bulk_delete": "Bulk records delete karein"
+    },
+    "staff": {
+      "view": "Staff member list dekhein",
+      "manage": "Staff invite, edit ya remove karein"
+    },
+    "roles": {
+      "manage": "Roles aur permissions manage karein"
+    },
+    "shop": {
+      "settings": "Shop profile aur GST settings update karein"
+    },
+    "printers": {
+      "configure": "Bluetooth thermal printers configure karein"
+    },
+    "billing": {
+      "subscription": "App subscription aur billing manage karein"
+    },
+    "audit": {
+      "view": "Shop ka audit log dekhein"
+    }
   },
   "invites": {
     "headerSubtitle": "Shop Invites",

@@ -294,43 +294,69 @@
     "permissionsHeader": "Permissions ({count})"
   },
   "permissions": {
-    "jobs.view": "View repair jobs",
-    "jobs.view_all": "View all shop jobs regardless of assignment",
-    "jobs.create": "Create a new digital job sheet",
-    "jobs.edit": "Edit repair job details",
-    "jobs.change_status": "Progress repair through status workflow",
-    "jobs.assign": "Assign technician to repair job",
-    "jobs.deliver": "Deliver device to customer",
-    "jobs.reopen": "Reopen a delivered or closed repair",
-    "jobs.delete": "Soft-delete a repair job",
-    "jobs.restore": "Restore a repair job from trash",
-    "jobs.delete_permanent": "Permanently purge a repair job",
-    "jobs.view_device_lock": "View pattern lock or pin password",
-    "customers.view": "View customer list and profiles",
-    "customers.create": "Add new customer",
-    "customers.edit": "Edit customer contact details",
-    "customers.see_phone": "View unmasked customer phone number",
-    "customers.delete": "Delete customer profile",
-    "invoices.view": "View invoices and estimates",
-    "invoices.create_draft": "Create draft estimate/invoice",
-    "invoices.issue": "Issue immutable tax invoice",
-    "invoices.cancel": "Cancel/Credit-note an issued invoice",
-    "invoices.print": "Print A4 or thermal invoice receipt",
-    "payments.view": "View payment history",
-    "payments.record": "Record payment received (Cash, UPI, Card)",
-    "payments.refund": "Issue refund for payment",
-    "money.see_cost_profit": "See wholesale part costs and profit margins",
-    "reports.view_basic": "View basic daily intake/turnaround reports",
-    "reports.view_profit": "View comprehensive profit and loss reports",
-    "data.export": "Export customer or repair data to Excel/PDF",
-    "data.bulk_delete": "Bulk purge records",
-    "staff.view": "View staff member list",
-    "staff.manage": "Invite, edit, or remove staff members",
-    "roles.manage": "Manage custom roles and permissions",
-    "shop.settings": "Update shop profile, GST settings, and brand configuration",
-    "printers.configure": "Configure Bluetooth thermal printers",
-    "billing.subscription": "Manage FixPro subscription and billing",
-    "audit.view": "View the shop audit log"
+    "jobs": {
+      "view": "View repair jobs",
+      "view_all": "View all shop jobs regardless of assignment",
+      "create": "Create a new digital job sheet",
+      "edit": "Edit repair job details",
+      "change_status": "Progress repair through status workflow",
+      "assign": "Assign technician to repair job",
+      "deliver": "Deliver device to customer",
+      "reopen": "Reopen a delivered or closed repair",
+      "delete": "Soft-delete a repair job",
+      "restore": "Restore a repair job from trash",
+      "delete_permanent": "Permanently purge a repair job",
+      "view_device_lock": "View pattern lock or pin password"
+    },
+    "customers": {
+      "view": "View customer list and profiles",
+      "create": "Add new customer",
+      "edit": "Edit customer contact details",
+      "see_phone": "View unmasked customer phone number",
+      "delete": "Delete customer profile"
+    },
+    "invoices": {
+      "view": "View invoices and estimates",
+      "create_draft": "Create draft estimate/invoice",
+      "issue": "Issue immutable tax invoice",
+      "cancel": "Cancel/Credit-note an issued invoice",
+      "print": "Print A4 or thermal invoice receipt"
+    },
+    "payments": {
+      "view": "View payment history",
+      "record": "Record payment received (Cash, UPI, Card)",
+      "refund": "Issue refund for payment"
+    },
+    "money": {
+      "see_cost_profit": "See wholesale part costs and profit margins"
+    },
+    "reports": {
+      "view_basic": "View basic daily intake/turnaround reports",
+      "view_profit": "View comprehensive profit and loss reports"
+    },
+    "data": {
+      "export": "Export customer or repair data to Excel/PDF",
+      "bulk_delete": "Bulk purge records"
+    },
+    "staff": {
+      "view": "View staff member list",
+      "manage": "Invite, edit, or remove staff members"
+    },
+    "roles": {
+      "manage": "Manage custom roles and permissions"
+    },
+    "shop": {
+      "settings": "Update shop profile, GST settings, and brand configuration"
+    },
+    "printers": {
+      "configure": "Configure Bluetooth thermal printers"
+    },
+    "billing": {
+      "subscription": "Manage FixPro subscription and billing"
+    },
+    "audit": {
+      "view": "View the shop audit log"
+    }
   },
   "invites": {
     "headerSubtitle": "Shop Invitations",
