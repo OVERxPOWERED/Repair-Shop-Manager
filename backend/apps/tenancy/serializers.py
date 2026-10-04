@@ -74,6 +74,8 @@ SHOP_FIELDS = (
     "upi_id",
     "invoice_prefix",
     "round_off_enabled",
+    "default_terms",
+    "logo_url",
     "lock_order_after_delivery",
     "engineers_see_assigned_only",
     "mask_phone_for_engineers",
@@ -95,10 +97,22 @@ def _django_to_drf(func, value, field):
 
 
 class ShopSerializer(serializers.ModelSerializer):
+    logo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Shop
         fields = SHOP_FIELDS
-        read_only_fields = ("id", "organization_id", "version", "created_at", "updated_at")
+        read_only_fields = ("id", "organization_id", "logo_url", "version", "created_at", "updated_at")
+
+    def get_logo_url(self, obj) -> str | None:
+        if not obj.logo_key:
+            return None
+        try:
+            from django.core.files.storage import default_storage
+
+            return default_storage.url(obj.logo_key)
+        except Exception:
+            return None
 
     def validate_phone(self, value):
         return normalize_phone(value) if value else value

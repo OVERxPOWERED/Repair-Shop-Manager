@@ -14,6 +14,7 @@ urlpatterns = [
     path("tenancy/onboard/", views.OnboardShopView.as_view(), name="tenancy-onboard"),
     path("shops/", views.MyShopsView.as_view(), name="my-shops"),
     path("shops/current/", views.CurrentShopView.as_view(), name="current-shop"),
+    path("shops/current/logo/", views.ShopLogoView.as_view(), name="shop-logo"),
     path("me/invites/", views.MyInvitesListView.as_view(), name="my-invites"),
     path("me/invites/<uuid:id>/accept/", views.AcceptInviteView.as_view(), name="accept-invite"),
     path("me/invites/<uuid:id>/decline/", views.DeclineInviteView.as_view(), name="decline-invite"),

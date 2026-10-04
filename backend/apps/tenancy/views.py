@@ -1,8 +1,13 @@
+import contextlib
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,6 +16,7 @@ from apps.audit.services import record_audit, snapshot
 from apps.core.api.concurrency import save_with_version
 from apps.core.api.errors import DomainError, NotFoundError
 from apps.core.api.idempotency import idempotent
+from apps.core.images import normalise_photo
 from apps.tenancy import invites as invite_service
 from apps.tenancy import staff as staff_service
 from apps.tenancy.models import AccessoryOption, Invite, Membership, Role, ShopBrand
@@ -96,6 +102,44 @@ class CurrentShopView(ShopScopedAPIView):
             after=after,
         )
         return Response(ShopSerializer(shop).data)
+
+
+class ShopLogoView(ShopScopedAPIView):
+    """POST /shops/current/logo/ (multipart, shop.settings)."""
+
+    http_method_names = ["post", "head", "options"]
+    parser_classes = (MultiPartParser, FormParser)
+    permission_map = {"post": "shop.settings"}
+
+    @extend_schema(request=None, responses=ShopSerializer)
+    def post(self, request):
+        file = request.FILES.get("file") or request.FILES.get("logo")
+        if not file:
+            raise DomainError("A logo image file is required.", code="upload.missing_file", status=400)
+
+        content_bytes, width, height = normalise_photo(file, max_side=512, allow_png=True)
+        ext = "png" if content_bytes.startswith(b"\x89PNG\r\n\x1a\n") else "jpg"
+        key = f"shops/{request.shop.id}/logo.{ext}"
+
+        if request.shop.logo_key and request.shop.logo_key != key:
+            with contextlib.suppress(Exception):
+                default_storage.delete(request.shop.logo_key)
+
+        default_storage.save(key, ContentFile(content_bytes))
+        before = snapshot(request.shop, ("logo_key", "version"))
+        request.shop.logo_key = key
+        request.shop.version += 1
+        request.shop.save(update_fields=["logo_key", "version", "updated_at"])
+        after = snapshot(request.shop, ("logo_key", "version"))
+
+        record_audit(
+            action="shop.logo_updated",
+            entity=request.shop,
+            request=request,
+            before=before,
+            after=after,
+        )
+        return Response(ShopSerializer(request.shop).data)
 
 
 class RoleViewSet(ShopScopedMixin, viewsets.ReadOnlyModelViewSet):

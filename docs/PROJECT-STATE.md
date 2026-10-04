@@ -2,12 +2,41 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.21 (Settings screens and basic reports)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.22 (Translation completion and accessibility)  **Last updated:** 2026-10-04
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Settings Screens and Basic Reports (Subphase 1.21):**
+  - Backend Settings & Logo:
+    - Added `default_terms` to `Shop` model (`apps/tenancy/models.py`) and migration `0006_shop_default_terms.py` for default invoice & receipt terms.
+    - Added `logo_url` (signed URL or storage URL via `SerializerMethodField`) and `default_terms` to `ShopSerializer`.
+    - Enhanced `normalise_photo(fileobj, max_side=1600, allow_png=False)` in `apps/core/images.py` to support PNG transparency preservation and custom thumbnail size (512 px).
+    - Implemented `POST /api/v1/shops/current/logo/` (`ShopLogoView`): validates image, scales to max 512 px, saves key `shops/{shop.id}/logo.{ext}` in `default_storage`, deletes old logo key, increments shop version, and records `shop.logo_updated` audit log.
+  - Reports Summary API:
+    - Implemented `GET /api/v1/reports/summary/?from=YYYY-MM-DD&to=YYYY-MM-DD` (`apps/core/reports.py`), permission `reports.view_basic`, max 366 days:
+      - Computes `jobs`: `{received, delivered, by_status: {status: count}}` in IST day boundaries.
+      - Computes `collections`: `{total_paise, by_mode: {cash, upi, card, bank}, refunds_paise}`.
+      - Computes `revenue`: `{invoiced_paise, credit_notes_paise, net_paise}`.
+      - With `reports.view_profit` permission: computes and appends `"profit": {"parts_cost_paise", "gross_profit_paise"}` from delivered jobs in the date range. Omitted completely for users lacking profit visibility.
+  - Frontend Settings Screens:
+    - Shop Profile (`/more/settings/profile/`): shop name, business type, phone, address lines 1 & 2, city, pincode, state dropdown from `GST_STATES`, and logo upload button with preview.
+    - Billing & GST (`/more/settings/billing/`): GST registered switch, 15-char GSTIN validator, scheme type (regular vs composition), invoice number prefix (e.g. INV), round-off cash invoices switch, default terms & conditions textarea, and UPI VPA ID.
+    - Jobs & Workflow (`/more/settings/jobs/`): lock job sheets after delivery switch, restrict engineers to assigned jobs switch, mask customer phone for engineers switch, default warranty days input, public tracking link toggle, and tracking link expiry days.
+    - Brand Catalog (`/more/settings/brands/`): category filter tabs, active/inactive badges, sort order, Add Brand modal, Edit Brand modal, and delete confirmation dialog.
+    - Accessories Checklist (`/more/settings/accessories/`): intake options checklist, default flag, sort order, Add Item modal, Edit modal, and delete confirmation.
+    - Messaging & Templates (`/more/settings/messaging/`): automated SMS event triggers (`auto_sms_events`), TRAI DLT compliance notice, and WhatsApp template editor with interactive placeholder chips (`{customer_name}`, `{job_no}`, `{device_name}`, `{status}`, `{estimate_amount}`, `{balance_amount}`, `{tracking_url}`) and live mock preview.
+    - Concurrency & Optimistic Locking: All settings forms include `If-Match` with shop version and render 409 conflict reload banners with quick-refresh CTAs.
+  - Frontend Reports Dashboard:
+    - Reports Dashboard (`/more/reports/`): range presets (Today, Last 7 Days, This Month, This FY [April-March in IST], Custom date inputs), jobs intake & turnaround card, collections by mode & refunds card, billed revenue with credit notes card, and confidential profit card (gated to `reports.view_profit`).
+    - Home Dashboard (`(app)/home/page.tsx`): Today's collection card automatically shown for users with `reports.view_basic`.
+    - Integrated all new screens into More navigation (`(app)/more/page.tsx`).
+    - Added complete translations across English (`en`), Hindi (`hi`), and Hinglish (`hi-Latn`) (1,035 total keys).
+  - Tests & Verification:
+    - Comprehensive unit tests in `apps/core/tests/test_settings_and_reports.py` testing logo uploads, terms patching, date boundaries in IST, and role gating (Engineer 403, Front Desk without profit key, Owner with profit key).
+    - 315/315 backend pytest tests passing, ruff check/format clean.
+    - 138/138 frontend vitest tests passing, 0 ESLint warnings/errors, 35/35 static pages exported to `out/`.
 - **Trash, Restore, Permanent Delete and Exports (Subphase 1.20):**
   - Tenancy and ViewSet Trash Scoping:
     - Extended `ShopScopedViewSet` with `_in_trash_mode` detecting `restore`, `destroy_permanent`, or `action="list"` with `?deleted=true`.

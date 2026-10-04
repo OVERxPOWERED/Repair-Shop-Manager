@@ -81,6 +81,9 @@ class Shop(UUIDModel, TimeStampedModel, SoftDeletableModel):
     upi_id = models.CharField(max_length=100, null=True, blank=True, help_text="VPA UPI ID for on-bill QR payment")
     invoice_prefix = models.CharField(max_length=8, default="INV")
     round_off_enabled = models.BooleanField(default=True)
+    default_terms = models.TextField(
+        blank=True, default="", help_text="Default terms and conditions printed on invoices and receipts"
+    )
 
     # Operational Policies
     lock_order_after_delivery = models.BooleanField(

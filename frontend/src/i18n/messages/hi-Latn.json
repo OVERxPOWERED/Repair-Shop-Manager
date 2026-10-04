@@ -270,7 +270,69 @@
   "settings": {
     "title": "Settings",
     "language": "App ki Bhasha",
-    "theme": "Theme"
+    "theme": "Theme",
+    "profile": {
+      "title": "Shop Profile",
+      "subtitle": "Contact details, pata aur logo",
+      "name": "Shop ka Naam",
+      "shopType": "Business Type",
+      "phone": "Primary Phone Number",
+      "address1": "Address Line 1",
+      "address2": "Address Line 2 (Optional)",
+      "city": "City",
+      "pincode": "Pincode",
+      "state": "State / UT",
+      "logo": "Shop Logo",
+      "uploadLogo": "Logo Upload Karein",
+      "changeLogo": "Logo Badlein",
+      "saved": "Shop profile successfully update ho gayi!"
+    },
+    "billing": {
+      "title": "Billing & GST",
+      "subtitle": "Invoices, tax registration, terms aur UPI",
+      "gstEnabled": "GST Registration",
+      "gstin": "GSTIN Number",
+      "scheme": "GST Scheme Type",
+      "invoicePrefix": "Invoice Number Prefix",
+      "roundOff": "Cash invoices round off karein",
+      "upiId": "Shop UPI VPA ID",
+      "terms": "Invoice Terms & Conditions",
+      "saved": "Billing settings successfully update ho gayi!"
+    },
+    "jobs": {
+      "title": "Jobs & Workflow",
+      "subtitle": "Security policies, warranty aur public tracking",
+      "lockAfterDelivery": "Delivery ke baad job sheets lock karein",
+      "engineersAssignedOnly": "Technicians ko sirf assigned jobs dikhayein",
+      "maskPhone": "Technicians se customer number mask karein",
+      "warranty": "Default Repair Warranty (Days)",
+      "publicTracking": "Public status tracking links",
+      "linkExpiry": "Delivery ke baad link expiry (Days)",
+      "saved": "Job policies successfully update ho gayi!"
+    },
+    "brands": {
+      "title": "Brand Catalog",
+      "subtitle": "Device manufacturers aur brands",
+      "addBrand": "Brand Add Karein",
+      "editBrand": "Brand Edit Karein",
+      "saved": "Brand successfully update ho gaya!",
+      "deleted": "Brand delete ho gaya."
+    },
+    "accessories": {
+      "title": "Accessories Checklist",
+      "subtitle": "Customer device ke saath aayi cheezein",
+      "addItem": "Item Add Karein",
+      "editItem": "Accessory Edit Karein",
+      "saved": "Accessory successfully update ho gayi!",
+      "deleted": "Accessory hata di gayi."
+    },
+    "messaging": {
+      "title": "Messaging & Templates",
+      "subtitle": "Automated SMS alerts aur WhatsApp copy",
+      "autoSms": "Automatic SMS Alerts",
+      "templates": "Customer Message Templates",
+      "saved": "Settings successfully update ho gayi!"
+    }
   },
   "staff": {
     "title": "Staff & Team",
@@ -1129,5 +1191,27 @@
     "rangeExceeded": "Date range 366 dinon (1 saal) se zyada nahi ho sakti",
     "exportSuccess": "Export successfully complete hua",
     "exportFailed": "Data export karne me problem aayi. Please dobara try karein."
+  },
+  "reports": {
+    "title": "Reports & Analytics",
+    "today": "Aaj",
+    "last7Days": "Pichle 7 Din",
+    "thisMonth": "Is Mahine",
+    "thisFY": "Yeh FY",
+    "custom": "Custom",
+    "fromDate": "Shuru Ki Date",
+    "toDate": "Aakhiri Date",
+    "jobsIntake": "Repair Jobs Intake",
+    "jobsReceived": "Jobs Aayi",
+    "jobsDelivered": "Jobs Deliver Hui",
+    "collections": "Collections (Cash Flow)",
+    "totalCollected": "Total Collected Paisa",
+    "revenue": "Invoiced Revenue",
+    "netRevenue": "Net Billed Revenue",
+    "profit": "Profit & Margins",
+    "partsCost": "Parts & Labor Cost",
+    "grossProfit": "Gross Profit",
+    "accessRestricted": "Access Restricted",
+    "noPermission": "Aapke paas shop reports dekhne ki permission nahi hai."
   }
 }

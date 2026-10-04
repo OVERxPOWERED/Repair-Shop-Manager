@@ -270,7 +270,69 @@
   "settings": {
     "title": "Settings",
     "language": "App Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "profile": {
+      "title": "Shop Profile",
+      "subtitle": "Contact details, address and branding",
+      "name": "Shop Name",
+      "shopType": "Business Type",
+      "phone": "Primary Phone Number",
+      "address1": "Address Line 1",
+      "address2": "Address Line 2 (Optional)",
+      "city": "City",
+      "pincode": "Pincode",
+      "state": "State / UT",
+      "logo": "Shop Logo",
+      "uploadLogo": "Upload Logo",
+      "changeLogo": "Change Logo",
+      "saved": "Shop profile updated successfully!"
+    },
+    "billing": {
+      "title": "Billing & GST",
+      "subtitle": "Invoices, tax registration, terms & UPI",
+      "gstEnabled": "GST Registration",
+      "gstin": "GSTIN Number",
+      "scheme": "GST Scheme Type",
+      "invoicePrefix": "Invoice Number Prefix",
+      "roundOff": "Round Off Cash Invoices",
+      "upiId": "Shop UPI VPA ID",
+      "terms": "Invoice Terms & Conditions",
+      "saved": "Billing settings updated successfully!"
+    },
+    "jobs": {
+      "title": "Jobs & Workflow",
+      "subtitle": "Security policies, warranty & public tracking",
+      "lockAfterDelivery": "Lock Job Sheets After Delivery",
+      "engineersAssignedOnly": "Restrict Technicians to Assigned Jobs",
+      "maskPhone": "Mask Customer Phone for Technicians",
+      "warranty": "Default Repair Warranty (Days)",
+      "publicTracking": "Public Status Tracking Links",
+      "linkExpiry": "Link Expiry After Delivery (Days)",
+      "saved": "Job policies updated successfully!"
+    },
+    "brands": {
+      "title": "Brand Catalog",
+      "subtitle": "Device manufacturers and brands",
+      "addBrand": "Add Brand",
+      "editBrand": "Edit Brand",
+      "saved": "Brand updated successfully!",
+      "deleted": "Brand deleted successfully."
+    },
+    "accessories": {
+      "title": "Accessories Checklist",
+      "subtitle": "Items received with customer devices",
+      "addItem": "Add Item",
+      "editItem": "Edit Accessory",
+      "saved": "Accessory updated successfully!",
+      "deleted": "Accessory removed."
+    },
+    "messaging": {
+      "title": "Messaging & Templates",
+      "subtitle": "Automated SMS alerts and WhatsApp copy",
+      "autoSms": "Automatic SMS Alerts",
+      "templates": "Customer Message Templates",
+      "saved": "Settings updated successfully!"
+    }
   },
   "staff": {
     "title": "Staff & Team",
@@ -1129,5 +1191,27 @@
     "rangeExceeded": "Date range cannot exceed 366 days (1 year)",
     "exportSuccess": "Export completed successfully",
     "exportFailed": "Failed to export data. Please try again."
+  },
+  "reports": {
+    "title": "Reports & Analytics",
+    "today": "Today",
+    "last7Days": "Last 7 Days",
+    "thisMonth": "This Month",
+    "thisFY": "This FY",
+    "custom": "Custom",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "jobsIntake": "Repair Jobs Intake",
+    "jobsReceived": "Jobs Received",
+    "jobsDelivered": "Jobs Delivered",
+    "collections": "Collections (Cash Flow)",
+    "totalCollected": "Total Money Collected",
+    "revenue": "Invoiced Revenue",
+    "netRevenue": "Net Billed Revenue",
+    "profit": "Profit & Margins",
+    "partsCost": "Parts & Labor Cost",
+    "grossProfit": "Gross Profit",
+    "accessRestricted": "Access Restricted",
+    "noPermission": "You do not have permission to view store reports."
   }
 }

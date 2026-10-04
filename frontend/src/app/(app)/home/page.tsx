@@ -16,10 +16,12 @@ import {
   ChevronRight,
   Mail,
   RefreshCw,
+  Coins,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useAuthStore } from "@/lib/auth/store";
+import { useAuthStore, usePermission } from "@/lib/auth/store";
 import { todayIst } from "@/lib/format/date";
+import { formatPaise } from "@/lib/format/money";
 import { useDashboardSummary, useJobs } from "@/features/jobs/api";
 import { JobCard } from "@/features/jobs/components/JobCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,6 +31,7 @@ import { CheckImeiSheet } from "@/features/devices/CheckImeiSheet";
 export default function HomePage() {
   const t = useTranslations("home");
   const { user, pendingInvites } = useAuthStore();
+  const canViewReports = usePermission("reports.view_basic");
   const [stolenCheckOpen, setStolenCheckOpen] = React.useState(false);
 
   const today = todayIst();
@@ -187,6 +190,32 @@ export default function HomePage() {
           </Link>
         </div>
       </div>
+
+      {/* Today's Collection Card (gated to reports.view_basic) */}
+      {canViewReports && summary?.collected_today_paise !== null && summary?.collected_today_paise !== undefined && (
+        <Link
+          href="/more/reports/"
+          className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-card border border-neutral-200/90 dark:border-border shadow-sm hover:border-emerald-500/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <Coins className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+                Today&apos;s Collection
+              </p>
+              <p className="text-lg font-black text-neutral-900 dark:text-white tabular-nums">
+                {formatPaise(summary.collected_today_paise)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 text-xs font-semibold text-neutral-400">
+            <span>View Reports</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </Link>
+      )}
 
       {/* 3. Quick Operations Grid (8 Tiles) */}
       <div>

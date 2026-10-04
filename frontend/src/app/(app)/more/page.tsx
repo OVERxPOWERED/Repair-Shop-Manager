@@ -27,6 +27,10 @@ import {
   HelpCircle,
   Printer,
   FileSpreadsheet,
+  Wrench,
+  Tag,
+  PackageCheck,
+  MessageSquare,
 } from "lucide-react";
 import { useAuthStore, useCurrentShop } from "@/lib/auth/store";
 import { useLocaleStore } from "@/i18n/store";
@@ -205,7 +209,27 @@ export default function MorePage() {
         <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden divide-y divide-neutral-100">
           <MenuRow icon={Building} title={t("khata")} soon />
           <MenuRow icon={Receipt} title={t("expenses")} soon />
-          <MenuRow icon={BarChart3} title={t("reports")} soon />
+          <button
+            type="button"
+            onClick={() => router.push("/more/reports/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("reports")}</p>
+                <p className="text-[11px] text-neutral-500">Intake, revenue, collections and profit</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
           <MenuRow icon={ShieldCheck} title={t("gstReports")} soon />
         </div>
       </div>
@@ -262,13 +286,144 @@ export default function MorePage() {
         </div>
       </div>
 
-      {/* 5. Group: Business */}
+      {/* 5. Group: Shop Settings */}
       <div className="space-y-1.5">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-1">
           {t("business")}
         </h2>
         <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden divide-y divide-neutral-100">
-          <MenuRow icon={Store} title={t("shopProfile")} soon />
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/profile/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <Store className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("shopProfile")}</p>
+                <p className="text-[11px] text-neutral-500">Contact, address & logo</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/billing/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Billing & GST</p>
+                <p className="text-[11px] text-neutral-500">Taxes, invoice prefix, terms & UPI</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/jobs/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <Wrench className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Jobs & Workflow</p>
+                <p className="text-[11px] text-neutral-500">Delivery lock, warranty & tracking</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/brands/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <Tag className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Brand Catalog</p>
+                <p className="text-[11px] text-neutral-500">Device manufacturers and brands</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/accessories/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <PackageCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Accessories Checklist</p>
+                <p className="text-[11px] text-neutral-500">Items received with customer devices</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/messaging/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Messaging & Templates</p>
+                <p className="text-[11px] text-neutral-500">Automated SMS & WhatsApp copy</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.21
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
           <MenuRow icon={Building} title={t("branches")} soon />
         </div>
       </div>

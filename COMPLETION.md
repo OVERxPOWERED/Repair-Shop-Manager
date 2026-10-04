@@ -75,7 +75,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.18](#118-public-tracking-page) | Public tracking page | ✅ Done | 2026-10-03 |
 | 1 | [1.19](#119-messaging-templates-sms-adapter-message-log) | Messaging (templates, SMS adapter, message log) | ✅ Done | 2026-10-03 |
 | 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ✅ Done | 2026-10-03 |
-| 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ⬜ Not started | — |
+| 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ✅ Done | 2026-10-04 |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ⬜ Not started | — |
 | 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ⬜ Not started | — |
 | 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ⬜ Not started | — |
@@ -1219,17 +1219,22 @@ frontend next build (static export): 28/28 pages generated successfully
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-04 | 2026-10-04 | pending |
 
-- [ ] 1.21.1 Backend
-- [ ] 1.21.2 Frontend (`(app)/more/settings/...`)
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.21.1 Backend
+- [x] 1.21.2 Frontend (`(app)/more/settings/...`)
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+- pytest backend: 315 passed, 0 failures
+- ruff check backend/ && ruff format --check backend/: All checks passed! 189 files formatted
+- pnpm typecheck: 0 errors
+- pnpm lint: 0 warnings, 0 errors, i18n OK: 1035 keys in 3 locales
+- pnpm test: 138 passed across 21 test files
+- pnpm build: 35/35 static pages exported to out/
 ```
-**Notes:** —
+**Notes:** Added `default_terms` to `Shop` model (`apps/tenancy/models.py`) and migration `0006_shop_default_terms.py`. Added `logo_url` (signed/resolved URL) and `default_terms` to `ShopSerializer`. Implemented `POST /api/v1/shops/current/logo/` with thumbnail normalization (max 512 px, PNG alpha preserved), storage replacement, version increment, and audit logging. Created `GET /api/v1/reports/summary/?from=YYYY-MM-DD&to=YYYY-MM-DD` (`apps/core/reports.py`) with IST day boundaries, job intake counts, collections breakdown by mode (cash, UPI, card, bank) and refunds, invoiced revenue with credit notes, and `reports.view_profit`-gated parts cost and gross profit. Built frontend settings screens: Shop Profile (`/more/settings/profile/`) with logo upload and contact/address form; Billing & GST (`/more/settings/billing/`) with GSTIN validation, invoice prefix, round-off, terms, and UPI ID; Job Policies (`/more/settings/jobs/`) with delivery lock, engineer scoping, phone masking, warranty days, and tracking link expiry; Brand Catalog (`/more/settings/brands/`) with category tabs, add/edit modal, active switch, and delete confirmation; Accessories Checklist (`/more/settings/accessories/`) with defaults, sort order, and add/edit modal; Messaging & Templates (`/more/settings/messaging/`) with automatic SMS event triggers, TRAI DLT notice, and WhatsApp template editor with placeholder chips. Built Reports Dashboard (`/more/reports/`) with range chips (Today, 7D, Month, FY, Custom), job counts, collections breakdown, revenue, and profit cards (gated). Added Today's Collection card to Home dashboard (`(app)/home/page.tsx`). Concurrency protection with `If-Match` and 409 reload banners implemented across all settings forms. Fully localized in `en`, `hi`, and `hi-Latn`.
 
 ## 1.22 Translation completion and accessibility
 
