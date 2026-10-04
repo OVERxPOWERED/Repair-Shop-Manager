@@ -1,6 +1,8 @@
 import re
 
 from django.db.models import Q
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from apps.audit.services import record_audit, snapshot
 from apps.core.api.concurrency import save_with_version
@@ -42,6 +44,7 @@ class CustomerViewSet(ShopScopedViewSet):
         "update": "customers.edit",
         "partial_update": "customers.edit",
         "destroy": "customers.delete",
+        "anonymize": "customers.delete",
         "list_trash": "customers.delete",
         "restore": "customers.delete",
         "destroy_permanent": "data.bulk_delete",
@@ -181,3 +184,41 @@ class CustomerViewSet(ShopScopedViewSet):
             request=self.request,
             before=before,
         )
+
+    @action(detail=True, methods=["post"], url_path="anonymize")
+    def anonymize(self, request, pk=None):
+        customer = self.get_object()
+        before = customer_audit_snapshot(customer)
+
+        customer.name = "Anonymized Customer"
+        customer.phone = None
+        customer.alt_phone = ""
+        customer.email = ""
+        customer.address = ""
+        customer.notes = ""
+        customer.whatsapp_opt_in = False
+        customer.sms_opt_in = False
+        customer.soft_delete()
+        customer.save(
+            update_fields=[
+                "name",
+                "phone",
+                "alt_phone",
+                "email",
+                "address",
+                "notes",
+                "whatsapp_opt_in",
+                "sms_opt_in",
+                "deleted_at",
+                "updated_at",
+            ]
+        )
+
+        record_audit(
+            action="customer.anonymized",
+            entity=customer,
+            request=request,
+            before=before,
+            after={"name": customer.name, "phone": None},
+        )
+        return Response(CustomerSerializer(customer, context={"request": request}).data)

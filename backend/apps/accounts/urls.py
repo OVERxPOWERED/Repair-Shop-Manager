@@ -11,4 +11,5 @@ urlpatterns = [
     path("auth/logout-all/", views.LogoutAllView.as_view(), name="auth-logout-all"),
     path("auth/devices/", views.DeviceListView.as_view(), name="auth-devices"),
     path("auth/devices/<uuid:pk>/", views.DeviceRevokeView.as_view(), name="auth-device-revoke"),
+    path("auth/account-deletion/", views.AccountDeletionView.as_view(), name="auth-account-deletion"),
 ]

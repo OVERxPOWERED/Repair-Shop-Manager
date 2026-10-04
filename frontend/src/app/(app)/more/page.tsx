@@ -35,7 +35,8 @@ import {
 import { useAuthStore, useCurrentShop } from "@/lib/auth/store";
 import { useLocaleStore } from "@/i18n/store";
 import { localeLabels, locales, type Locale } from "@/i18n/config";
-import { api } from "@/lib/api/client";
+import { api, ApiError } from "@/lib/api/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -56,6 +57,16 @@ type Device = {
   is_current: boolean;
 };
 
+type AccountDeletion = {
+  id: string;
+  user_phone: string;
+  user_name: string;
+  requested_at: string;
+  scheduled_for: string;
+  status: "pending" | "completed" | "cancelled";
+  reason: string;
+};
+
 export default function MorePage() {
   const t = useTranslations("more");
   const router = useRouter();
@@ -70,6 +81,54 @@ export default function MorePage() {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [logoutAllConfirmOpen, setLogoutAllConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Deletion status query
+  const { data: deletionStatus, refetch: refetchDeletion } = useQuery<AccountDeletion | null>({
+    queryKey: ["auth", "account-deletion"],
+    queryFn: () => api<AccountDeletion | null>("/auth/account-deletion/", { shop: false }),
+  });
+
+  // Request deletion mutation
+  const requestDeletionMutation = useMutation({
+    mutationFn: (reason: string) =>
+      api<AccountDeletion>("/auth/account-deletion/", {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+        shop: false,
+      }),
+    onSuccess: async () => {
+      toast.success(t("deleteAccountTitle"));
+      setDeleteDialogOpen(false);
+      await refetchDeletion();
+      await signOut();
+      queryClient.clear();
+      router.replace("/welcome/");
+    },
+    onError: (err: unknown) => {
+      if (err instanceof ApiError) {
+        setDeleteError(err.message);
+      } else {
+        setDeleteError("Failed to submit deletion request.");
+      }
+    },
+  });
+
+  // Cancel deletion mutation
+  const cancelDeletionMutation = useMutation({
+    mutationFn: () => api("/auth/account-deletion/", { method: "DELETE", shop: false }),
+    onSuccess: async () => {
+      toast.success(t("cancelDeletionSuccess"));
+      await refetchDeletion();
+      setDeleteDialogOpen(false);
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof ApiError ? err.message : "Failed to cancel deletion.";
+      toast.error(msg);
+    },
+  });
 
   // Devices query
   const {
@@ -567,6 +626,76 @@ export default function MorePage() {
             </div>
             <ChevronRight className="w-4 h-4 text-rose-300" />
           </button>
+
+          {/* Delete Account */}
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError(null);
+              setDeleteDialogOpen(true);
+            }}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-500">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold text-neutral-900">{t("deleteAccount")}</span>
+                  {deletionStatus?.status === "pending" && (
+                    <Badge variant="destructive" className="text-[9px] font-bold px-1.5 py-0">
+                      Pending
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-[11px] text-neutral-500">{t("deleteAccountSubtitle")}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-neutral-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* 8. Group: Legal & Support */}
+      <div className="space-y-1.5">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-1">
+          {t("legalAndSupport")}
+        </h2>
+        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden divide-y divide-neutral-100">
+          <button
+            type="button"
+            onClick={() => router.push("/privacy/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("privacyPolicy")}</p>
+                <p className="text-[11px] text-neutral-500">{t("privacyPolicySubtitle")}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-neutral-400" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/terms/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("termsOfService")}</p>
+                <p className="text-[11px] text-neutral-500">{t("termsOfServiceSubtitle")}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-neutral-400" />
+          </button>
         </div>
       </div>
 
@@ -792,6 +921,126 @@ export default function MorePage() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Account Deletion Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-neutral-900">
+              {deletionStatus?.status === "pending"
+                ? t("deletionScheduledTitle")
+                : t("deleteAccountTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              {deletionStatus?.status === "pending"
+                ? t("deletionScheduledDesc", {
+                    requestedAt: new Date(deletionStatus.requested_at).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    }),
+                    scheduledFor: new Date(deletionStatus.scheduled_for).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    }),
+                  })
+                : t("deleteAccountDesc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {deletionStatus?.status === "pending" ? (
+            <div className="space-y-4 py-2">
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900 space-y-1">
+                <p className="font-semibold">7-Day Grace Period Active</p>
+                <p className="text-[11px] text-amber-700">
+                  Your account is scheduled for anonymization. You can cancel this request anytime before the scheduled date.
+                </p>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                  className="rounded-xl text-xs"
+                >
+                  Close
+                </Button>
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => cancelDeletionMutation.mutate()}
+                  disabled={cancelDeletionMutation.isPending}
+                  className="rounded-xl text-xs font-bold"
+                >
+                  {cancelDeletionMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    t("cancelDeletion")
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="rounded-2xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-900">
+                <p className="text-[11px] text-rose-700 leading-relaxed">
+                  {t("deleteAccountWarning")}
+                </p>
+              </div>
+
+              {deleteError && (
+                <div className="rounded-2xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>{deleteError}</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-neutral-700">
+                  {t("deleteAccountReasonLabel")}
+                </label>
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder={t("deleteAccountReasonPlaceholder")}
+                  rows={2}
+                  className="w-full text-xs p-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
+                />
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                  disabled={requestDeletionMutation.isPending}
+                  className="rounded-xl text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => requestDeletionMutation.mutate(deleteReason)}
+                  disabled={requestDeletionMutation.isPending}
+                  className="rounded-xl text-xs font-bold"
+                >
+                  {requestDeletionMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      {t("deleteAccountSubmitting")}
+                    </>
+                  ) : (
+                    t("deleteAccountSubmit")
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

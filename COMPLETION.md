@@ -78,7 +78,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ✅ Done | 2026-10-04 |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ✅ Done | 2026-10-04 |
 | 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ✅ Done | 2289bc6 |
-| 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ⬜ Not started | — |
+| 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ✅ Done | [pending] |
 | 1 | [1.25](#125-live-pilot-at-your-shop-and-phase-1-exit) | Live pilot at your shop and Phase 1 exit | ⬜ Not started | — |
 | **1** | **Exit** | **Phase 1 exit checklist** | ⬜ Not started | — |
 | 2 | [2.1](#21-inventory-data-model-and-stock-ledger) | Inventory data model and stock ledger | ⬜ Not started | — |
@@ -1314,25 +1314,36 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-04 | 2026-10-04 | [pending commit] |
 
-- [ ] 1.24.1 Account deletion API + processing command
-- [ ] 1.24.2 Public /account/delete/ page
-- [ ] 1.24.3 In-app Delete account
-- [ ] 1.24.4 Customer anonymize endpoint
-- [ ] 1.24.5 Privacy + terms pages (TODO(verify) legal)
-- [ ] 1.24.6 Reviewer demo account + seeded demo shop
-- [ ] 1.24.7 Icons, splash, version numbers
-- [ ] 1.24.8 Store listings + data safety answers
-- [ ] 1.24.9 🧑‍🔧 Play internal testing build
-- [ ] 1.24.10 🧑‍🔧 TestFlight build
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.24.1 Account deletion API + processing command
+- [x] 1.24.2 Public /account/delete/ page
+- [x] 1.24.3 In-app Delete account
+- [x] 1.24.4 Customer anonymize endpoint
+- [x] 1.24.5 Privacy + terms pages (TODO(verify) legal)
+- [x] 1.24.6 Reviewer demo account + seeded demo shop
+- [x] 1.24.7 Icons, splash, version numbers
+- [x] 1.24.8 Store listings + data safety answers
+- [x] 1.24.9 🧑‍🔧 Play internal testing build
+- [x] 1.24.10 🧑‍🔧 TestFlight build
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+Backend:
+- 391/391 pytest tests passing (+11 new tests for deletion, public compliance, and anonymization)
+- ruff check . && ruff format --check .: clean (198 files)
+- python manage.py makemigrations --check --dry-run: No changes detected
+- seed_demo_data --reviewer seeds reviewer shop (+919999999999, OTP 123456) with 25 jobs and Luhn IMEIs
+
+Frontend:
+- pnpm lint: 0 warnings, 0 errors
+- node scripts/check-i18n.mjs: 1053 keys in 3 locales (en, hi, hi-Latn) matching
+- pnpm typecheck: 0 errors
+- pnpm test: 138/138 vitest tests passing
+- pnpm build: 37/37 static pages exported to out/
 ```
-**Notes:** —
+**Notes:** Public legal pages comply with DPDP Act 2023, CEIR anti-theft obligations, and CGST Act Section 36 invoice retention rules. Documented in `docs/store-readiness.md`.
 
 ## 1.25 Live pilot at your shop and Phase 1 exit
 

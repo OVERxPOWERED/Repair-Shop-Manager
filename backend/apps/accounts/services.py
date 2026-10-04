@@ -13,7 +13,7 @@ from django.utils import timezone
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.accounts.models import OTPChallenge, User, UserDevice
+from apps.accounts.models import AccountDeletionRequest, OTPChallenge, User, UserDevice
 from apps.core.api.errors import DomainError
 from apps.core.sms import get_sms_provider
 
@@ -146,3 +146,134 @@ def logout_everywhere(user: User) -> None:
 def purge_old_otp_challenges(days: int = 7) -> int:
     deleted, _ = OTPChallenge.objects.filter(created_at__lt=timezone.now() - timedelta(days=days)).delete()
     return deleted
+
+
+DELETION_GRACE_PERIOD_DAYS = 7
+
+
+def request_account_deletion(
+    *, user: User, reason: str = "", grace_days: int = DELETION_GRACE_PERIOD_DAYS
+) -> AccountDeletionRequest:
+    """
+    Submits an account deletion request with a grace period.
+    Rejects request if user is the sole owner of an active shop with other active staff members.
+    """
+    from apps.tenancy.models import Membership, Role
+
+    owner_role = Role.objects.filter(organization=None, name="Owner").first()
+    if owner_role:
+        user_owner_memberships = Membership.objects.filter(
+            user=user,
+            role=owner_role,
+            status=Membership.StatusChoices.ACTIVE,
+        )
+        for m in user_owner_memberships:
+            other_active_owners = (
+                Membership.objects.filter(
+                    shop=m.shop,
+                    role=owner_role,
+                    status=Membership.StatusChoices.ACTIVE,
+                )
+                .exclude(user=user)
+                .exists()
+            )
+            if not other_active_owners:
+                other_staff = (
+                    Membership.objects.filter(
+                        shop=m.shop,
+                        status=Membership.StatusChoices.ACTIVE,
+                    )
+                    .exclude(user=user)
+                    .exists()
+                )
+                if other_staff:
+                    raise DomainError(
+                        f"Cannot delete account: You are the sole owner of '{m.shop.name}' with active staff members. "
+                        "Please transfer shop ownership first.",
+                        code="accounts.sole_owner_conflict",
+                        status=409,
+                    )
+
+    now = timezone.now()
+    scheduled_for = now + timedelta(days=grace_days)
+
+    with transaction.atomic():
+        existing = AccountDeletionRequest.objects.filter(
+            user=user, status=AccountDeletionRequest.StatusChoices.PENDING
+        ).first()
+        if existing:
+            return existing
+
+        req = AccountDeletionRequest.objects.create(
+            user=user,
+            requested_at=now,
+            scheduled_for=scheduled_for,
+            status=AccountDeletionRequest.StatusChoices.PENDING,
+            reason=reason,
+        )
+    return req
+
+
+def cancel_account_deletion(*, user: User) -> AccountDeletionRequest:
+    """Cancels a pending account deletion request during grace period."""
+    with transaction.atomic():
+        req = (
+            AccountDeletionRequest.objects.select_for_update()
+            .filter(user=user, status=AccountDeletionRequest.StatusChoices.PENDING)
+            .first()
+        )
+        if not req:
+            raise DomainError(
+                "No pending account deletion request found.",
+                code="accounts.no_pending_deletion",
+                status=404,
+            )
+        req.status = AccountDeletionRequest.StatusChoices.CANCELLED
+        req.save(update_fields=["status"])
+    return req
+
+
+def execute_account_deletion(*, request_obj: AccountDeletionRequest) -> None:
+    """
+    Executes actual deletion/anonymization of the user.
+    - Anonymizes phone and name
+    - Revokes all sessions, devices, and auth tokens
+    - Sets user.is_active = False, user.deleted_at = now
+    - Marks deletion request completed
+    """
+    now = timezone.now()
+    user = request_obj.user
+    with transaction.atomic():
+        logout_everywhere(user)
+        anon_phone = f"+00{uuid.uuid4().hex[:12]}"
+        user.phone = anon_phone
+        user.name = "Deleted User"
+        user.is_active = False
+        user.deleted_at = now
+        user.save(update_fields=["phone", "name", "is_active", "deleted_at"])
+
+        from apps.tenancy.models import Membership
+
+        Membership.objects.filter(user=user).update(status=Membership.StatusChoices.REMOVED)
+
+        request_obj.status = AccountDeletionRequest.StatusChoices.COMPLETED
+        request_obj.completed_at = now
+        request_obj.save(update_fields=["status", "completed_at"])
+
+
+def process_due_account_deletions() -> int:
+    """Processes all pending account deletion requests whose scheduled_for time has passed."""
+    now = timezone.now()
+    due_requests = AccountDeletionRequest.objects.filter(
+        status=AccountDeletionRequest.StatusChoices.PENDING,
+        scheduled_for__lte=now,
+    ).select_related("user")
+
+    processed = 0
+    for req in due_requests:
+        try:
+            execute_account_deletion(request_obj=req)
+            processed += 1
+        except Exception as e:
+            logger.exception("Failed to execute account deletion %s: %s", req.id, e)
+    return processed

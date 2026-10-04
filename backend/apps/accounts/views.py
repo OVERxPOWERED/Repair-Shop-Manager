@@ -5,8 +5,10 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from apps.accounts.models import UserDevice
+from apps.accounts.models import AccountDeletionRequest, UserDevice
 from apps.accounts.serializers import (
+    AccountDeletionRequestSerializer,
+    CreateAccountDeletionRequestSerializer,
     DeviceSerializer,
     ProfileUpdateSerializer,
     SendOTPSerializer,
@@ -16,7 +18,9 @@ from apps.accounts.serializers import (
 )
 from apps.accounts.services import (
     OTP_COOLDOWN_SECONDS,
+    cancel_account_deletion,
     logout_everywhere,
+    request_account_deletion,
     revoke_device,
     send_otp,
     verify_otp_and_login,
@@ -168,3 +172,54 @@ class DeviceRevokeView(APIView):
         )
         revoke_device(device)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AccountDeletionView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(
+        responses={200: AccountDeletionRequestSerializer},
+        summary="Check active account deletion request",
+    )
+    def get(self, request):
+        pending = AccountDeletionRequest.objects.filter(
+            user=request.user, status=AccountDeletionRequest.StatusChoices.PENDING
+        ).first()
+        if not pending:
+            return Response(None)
+        return Response(AccountDeletionRequestSerializer(pending).data)
+
+    @extend_schema(
+        request=CreateAccountDeletionRequestSerializer,
+        responses={201: AccountDeletionRequestSerializer},
+        summary="Request account deletion",
+    )
+    def post(self, request):
+        s = CreateAccountDeletionRequestSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        reason = s.validated_data.get("reason", "")
+        req = request_account_deletion(user=request.user, reason=reason)
+        record_audit(
+            action="auth.account_deletion_requested",
+            entity=req,
+            request=request,
+            actor=request.user,
+            shop=None,
+            after={"reason": reason, "scheduled_for": str(req.scheduled_for)},
+        )
+        return Response(AccountDeletionRequestSerializer(req).data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        responses={200: AccountDeletionRequestSerializer},
+        summary="Cancel pending account deletion request",
+    )
+    def delete(self, request):
+        req = cancel_account_deletion(user=request.user)
+        record_audit(
+            action="auth.account_deletion_cancelled",
+            entity=req,
+            request=request,
+            actor=request.user,
+            shop=None,
+        )
+        return Response(AccountDeletionRequestSerializer(req).data)

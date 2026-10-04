@@ -5,7 +5,7 @@ Serializers for accounts and authentication.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from apps.accounts.models import UserDevice
+from apps.accounts.models import AccountDeletionRequest, UserDevice
 from apps.core.phone import normalize_phone as _normalize
 
 User = get_user_model()
@@ -114,3 +114,14 @@ def my_shops(user):
         .order_by("shop__name")
     )
     return MyShopSerializer(memberships, many=True).data
+
+
+class AccountDeletionRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccountDeletionRequest
+        fields = ("id", "requested_at", "scheduled_for", "status", "completed_at", "reason")
+        read_only_fields = ("id", "requested_at", "scheduled_for", "status", "completed_at")
+
+
+class CreateAccountDeletionRequestSerializer(serializers.Serializer):
+    reason = serializers.CharField(required=False, allow_blank=True, max_length=500, default="")

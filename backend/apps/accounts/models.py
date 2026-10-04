@@ -90,6 +90,7 @@ class OTPChallenge(UUIDModel):
     class PurposeChoices(models.TextChoices):
         LOGIN = "login", _("Login")
         PHONE_CHANGE = "phone_change", _("Phone Change")
+        DELETE_ACCOUNT = "delete_account", _("Delete Account")
 
     phone = models.CharField(max_length=16, db_index=True)
     code_hash = models.CharField(max_length=128, help_text="Hashed OTP code")

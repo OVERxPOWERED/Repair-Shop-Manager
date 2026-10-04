@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FixPro - Account Deletion / खाता हटाने का अनुरोध</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      padding: 32px 24px;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .brand {
+      font-weight: 900;
+      font-size: 1.25rem;
+      color: #2563eb;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 0.875rem;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .notice {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.8125rem;
+      color: #1e40af;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .notice ul {
+      margin-left: 18px;
+      margin-top: 6px;
+    }
+    .notice li {
+      margin-bottom: 4px;
+    }
+    .alert-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 12px;
+      color: #b91c1c;
+      font-size: 0.8125rem;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .alert-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 16px;
+      color: #15803d;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.9375rem;
+      color: #0f172a;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .btn {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: #ffffff;
+    }
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+    .link {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 0.8125rem;
+      color: #64748b;
+      text-decoration: none;
+    }
+    .link:hover {
+      color: #0f172a;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <span>🔧 FixPro</span>
+    </div>
+
+    {% if step == "completed" %}
+      <div class="alert-success">
+        <h2 style="font-size: 1.125rem; font-weight: 800; margin-bottom: 8px;">Deletion Request Received / अनुरोध दर्ज हो गया</h2>
+        <p>Your account deletion request has been submitted.</p>
+        <p style="margin-top: 8px;">Scheduled for permanent anonymization on:<br><strong>{{ scheduled_for|date:"d M Y, H:i" }}</strong></p>
+        <p style="margin-top: 12px; font-size: 0.75rem; color: #166534;">
+          <strong>7-Day Grace Period:</strong> You have been logged out of all devices. If you change your mind, simply log in using your phone number within 7 days to cancel this request.
+        </p>
+      </div>
+      <a href="/" class="link">Return to Home</a>
+
+    {% elif step == "verify" %}
+      <h1>Verify Account Deletion / पुष्टि करें</h1>
+      <p class="subtitle">Enter the 6-digit code sent to <strong>{{ phone }}</strong></p>
+
+      {% if error %}
+        <div class="alert-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/account/delete/">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="confirm">
+        <input type="hidden" name="phone" value="{{ phone }}">
+
+        <div class="form-group">
+          <label for="code">6-Digit Verification Code (OTP) / सत्यापन कोड</label>
+          <input type="text" id="code" name="code" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" autofocus>
+        </div>
+
+        <div class="form-group">
+          <label for="reason">Reason for leaving (Optional) / खाता हटाने का कारण</label>
+          <textarea id="reason" name="reason" rows="2" placeholder="e.g. Closed my shop / Using another tool"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-danger">Confirm Account Deletion / खाता स्थायी रूप से हटाएं</button>
+      </form>
+      <a href="/account/delete/" class="link">← Back / Use different phone number</a>
+
+    {% else %}
+      <h1>Request Account Deletion / खाता हटाएं</h1>
+      <p class="subtitle">Permanently delete your FixPro technician or store account.</p>
+
+      <div class="notice">
+        <strong>Important Data Privacy Notice / महत्वपूर्ण सूचना:</strong>
+        <ul>
+          <li>Your personal phone number and display name will be permanently anonymized.</li>
+          <li>Historical business invoices and financial audit logs will be retained in read-only form as required by Indian GST / accounting regulations.</li>
+          <li>A 7-day grace period is provided. Logging in within 7 days cancels the deletion request.</li>
+        </ul>
+      </div>
+
+      {% if error %}
+        <div class="alert-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/account/delete/">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="send_otp">
+
+        <div class="form-group">
+          <label for="phone">Registered Mobile Number / पंजीकृत मोबाइल नंबर</label>
+          <input type="tel" id="phone" name="phone" required placeholder="+919876543210" value="{{ phone|default:'' }}" autofocus>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send Verification Code / कोड भेजें</button>
+      </form>
+      <a href="/privacy/" class="link">View Privacy Policy</a>
+    {% endif %}
+  </div>
+</body>
+</html>

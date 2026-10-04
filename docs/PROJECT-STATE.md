@@ -2,12 +2,40 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.24 (Privacy, account deletion and store readiness)  **Last updated:** 2026-10-04
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.25 (Live pilot at your shop and Phase 1 exit)  **Last updated:** 2026-10-04
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Privacy, Account Deletion and Store Readiness (Subphase 1.24):**
+  - Account Deletion Backend Lifecycle:
+    - Extended `OTPChallenge.PurposeChoices` with `DELETE_ACCOUNT = "delete_account"` and applied database migration `0002_alter_otpchallenge_purpose.py`.
+    - Implemented `AccountDeletionRequestSerializer` and `CreateAccountDeletionRequestSerializer` in `apps/accounts/serializers.py`.
+    - Added deletion lifecycle services in `apps/accounts/services.py`: `request_account_deletion` (verifies sole owner constraint with active staff before accepting, 7-day grace period), `cancel_account_deletion`, `execute_account_deletion` (anonymizes phone to `+00{hex}`, display name to `Deleted User`, soft deletes user, revokes device tokens, marks memberships removed), and `process_due_account_deletions`.
+    - Implemented `AccountDeletionView` (`GET`, `POST`, `DELETE` at `/api/v1/auth/account-deletion/`).
+    - Implemented scheduled management command `apps/accounts/management/commands/process_account_deletions.py`.
+    - Comprehensive unit tests in `apps/accounts/tests/test_deletion.py` all passing.
+  - Customer Anonymization Endpoint:
+    - Added `@action(detail=True, methods=["post"], url_path="anonymize")` to `CustomerViewSet` (`apps/customers/views.py`) requiring `customers.delete` permission.
+    - Anonymizes customer PII (name -> `Anonymized Customer`, phone -> `null`, blanks email, address, notes, soft deletes) while strictly preserving foreign key integrity for jobs and issued tax invoices.
+    - Integration tests in `apps/customers/tests/test_anonymize.py` passing (permission checks, cross-shop isolation, invoice preservation).
+  - Public Compliance Web Pages:
+    - Implemented public views in `apps/accounts/public_views.py` wired in `config/urls.py` (`/account/delete/`, `/privacy/`, `/terms/`).
+    - Multi-step server-rendered responsive templates with DPDP Act 2023 compliance, CEIR anti-theft obligations, OTP verification, and 7-day grace period cancellation notice.
+    - Public compliance test suite in `apps/accounts/tests/test_public_pages.py` all passing.
+  - In-App UI & Navigation:
+    - Added Delete Account action in `frontend/src/app/(app)/more/page.tsx` with confirmation modal, reason input, 7-day grace period explanation, and pending cancellation button.
+    - Created in-app static pages `frontend/src/app/privacy/page.tsx` and `frontend/src/app/terms/page.tsx`.
+    - Added localized strings across `en`, `hi`, and `hi-Latn` (1,053/1,053 keys verified by `pnpm i18n:check`).
+  - Store Readiness & Reviewer Demo:
+    - Configured official reviewer demo credentials (`+919999999999`, OTP `123456`).
+    - Enhanced `seed_demo_data` command with `--reviewer` flag to seed realistic demo repair shop, devices, valid Luhn IMEIs, and jobs.
+    - Documented store listings, Google Play Data Safety answers, App Store privacy nutrition labels, and mobile native permission rationales in `docs/store-readiness.md`.
+  - Verification:
+    - 391/391 backend pytest tests passing (+11 deletion & public compliance tests).
+    - ruff check and ruff format clean across 198 files.
+    - 138/138 frontend vitest tests passing, 0 ESLint warnings/errors, 37/37 static pages exported to `out/`.
 - **Security and Performance Hardening (Subphase 1.23):**
   - Permission Matrix & Tenant Isolation:
     - Implemented exhaustive 4-role permission matrix test suite in `backend/apps/core/tests/test_permission_matrix.py` verifying 44 endpoints against all default system roles (Owner, Manager, Front Desk, Engineer). Proves 403 on lacking permission and non-403 when possessed.

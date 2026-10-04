@@ -111,13 +111,23 @@ class Command(BaseCommand):
         parser.add_argument(
             "--phone", type=str, default="+919876543210", help="Owner phone number (default: +919876543210)"
         )
+        parser.add_argument(
+            "--reviewer",
+            action="store_true",
+            help="Seed official App Store / Google Play reviewer account (+919999999999, OTP 123456)",
+        )
 
     def handle(self, *args, **options):
-        job_count = options["jobs"]
-        shop_name = options["shop_name"]
-        owner_phone = options["phone"]
+        if options["reviewer"]:
+            job_count = options["jobs"] if options["jobs"] != 100 else 25
+            shop_name = "FixPro Reviewer Demo"
+            owner_phone = "+919999999999"
+        else:
+            job_count = options["jobs"]
+            shop_name = options["shop_name"]
+            owner_phone = options["phone"]
 
-        self.stdout.write(f"Seeding demo data with {job_count} jobs for '{shop_name}'...")
+        self.stdout.write(f"Seeding demo data with {job_count} jobs for '{shop_name}' ({owner_phone})...")
 
         seed_system_roles()
 
@@ -127,30 +137,35 @@ class Command(BaseCommand):
                 defaults={"name": "Demo Owner", "preferred_locale": "en", "is_active": True},
             )
 
-            org, _ = Organization.objects.get_or_create(
-                owner_user=owner_user,
-                defaults={"name": f"{shop_name} Org"},
-            )
+            org = Organization.objects.filter(owner_user=owner_user).first()
+            if not org:
+                org = Organization.objects.create(
+                    owner_user=owner_user,
+                    name=f"{shop_name} Org",
+                )
 
-            shop, _ = Shop.objects.get_or_create(
-                organization=org,
-                name=shop_name,
-                defaults={
-                    "shop_type": "mobile",
-                    "phone": owner_phone,
-                    "city": "Indore",
-                    "state_code": "23",
-                    "pincode": "452001",
-                    "address_line1": "Shop 4, MG Road Market",
-                },
-            )
+            shop = Shop.objects.filter(organization=org, name=shop_name).first()
+            if not shop:
+                shop = Shop.objects.create(
+                    organization=org,
+                    name=shop_name,
+                    shop_type="mobile",
+                    phone=owner_phone,
+                    city="Indore",
+                    state_code="23",
+                    pincode="452001",
+                    address_line1="Shop 4, MG Road Market",
+                )
 
             owner_role = Role.objects.get(organization=None, name="Owner")
-            Membership.objects.get_or_create(
-                shop=shop,
-                user=owner_user,
-                defaults={"role": owner_role, "status": Membership.StatusChoices.ACTIVE},
-            )
+            membership = Membership.objects.filter(shop=shop, user=owner_user).first()
+            if not membership:
+                Membership.objects.create(
+                    shop=shop,
+                    user=owner_user,
+                    role=owner_role,
+                    status=Membership.StatusChoices.ACTIVE,
+                )
 
             # Seed Shop Brands
             brand_map = {}
