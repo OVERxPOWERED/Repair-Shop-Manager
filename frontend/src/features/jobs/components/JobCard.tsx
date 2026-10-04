@@ -56,7 +56,7 @@ export function JobCard({ job, className }: JobCardProps) {
           <p className="font-semibold text-neutral-950 dark:text-neutral-50 truncate">
             {job.customer.name}
           </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+          <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 truncate mt-0.5">
             {firstLineFault || "Repair inquiry"}
           </p>
         </div>
@@ -65,12 +65,12 @@ export function JobCard({ job, className }: JobCardProps) {
             {brandAndModel || "Device"}
           </p>
           {job.expected_date ? (
-            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5 flex items-center justify-end gap-1">
-              <Clock className="w-3 h-3 text-neutral-400" />
+            <p className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mt-0.5 flex items-center justify-end gap-1">
+              <Clock className="w-3 h-3 text-neutral-500" />
               <span>{formatDate(job.expected_date, locale)}</span>
             </p>
           ) : (
-            <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+            <p className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mt-0.5">
               {formatDate(job.created_at, locale)}
             </p>
           )}
@@ -85,20 +85,20 @@ export function JobCard({ job, className }: JobCardProps) {
               {formatPaise(job.estimate_paise)}
             </span>
           ) : (
-            <span className="text-neutral-400 text-[11px]">
+            <span className="text-neutral-600 dark:text-neutral-400 font-medium text-[11px]">
               {formatDate(job.created_at, locale)}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1 text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+        <div className="flex items-center gap-1 text-[11px] text-neutral-600 dark:text-neutral-400 font-medium">
           {job.assigned_to ? (
             <span className="flex items-center gap-1 truncate max-w-[140px]">
-              <User className="w-3 h-3 text-neutral-400 shrink-0" />
+              <User className="w-3 h-3 text-neutral-500 shrink-0" />
               <span className="truncate">{job.assigned_to.display_name}</span>
             </span>
           ) : (
-            <span className="text-neutral-400 italic">{t("list.unassigned")}</span>
+            <span className="text-neutral-600 dark:text-neutral-400 italic font-medium">{t("list.unassigned")}</span>
           )}
           <ChevronRight className="w-3.5 h-3.5 text-neutral-400 ml-0.5" />
         </div>

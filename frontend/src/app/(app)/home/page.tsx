@@ -89,7 +89,7 @@ export default function HomePage() {
           <h1 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-neutral-50">
             {greeting}, {firstName}
           </h1>
-          <p className="text-xs text-neutral-500 mt-0.5">Let&apos;s keep your shop running smoothly.</p>
+          <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300 mt-0.5">Let&apos;s keep your shop running smoothly.</p>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -202,7 +202,7 @@ export default function HomePage() {
               <Coins className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+              <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-300 uppercase tracking-wider">
                 Today&apos;s Collection
               </p>
               <p className="text-lg font-black text-neutral-900 dark:text-white tabular-nums">
@@ -210,7 +210,7 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-neutral-400">
+          <div className="flex items-center gap-1 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
             <span>View Reports</span>
             <ChevronRight className="w-4 h-4" />
           </div>
@@ -219,7 +219,7 @@ export default function HomePage() {
 
       {/* 3. Quick Operations Grid (8 Tiles) */}
       <div>
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2.5">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-2.5">
           {t("quickActions")}
         </h2>
         <div className="grid grid-cols-4 gap-2.5">
@@ -325,7 +325,7 @@ export default function HomePage() {
       {/* 4. Recent Job Sheets Section */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
             {t("recentJobs")}
           </h2>
           {recentJobs.length > 0 && (
@@ -346,11 +346,11 @@ export default function HomePage() {
           </div>
         ) : recentJobs.length === 0 ? (
           <div className="p-6 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/20 flex flex-col items-center justify-center text-center">
-            <Wrench className="h-8 w-8 text-neutral-300 dark:text-neutral-600 stroke-[1.5] mb-2" />
+            <Wrench className="h-8 w-8 text-neutral-400 dark:text-neutral-500 stroke-[1.5] mb-2" />
             <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
               {t("noRecentJobs")}
             </p>
-            <p className="text-[11px] text-neutral-400 mt-0.5 max-w-xs">
+            <p className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mt-0.5 max-w-xs">
               {t("noRecentJobsDesc")}
             </p>
             <Link href="/jobs/new/" className="mt-3">

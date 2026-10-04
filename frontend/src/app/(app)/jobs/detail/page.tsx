@@ -265,7 +265,7 @@ function JobDetailContent() {
         <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
           Job Sheet Not Found
         </h2>
-        <p className="text-xs text-neutral-500 max-w-xs mx-auto">
+        <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300 max-w-xs mx-auto">
           The requested repair job could not be found or you may not have permission to view it.
         </p>
         <Link href="/jobs/">

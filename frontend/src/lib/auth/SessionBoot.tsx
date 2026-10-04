@@ -71,7 +71,7 @@ export function SessionBoot({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex flex-col items-center gap-1 text-center">
             <h1 className="text-2xl font-bold tracking-tight">FixPro</h1>
-            <p className="text-sm text-muted-foreground animate-pulse">Setting things up…</p>
+            <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 animate-pulse">Setting things up…</p>
           </div>
         </div>
       </div>

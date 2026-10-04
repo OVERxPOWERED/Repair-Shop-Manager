@@ -86,25 +86,25 @@ export default function LoginPage() {
 
         {/* Title & Prompt */}
         <div className="mt-4 space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-950">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-950 dark:text-white">
             {t("phoneTitle")}
           </h1>
-          <p className="text-sm text-neutral-500">{t("phoneSubtitle")}</p>
+          <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t("phoneSubtitle")}</p>
         </div>
 
         {/* Phone Display Box */}
         <div className="mt-8 flex flex-col items-center">
           <div className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl border-2 border-neutral-200 bg-neutral-50/50">
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-neutral-200 text-sm font-bold text-neutral-800 shadow-sm">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-neutral-200 text-sm font-bold text-neutral-900 shadow-sm">
               <span>🇮🇳</span>
-              <span>+91</span>
+              <span className="text-neutral-900 font-bold">+91</span>
             </span>
 
             <div className="text-2xl sm:text-3xl font-bold tracking-wider tabular-nums min-h-[36px] flex items-center">
               {digits ? (
-                <span className="text-neutral-950">{formattedDisplay()}</span>
+                <span className="text-neutral-950 dark:text-white">{formattedDisplay()}</span>
               ) : (
-                <span className="text-neutral-300">00000 00000</span>
+                <span className="text-neutral-600 font-bold" aria-hidden="true">00000 00000</span>
               )}
             </div>
           </div>

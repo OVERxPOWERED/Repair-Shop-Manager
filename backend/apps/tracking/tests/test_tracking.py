@@ -281,3 +281,31 @@ def test_security_headers(tracking_setup):
     assert res["X-Robots-Tag"] == "noindex, nofollow"
     assert "private" in res["Cache-Control"]
     assert res["Referrer-Policy"] == "no-referrer"
+
+
+def test_tracking_strings_completeness_across_all_locales():
+    """Verify that every tracking page string and status has translations in hi and hi-Latn."""
+    from apps.messaging.models import MessageTemplate
+    from apps.tracking.strings import STRINGS
+
+    en_strings = STRINGS["en"]
+    for lang in ("hi", "hi-Latn"):
+        assert lang in STRINGS, f"Language {lang} missing from STRINGS"
+        lang_strings = STRINGS[lang]
+        for key, val in en_strings.items():
+            assert key in lang_strings, f"Key '{key}' missing for locale '{lang}'"
+            if isinstance(val, dict):
+                for subk in val:
+                    assert subk in lang_strings[key], f"Subkey '{subk}' under '{key}' missing for locale '{lang}'"
+
+    # Also verify platform default MessageTemplates exist across all 3 locales
+    en_templates = MessageTemplate.objects.filter(shop__isnull=True, locale="en")
+    for tmpl in en_templates:
+        for lang in ("hi", "hi-Latn"):
+            match = MessageTemplate.objects.filter(
+                shop__isnull=True,
+                key=tmpl.key,
+                channel=tmpl.channel,
+                locale=lang,
+            ).first()
+            assert match is not None, f"Missing template for {tmpl.key} ({tmpl.channel}) in locale {lang}"

@@ -4,6 +4,22 @@ Record every significant technical or product decision here (newest first). The 
 
 ---
 
+## 2026-10-04: Native Speaker Review & Translation Standardization (Subphase 1.22)
+- **Decision:** Standardized vernacular Hindi (`hi`) and colloquial Hinglish (`hi-Latn`) vocabulary across all customer-facing and technician-facing touchpoints (job intake, live tracking page, thermal/A4 invoices, payment receipts, and SMS/WhatsApp templates).
+- **Key Terminology Alignment:**
+  - "Job Sheet": `जॉब शीट` (`job sheet`), avoiding excessively formal Sanskritized terms like `कार्य पत्रक`.
+  - "Intake / New Job": `नया जॉब` (`naya job`), rather than `मरम्मत प्रविष्टि`.
+  - "Estimate": `अनुमानित खर्च` (`anumanit kharch`) in formal Hindi, `Estimate` in Hinglish.
+  - "Advance Received": `अग्रिम राशि` (`agrim rashi`) in formal Hindi, `Advance payment` in Hinglish.
+  - "Diagnosis": `जांच / खराबी की पड़ताल` (`jaanch / kharabi ki padtaal`) in formal Hindi, `Testing & Diagnosis` in Hinglish.
+  - "Delivered / Handed Over": `ग्राहक को सौंपा गया` (`grahak ko saunpa gaya`) in formal Hindi, `Delivered` in Hinglish.
+  - "Pattern Lock": `पैटर्न लॉक` (`pattern lock`), avoiding awkward literal translations like `प्रारूप ताला`.
+- **Review Notes & Nuances:**
+  - Everyday Indian repair shop owners communicate with customers in conversational Hindustani/Hinglish. Overly academic Hindi creates friction and confusion.
+  - Live customer tracking pages use polite, reassuring terminology (e.g., `आपका फोन सुरक्षित रूप से मरम्मत किया जा रहा है` / `Aapka device successfully repair ho gaya hai`).
+  - SMS templates are constrained to standard GSM-7 characters for Latin/Hinglish and UCS-2 encoding for Devanagari Hindi, ensuring no truncation or distorted multi-part messages over Indian telecom carriers.
+- **Status:** accepted.
+
 ## 2026-10-02: Secure Storage Plugin for Auth Tokens
 - **Decision:** Use `@aparajita/capacitor-secure-storage` (v8.0.1) for hardware-backed secure storage of authentication tokens (Keychain on iOS, Keystore/EncryptedSharedPreferences on Android).
 - **Why:** Full compatibility with Capacitor 8 (`@capacitor/core` ^8.0.0), actively maintained, stores tokens in hardware security modules without plaintext leaks. Web uses fallback with explicit comment.

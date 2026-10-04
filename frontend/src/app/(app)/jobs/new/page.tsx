@@ -275,6 +275,7 @@ export default function NewJobPage() {
             <button
               type="button"
               onClick={handleBack}
+              aria-label={t("back") || "Back"}
               className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -283,7 +284,7 @@ export default function NewJobPage() {
               <h1 className="text-base font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
                 {t("newJobSheetTitle")}
               </h1>
-              <p className="text-[11px] text-neutral-500 font-medium">
+              <p className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
                 {t("stepIndicator", { step: currentStep + 1, total: TOTAL_STEPS })}:{" "}
                 <span className="text-neutral-800 dark:text-neutral-200 font-semibold">
                   {stepTitles[currentStep]}
@@ -340,6 +341,7 @@ export default function NewJobPage() {
             <button
               type="button"
               onClick={dismissRestoredBanner}
+              aria-label={t("dismiss") || "Dismiss"}
               className="w-5 h-5 rounded-full hover:bg-sky-100 dark:hover:bg-sky-900 flex items-center justify-center text-sky-700"
             >
               <X className="w-3.5 h-3.5" />

@@ -37,7 +37,7 @@ export function LanguageSwitcher({ onLocaleChange, className = "" }: LanguageSwi
               <span className="text-base font-semibold">{localeLabels[loc]}</span>
               <span
                 className={`text-xs ${
-                  isSelected ? "text-neutral-400" : "text-neutral-500"
+                  isSelected ? "text-neutral-300" : "text-neutral-600 font-medium"
                 }`}
               >
                 {loc === "en" && "English (India)"}

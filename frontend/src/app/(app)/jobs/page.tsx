@@ -130,7 +130,7 @@ function JobsContent() {
                       "ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums",
                       isSelected
                         ? "bg-neutral-800 text-white dark:bg-neutral-200 dark:text-neutral-900"
-                        : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"
+                        : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
                     )}
                   >
                     {count}
@@ -159,7 +159,7 @@ function JobsContent() {
               <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                 {t("list.noJobs")}
               </p>
-              <p className="text-xs text-neutral-500 max-w-xs mx-auto mt-1">
+              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-300 max-w-xs mx-auto mt-1">
                 {t("list.noJobsDesc")}
               </p>
             </div>
@@ -173,7 +173,7 @@ function JobsContent() {
         ) : (
           <>
             {isFetchingJobs && (
-              <div className="flex items-center justify-end py-1 text-xs text-neutral-400 gap-1.5">
+              <div className="flex items-center justify-end py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 gap-1.5">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>Updating...</span>
               </div>

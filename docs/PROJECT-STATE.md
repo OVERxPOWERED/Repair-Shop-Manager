@@ -2,12 +2,26 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.22 (Translation completion and accessibility)  **Last updated:** 2026-10-04
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.23 (Security and performance hardening)  **Last updated:** 2026-10-04
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Translation Completion and Accessibility (Subphase 1.22):**
+  - i18n Translations Parity:
+    - Verified 1,035 translation keys across all 3 locales (`en`, `hi`, `hi-Latn`) via `pnpm i18n:check` with zero missing keys and zero `[TODO hi]` placeholders.
+    - Verified complete backend customer tracking strings and notification templates (`MessageTemplate`) across `en`, `hi`, and `hi-Latn` with automated tests (`backend/apps/tracking/tests/test_tracking.py`).
+  - Native Speaker Review:
+    - Conducted review of vernacular repair-shop terminology and documented standardization decisions in `docs/decisions.md` (e.g. `जॉब शीट` vs overly formal `कार्य पत्रक`, `अग्रिम राशि`, `पैटर्न लॉक`).
+  - Accessibility & WCAG AA Compliance:
+    - Installed `@axe-core/playwright` and implemented automated end-to-end accessibility test suite in `frontend/e2e/a11y.spec.ts` covering Welcome, Login, Home dashboard, Jobs list, Job detail, and Job Intake Step 1. All 3 test suites pass with 0 serious or critical violations.
+    - Remedied all contrast violations across `LanguageSwitcher.tsx`, `BottomNav.tsx`, `SessionBoot.tsx`, `login/page.tsx`, `home/page.tsx`, `jobs/page.tsx`, `JobCard.tsx`, and `jobs/detail/page.tsx` ensuring contrast ratio ≥ 4.5:1 for standard text and ≥ 3.0:1 for large text.
+    - Added accessible `aria-label` tags to all icon-only buttons (back, dismiss, clear search, and floating action button).
+    - Status badges always pair color styling with explicit localized status text and an `aria-hidden` dot indicator.
+  - Verification:
+    - 316/316 backend pytest tests passing, ruff clean.
+    - 138/138 frontend vitest tests passing, 0 ESLint warnings/errors, 35/35 static pages exported to `out/`.
 - **Settings Screens and Basic Reports (Subphase 1.21):**
   - Backend Settings & Logo:
     - Added `default_terms` to `Shop` model (`apps/tenancy/models.py`) and migration `0006_shop_default_terms.py` for default invoice & receipt terms.

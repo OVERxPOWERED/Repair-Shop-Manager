@@ -41,7 +41,7 @@ export function BottomNav() {
               "flex flex-col items-center justify-center min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all",
               isActive
                 ? "text-neutral-950 font-bold"
-                : "text-neutral-400 hover:text-neutral-600 font-medium"
+                : "text-neutral-600 hover:text-neutral-900 font-medium"
             )}
           >
             <Icon
