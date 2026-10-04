@@ -12,6 +12,7 @@ from apps.core.api.errors import DomainError, NotFoundError
 CRON_JOBS = {
     "purge-otp": "purge_otp_challenges",
     "purge-idempotency": "purge_idempotency_records",
+    "purge-trash": "purge_trash",
 }
 
 

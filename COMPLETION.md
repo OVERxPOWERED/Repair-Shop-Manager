@@ -74,7 +74,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.17](#117-thermal-receipt-printing) | Thermal receipt printing | ✅ Done | 2026-10-03 |
 | 1 | [1.18](#118-public-tracking-page) | Public tracking page | ✅ Done | 2026-10-03 |
 | 1 | [1.19](#119-messaging-templates-sms-adapter-message-log) | Messaging (templates, SMS adapter, message log) | ✅ Done | 2026-10-03 |
-| 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ⬜ Not started | — |
+| 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ✅ Done | 2026-10-03 |
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ⬜ Not started | — |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ⬜ Not started | — |
 | 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ⬜ Not started | — |
@@ -1189,20 +1189,31 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ⬜ Not started | — | — | — |
+| ✅ Done | 2026-10-03 | 2026-10-03 | 473a2df |
 
-- [ ] 1.20.1 Trash in `ShopScopedViewSet`
-- [ ] 1.20.2 Purge job
-- [ ] 1.20.3 Exports
-- [ ] 1.20.4 Frontend trash
-- [ ] 1.20.5 Tests
-- [ ] Verify commands from ROADMAP passed
+- [x] 1.20.1 Trash in `ShopScopedViewSet`
+- [x] 1.20.2 Purge job
+- [x] 1.20.3 Exports
+- [x] 1.20.4 Frontend trash
+- [x] 1.20.5 Tests
+- [x] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-(paste summarised results here)
+pytest -q: 312 passed, 6 warnings in 2.25s
+ruff check backend/ && ruff format --check backend/: All checks passed!
+makemigrations --check --dry-run: No changes detected
+frontend vitest: 138 passed (21 test files)
+frontend lint & typecheck: 0 errors
+frontend next build (static export): 28/28 pages generated successfully
 ```
-**Notes:** —
+**Notes:** 
+- `ShopScopedViewSet` trash handling: implemented `_in_trash_mode` detecting `action in ("restore", "destroy_permanent")` or `(action == "list" and request.query_params.get("deleted") == "true")`. Dynamic permission resolution via `get_required_permission` returning `list_trash` when in trash mode. In `get_queryset`, queries `model.all_objects.filter(shop=request.shop, deleted_at__isnull=False)` during trash mode so that only soft-deleted rows of the current tenant are returned.
+- Actions and safety hooks: `POST /jobs/{id}/restore/` and `POST /customers/{id}/restore/` with `before_restore(obj)` hook (checks phone conflict against active customers, raising 409 `customer.phone_exists`), audits `<model>.restored`. `DELETE /jobs/{id}/permanent/` and `DELETE /customers/{id}/permanent/` with `can_hard_delete(obj)` hook returning False if jobs have payments/invoices or customers have jobs/invoices/payments (raising 409 `trash.has_financial_records`), audits `<model>.deleted_permanently`, and executes `obj.hard_delete()`. Unmapped viewsets default `restore` and `destroy_permanent` to `None` in `permission_map`, denying access by default.
+- Automated purge command: `purge_trash` management command hard-deletes soft-deleted jobs and customers older than 30 days that pass `can_hard_delete`. Deletes orphaned job photo files from disk storage before purging database records. Wired into `apps/core/cron.py` (`"purge-trash": "purge_trash"`) and `.github/workflows/cron.yml`.
+- Streaming Excel exports: Added `openpyxl>=3.1`. Built endpoints `GET /api/v1/exports/{customers,jobs,invoices,payments}.xlsx` permission-gated to `data.export`. Uses `Workbook(write_only=True)` with chunked query iterator (`chunk_size=2000`) for low-memory streaming. Formats timestamps in IST (`Asia/Kolkata`), converts integer paise to rupees with 2 decimal places (`Decimal(p)/100`), outputs unmasked phone numbers for authenticated export users, rejects ranges > 366 days with 400 validation error, and audits every export via `data.exported`.
+- Frontend interfaces: Settings → Data → Trash (`/more/settings/data/trash/`) with tabs for Jobs and Customers, search filter, restore button, and permanent delete confirmation dialog. Settings → Data → Export (`/more/settings/data/export/`) with type selector, preset/custom date range pickers, 366-day validation, and native file download/share via `shareFile`. Full i18n support in `en`, `hi`, and `hi-Latn`.
+
 
 ## 1.21 Settings screens and basic reports
 

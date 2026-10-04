@@ -2,12 +2,36 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.20 (Trash, restore, permanent delete and exports)  **Last updated:** 2026-10-03
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.21 (Settings screens and basic reports)  **Last updated:** 2026-10-03
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Trash, Restore, Permanent Delete and Exports (Subphase 1.20):**
+  - Tenancy and ViewSet Trash Scoping:
+    - Extended `ShopScopedViewSet` with `_in_trash_mode` detecting `restore`, `destroy_permanent`, or `action="list"` with `?deleted=true`.
+    - Dynamic permission resolution: in trash mode, list action checks `permission_map["list_trash"]` (e.g. `jobs.restore`, `customers.delete`).
+    - Queryset scoping: `get_queryset` queries `model.all_objects.filter(shop=request.shop, deleted_at__isnull=False)` in trash mode, ensuring soft-deleted rows never leak to active endpoints and other tenants' soft-deleted rows are never accessible.
+    - Safety hooks: `POST /jobs/{id}/restore/` and `POST /customers/{id}/restore/` call `before_restore(obj)`, restoring rows and recording `<model>.restored` audit events. Prevents restoring customers if an active customer in the shop has the same phone number (409 `customer.phone_exists`).
+    - Permanent deletion protection: `DELETE /jobs/{id}/permanent/` and `DELETE /customers/{id}/permanent/` call `can_hard_delete(obj)`, which strictly rejects rows with financial history (jobs with payments or invoices, customers with jobs, invoices, or payments) with 409 `trash.has_financial_records`. Bare records are audited (`<model>.deleted_permanently`) and hard-deleted (`obj.hard_delete()`).
+    - Viewset security: viewsets not supporting trash default `restore` and `destroy_permanent` permissions to `None`, denying them automatically by default.
+  - Automated Purge Command:
+    - Management command `purge_trash` (`backend/apps/core/management/commands/purge_trash.py`): queries soft-deleted records older than 30 days that pass `can_hard_delete`. Safely removes orphaned photo files from disk before deleting database records.
+    - Configured in `backend/apps/core/cron.py` (`"purge-trash": "purge_trash"`) and `.github/workflows/cron.yml`.
+  - Excel Data Exports:
+    - Integrated `openpyxl>=3.1` using write-only workbooks (`Workbook(write_only=True)`) and query streaming (`iterator(chunk_size=2000)`).
+    - Endpoints: `GET /api/v1/exports/customers.xlsx`, `/exports/jobs.xlsx`, `/exports/invoices.xlsx`, `/exports/payments.xlsx`, permission-gated to `data.export`.
+    - Formats all dates in IST (`Asia/Kolkata`), converts integer paise to rupees with 2 decimal places (`Decimal(p)/100`), unmasks customer phone numbers for authorized exports, validates date ranges (rejects > 366 days with 400), and records `data.exported` audit logs with `{type, from, to, rows}`.
+  - Frontend Trash & Export Screens:
+    - Settings → Data → Trash (`/more/settings/data/trash/`): tabbed view for Jobs and Customers, item search, instant restore with query invalidation, and permanent delete confirmation modal with financial conflict error handling.
+    - Settings → Data → Export (`/more/settings/data/export/`): export type selector, preset date filters (7 days, 30 days, this month) and custom date pickers, 366-day validation alert, and native file download/share via `shareFile`.
+    - Integrated with App navigation under More (`/more`) in a new "Data & Storage" group.
+    - Added complete translations across English (`en`), Hindi (`hi`), and Hinglish (`hi-Latn`).
+  - Tests and Verification:
+    - 6 new comprehensive tests in `backend/apps/core/tests/test_trash_and_exports.py` covering trash visibility, restore, phone conflict rejection, financial safety on permanent delete, purge command file cleanup, and permission-gated xlsx exports.
+    - 312/312 backend tests passing (100%), ruff check and format clean, dry-run makemigrations clean.
+    - 138/138 frontend tests passing, 0 ESLint warnings/errors, static export successfully generated (28/28 pages).
 - **Messaging: Templates, SMS Adapter, Message Log (Subphase 1.19):**
   - Data model and migrations (`apps/messaging`):
     - `MessageTemplate`: platform-wide defaults (`shop=None`) and per-shop overrides across channels (`sms`, `whatsapp`) and locales (`en`, `hi`, `hi-Latn`) with `dlt_template_id`, `wa_template_name`, and `is_active`.

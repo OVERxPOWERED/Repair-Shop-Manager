@@ -41,12 +41,20 @@ export function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
+export interface ShareFileOptions {
+  url: string;
+  filename: string;
+  mimeType?: string;
+  text?: string;
+  dialogTitle?: string;
+}
+
 /**
- * Shares a PDF document:
- * - Native: writes base64 PDF to Cache and triggers native OS share sheet.
+ * Shares any file (PDF, XLSX, etc.):
+ * - Native: writes base64 to Cache and triggers native OS share sheet.
  * - Web: uses Web Share API if supported, or triggers file download.
  */
-export async function sharePdf(opts: SharePdfOptions): Promise<void> {
+export async function shareFile(opts: ShareFileOptions): Promise<void> {
   const blob = await apiBlob(opts.url);
 
   if (isNative()) {
@@ -67,8 +75,9 @@ export async function sharePdf(opts: SharePdfOptions): Promise<void> {
   }
 
   // Web platform
+  const fileType = opts.mimeType || blob.type || "application/octet-stream";
   if (typeof navigator !== "undefined" && typeof File !== "undefined") {
-    const file = new File([blob], opts.filename, { type: blob.type || "application/pdf" });
+    const file = new File([blob], opts.filename, { type: fileType });
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({
@@ -89,6 +98,16 @@ export async function sharePdf(opts: SharePdfOptions): Promise<void> {
   // Fallback to browser file download
   downloadBlob(blob, opts.filename);
 }
+
+/**
+ * Shares a PDF document:
+ * - Native: writes base64 PDF to Cache and triggers native OS share sheet.
+ * - Web: uses Web Share API if supported, or triggers file download.
+ */
+export async function sharePdf(opts: SharePdfOptions): Promise<void> {
+  return shareFile({ ...opts, mimeType: "application/pdf" });
+}
+
 
 /**
  * Formats a phone string into WhatsApp wa.me numeric format.

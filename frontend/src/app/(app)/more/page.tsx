@@ -26,6 +26,7 @@ import {
   AlertCircle,
   HelpCircle,
   Printer,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useAuthStore, useCurrentShop } from "@/lib/auth/store";
 import { useLocaleStore } from "@/i18n/store";
@@ -272,7 +273,59 @@ export default function MorePage() {
         </div>
       </div>
 
-      {/* 6. Group: Preferences & Settings */}
+      {/* 6. Group: Data & Storage */}
+      <div className="space-y-1.5">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-1">
+          {t("dataAndStorage")}
+        </h2>
+        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden divide-y divide-neutral-100">
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/data/trash/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("trash")}</p>
+                <p className="text-[11px] text-neutral-500">{t("trashSubtitle")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                v1.20
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/more/settings/data/export/")}
+            className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                <FileSpreadsheet className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{t("export")}</p>
+                <p className="text-[11px] text-neutral-500">{t("exportSubtitle")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-semibold text-neutral-500 border-neutral-200">
+                Excel
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* 7. Group: Preferences & Settings */}
       <div className="space-y-1.5">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-1">
           {t("preferences")}

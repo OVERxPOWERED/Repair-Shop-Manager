@@ -42,8 +42,26 @@ class CustomerViewSet(ShopScopedViewSet):
         "update": "customers.edit",
         "partial_update": "customers.edit",
         "destroy": "customers.delete",
+        "list_trash": "customers.delete",
+        "restore": "customers.delete",
+        "destroy_permanent": "data.bulk_delete",
     }
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def can_hard_delete(self, obj) -> bool:
+        from apps.billing.models import Invoice, Payment
+        from apps.jobs.models import Job
+
+        has_jobs = Job.all_objects.filter(customer=obj).exists()
+        has_payments = Payment.all_objects.filter(customer=obj).exists()
+        has_invoices = Invoice.all_objects.filter(customer=obj).exists()
+        return not (has_jobs or has_payments or has_invoices)
+
+    def before_restore(self, obj):
+        from apps.core.api.errors import ConflictError
+
+        if obj.phone and Customer.objects.filter(shop=self.request.shop, phone=obj.phone).exclude(id=obj.id).exists():
+            raise ConflictError("Another customer with this phone number exists.", code="customer.phone_exists")
 
     def get_queryset(self):
         qs = super().get_queryset()

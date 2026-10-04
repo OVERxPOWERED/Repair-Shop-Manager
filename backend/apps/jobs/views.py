@@ -81,8 +81,18 @@ class JobViewSet(ShopScopedViewSet):
         "create_invoice": "invoices.create_draft",
         "messages": "jobs.view",
         "send_message": "jobs.edit",
+        "list_trash": "jobs.restore",
+        "restore": "jobs.restore",
+        "destroy_permanent": "jobs.delete_permanent",
     }
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def can_hard_delete(self, obj) -> bool:
+        from apps.billing.models import Invoice, Payment
+
+        has_payments = Payment.all_objects.filter(job=obj).exists()
+        has_invoices = Invoice.all_objects.filter(job=obj).exists()
+        return not (has_payments or has_invoices)
 
     def get_serializer_class(self):
         if self.action == "create":
