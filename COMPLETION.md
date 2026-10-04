@@ -78,7 +78,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ✅ Done | 2026-10-04 |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ✅ Done | 2026-10-04 |
 | 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ✅ Done | 2289bc6 |
-| 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ✅ Done | [pending] |
+| 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ✅ Done | ab19828 |
 | 1 | [1.25](#125-live-pilot-at-your-shop-and-phase-1-exit) | Live pilot at your shop and Phase 1 exit | ⬜ Not started | — |
 | **1** | **Exit** | **Phase 1 exit checklist** | ⬜ Not started | — |
 | 2 | [2.1](#21-inventory-data-model-and-stock-ledger) | Inventory data model and stock ledger | ⬜ Not started | — |
@@ -1314,7 +1314,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-04 | 2026-10-04 | [pending commit] |
+| ✅ Done | 2026-10-04 | 2026-10-04 | ab19828 |
 
 - [x] 1.24.1 Account deletion API + processing command
 - [x] 1.24.2 Public /account/delete/ page
