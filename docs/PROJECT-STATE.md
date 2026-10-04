@@ -2,7 +2,7 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.25 (Live pilot at your shop and Phase 1 exit)  **Last updated:** 2026-10-04
+**Phase:** 2 (Stock, POS, Khata and Staff)  **Subphase:** next is 2.1 (Inventory data model and stock ledger)  **Last updated:** 2026-10-04
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
