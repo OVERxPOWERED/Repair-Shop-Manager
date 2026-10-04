@@ -98,8 +98,8 @@ python manage.py seed_demo_data --reviewer
 
 ## 6. Versioning & Build Standards
 
-- **Android Version Name:** `1.0.0`
-- **Android Version Code:** `10000`
-- **iOS Marketing Version:** `1.0.0`
+- **Android Version Name:** `1.0` (current)
+- **Android Version Code:** `1` (current in `android/app/build.gradle`)
+- **iOS Marketing Version:** `1.0` (current)
 - **iOS Build Number:** `1`
-- **Capacitor App ID:** `in.fixpro.app`
+- **Capacitor App ID:** `in.fixpro.repairshop`

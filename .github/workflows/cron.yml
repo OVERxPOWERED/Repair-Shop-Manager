@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job: [purge-otp, purge-idempotency, purge-trash]
+        job: [purge-otp, purge-idempotency, purge-trash, process-account-deletions]
     steps:
       - name: Trigger cron maintenance task
         run: |
