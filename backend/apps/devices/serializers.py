@@ -45,6 +45,7 @@ class DeviceSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("id", "brand_name", "version", "created_at", "updated_at")
+        ref_name = "RepairDevice"
 
     def get_brand_name(self, obj) -> str:
         return obj.brand.name if obj.brand else (obj.brand_text or "")

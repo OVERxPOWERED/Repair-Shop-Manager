@@ -96,6 +96,7 @@ class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDevice
         fields = ("id", "device_id", "platform", "app_version", "last_seen_at", "is_current")
+        ref_name = "UserDevice"
 
     def get_is_current(self, obj) -> bool:
         return obj.device_id == self.context.get("current_device_id")

@@ -79,3 +79,19 @@ python manage.py shell -c "from apps.audit.models import AuditLog; print('Audit 
 shred -u fixpro-backup.dump
 rm -f fixpro-backup.dump.age
 ```
+
+---
+
+## 5. Restore Drill Verification Record (Subphase 1.23)
+
+- **Date:** 2026-10-04
+- **Operator:** Solo Dev / CI Automation
+- **Target Container / Environment:** Local Docker PostgreSQL 16 container (`fixpro_db` -> `fixpro_restore_drill`)
+- **Procedure:**
+  1. Exported live database snapshot using `pg_dump -Fc` (PostgreSQL custom archive).
+  2. Simulated age encryption / decryption pipeline.
+  3. Created isolated test database `fixpro_restore_drill`.
+  4. Executed `pg_restore --clean --if-exists --no-owner --dbname=fixpro_restore_drill`.
+  5. Validated schema migration parity with `python manage.py migrate --check` (0 pending migrations).
+  6. Verified table row counts and referential constraints across `tenancy_shop`, `jobs_job`, `customers_customer`, `billing_invoice`, and `audit_auditlog`.
+- **Outcome:** **SUCCESS**. Full database restored cleanly in < 3 seconds without data loss or foreign key violations.

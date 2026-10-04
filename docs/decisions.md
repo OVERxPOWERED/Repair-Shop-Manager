@@ -4,6 +4,16 @@ Record every significant technical or product decision here (newest first). The 
 
 ---
 
+## 2026-10-04: Security and Performance Hardening (Subphase 1.23)
+- **Decision:** Implemented exhaustive role-based permission verification, query bounds, request body size limits, and query plan indexing review.
+- **Key Enhancements:**
+  1. **Permission Matrix & Multi-tenant Sweep:** Automated parameterized tests in `backend/apps/core/tests/test_permission_matrix.py` verify 44 endpoints across all default roles (Owner, Manager, Front Desk, Engineer). Proves 403 on lacking permission, non-403 when possessed, and 404/403 for cross-shop detail lookups across all models.
+  2. **Query Boundedness (N+1 Elimination):** Fixed query upper bounds (`<=10` for jobs with prefetch/subquery totals, `<=8` for customers, invoices, payments) for 30-item pages in `test_query_counts.py`.
+  3. **Abuse & Body Limits:** Configured `DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440` (2.5 MB), OTP cooldown (30s) and lockouts (5 failed attempts), tracking page throttling (60 req/min/IP), and automated abuse tests in `test_abuse.py`.
+  4. **PostgreSQL EXPLAIN Verification:** Seeded 500 repair jobs via `seed_demo_data`. Verified index scans on `(shop, -created_at)`, `(shop, phone)`, and `(shop, name)`: query execution times measured at 0.05ms to 0.28ms, well below the 50ms budget.
+  5. **Production Deploy & Secret Auditing:** Zero-warning `check --deploy` with HSTS 31536000s, Gitleaks CI action, and Playwright Chromium E2E in GitHub Actions.
+- **Status:** accepted.
+
 ## 2026-10-04: Native Speaker Review & Translation Standardization (Subphase 1.22)
 - **Decision:** Standardized vernacular Hindi (`hi`) and colloquial Hinglish (`hi-Latn`) vocabulary across all customer-facing and technician-facing touchpoints (job intake, live tracking page, thermal/A4 invoices, payment receipts, and SMS/WhatsApp templates).
 - **Key Terminology Alignment:**

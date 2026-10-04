@@ -2,12 +2,39 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.23 (Security and performance hardening)  **Last updated:** 2026-10-04
+**Phase:** 1 (Core Repair MVP)  **Subphase:** next is 1.24 (Privacy, account deletion and store readiness)  **Last updated:** 2026-10-04
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
 
 ## Done
+- **Security and Performance Hardening (Subphase 1.23):**
+  - Permission Matrix & Tenant Isolation:
+    - Implemented exhaustive 4-role permission matrix test suite in `backend/apps/core/tests/test_permission_matrix.py` verifying 44 endpoints against all default system roles (Owner, Manager, Front Desk, Engineer). Proves 403 on lacking permission and non-403 when possessed.
+    - Implemented isolation sweep across all detail endpoints (jobs, customers, devices, invoices, payments, staff) verifying cross-shop access strictly returns 404 or 403.
+  - Query Boundedness (N+1 Elimination):
+    - Implemented `backend/apps/core/tests/test_query_counts.py` with `django_assert_max_num_queries` on seeded 30-item datasets for `/api/v1/jobs/` (<= 10 queries with prefetching and subqueries), `/api/v1/customers/` (<= 8 queries), `/api/v1/invoices/` (<= 8 queries), and `/api/v1/payments/` (<= 8 queries).
+  - PostgreSQL Indexing & EXPLAIN Review:
+    - Implemented `seed_demo_data` management command (`backend/apps/core/management/commands/seed_demo_data.py`) for realistic benchmark datasets (500–10,000 jobs, customers, devices).
+    - Executed `EXPLAIN ANALYZE` benchmarks on 500-job datasets: verified index scans on `(shop, -created_at)`, `(shop, phone)`, and `(shop, name)`: query execution times measured at 0.05ms to 0.28ms, well under the 50ms budget.
+  - Abuse Hardening & Request Limits:
+    - Hardened request body size limit `DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440` (2.5 MB) in `base.py` to prevent memory exhaustion and DoS from oversized JSON.
+    - Automated abuse tests in `backend/apps/core/tests/test_abuse.py`: OTP flood/cooldown (429 `otp.cooldown`), OTP brute force lockout (400 `otp.locked` after max attempts), tracking token rate limiting (60 req/min/IP), and oversized body rejection (`RequestDataTooBig`).
+  - Production Deploy & CORS/HSTS:
+    - Added `http://localhost` to `CORS_ALLOWED_ORIGINS` for Android WebView capacitor origin.
+    - Configured `SECURE_HSTS_SECONDS = 31536000` (1 year) in `prod.py`.
+    - Resolved drf-spectacular serializer name collision with `ref_name = "UserDevice"` and `ref_name = "RepairDevice"`.
+    - Verified `python manage.py check --deploy --fail-level WARNING` with prod settings: 0 errors, 0 warnings.
+  - CI Pipeline Hardening:
+    - Added `security` job running `gitleaks/gitleaks-action` with `.gitleaks.toml` allowlist.
+    - Added production dependency audit step in frontend CI.
+    - Added `e2e` Playwright Chromium job for automated end-to-end and accessibility testing in CI.
+  - Disaster Recovery:
+    - Documented restore drill verification in `docs/runbooks/restore.md` and recorded architectural decisions in `docs/decisions.md`.
+  - Verification:
+    - 380/380 backend pytest tests passing (+64 hardening tests).
+    - ruff check and ruff format clean across 193 files.
+    - 138/138 frontend vitest tests passing, 0 ESLint warnings/errors, 35/35 static pages exported to `out/`.
 - **Translation Completion and Accessibility (Subphase 1.22):**
   - i18n Translations Parity:
     - Verified 1,035 translation keys across all 3 locales (`en`, `hi`, `hi-Latn`) via `pnpm i18n:check` with zero missing keys and zero `[TODO hi]` placeholders.

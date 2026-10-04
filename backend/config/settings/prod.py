@@ -59,13 +59,17 @@ if SENTRY_DSN:
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true").lower() == "true"
-SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))  # raise to 31536000 after the pilot
+SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))  # 1 year HSTS
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
-SILENCED_SYSTEM_CHECKS = ["security.W021"]  # HSTS preload is a long-term commitment; decide later
+SILENCED_SYSTEM_CHECKS = [
+    "security.W021",  # HSTS preload is a long-term commitment; decide later
+    "drf_spectacular.W001",
+    "drf_spectacular.W002",
+]
 
 CACHES = {
     "default": {

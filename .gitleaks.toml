@@ -1,0 +1,11 @@
+# Gitleaks configuration for FixPro
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore CI mock variables and test fixtures"
+paths = [
+  '''^\.github/workflows/ci\.yml$''',
+  '''^backend/config/settings/test\.py$''',
+  '''^backend/apps/.*/tests/.*''',
+]

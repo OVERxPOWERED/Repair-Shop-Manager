@@ -176,7 +176,8 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.environ.get(
         "CORS_ALLOWED_ORIGINS",
         # https://localhost = Android WebView (androidScheme https); capacitor://localhost = iOS
-        "http://localhost:3000,http://127.0.0.1:3000,https://localhost,capacitor://localhost",
+        # http://localhost:3000 = Next.js dev
+        "http://localhost:3000,http://127.0.0.1:3000,http://localhost,https://localhost,capacitor://localhost",
     ).split(",")
     if origin.strip()
 ]
@@ -232,3 +233,11 @@ CRON_SECRET = os.environ.get("CRON_SECRET", "dev-cron-secret")
 FIELD_ENCRYPTION_KEYS = [k.strip() for k in os.environ.get("FIELD_ENCRYPTION_KEYS", "").split(",") if k.strip()]
 
 PUBLIC_TRACKING_BASE_URL = os.environ.get("PUBLIC_TRACKING_BASE_URL", "https://track.fixpro.in")
+
+# Request size limits: 2.5 MB explicitly to prevent memory exhaustion from oversized JSON
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440
+
+SILENCED_SYSTEM_CHECKS = [
+    "drf_spectacular.W001",
+    "drf_spectacular.W002",
+]

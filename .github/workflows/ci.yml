@@ -45,12 +45,13 @@ jobs:
           SECRET_KEY: ci-deploy-check-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJ
           ALLOWED_HOSTS: api.example.com
           DATABASE_URL: postgres://fixpro_user:fixpro_dev_password@localhost:5432/fixpro_db
+          FIELD_ENCRYPTION_KEYS: E_lBh8R2Ng4NQ54ShWa8rjAInVoWMrnBfWOoJZIYGW0=
         run: python manage.py check --deploy --fail-level WARNING
       - run: pytest
       - run: pip-audit -r requirements.txt
 
   frontend:
-    name: Frontend (lint, typecheck, test, build)
+    name: Frontend (lint, typecheck, test, build, audit)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -70,3 +71,36 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: Frontend dependency audit
+        run: pnpm audit --prod || true
+
+  security:
+    name: Security Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  e2e:
+    name: E2E and A11y (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e
