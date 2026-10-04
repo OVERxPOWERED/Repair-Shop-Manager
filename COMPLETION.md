@@ -77,7 +77,7 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.20](#120-trash-restore-permanent-delete-and-exports) | Trash, restore, permanent delete and exports | ✅ Done | 2026-10-03 |
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ✅ Done | 2026-10-04 |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ✅ Done | 2026-10-04 |
-| 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ✅ Done | HEAD |
+| 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ✅ Done | 2289bc6 |
 | 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ⬜ Not started | — |
 | 1 | [1.25](#125-live-pilot-at-your-shop-and-phase-1-exit) | Live pilot at your shop and Phase 1 exit | ⬜ Not started | — |
 | **1** | **Exit** | **Phase 1 exit checklist** | ⬜ Not started | — |
@@ -1272,7 +1272,7 @@ Backend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-04 | 2026-10-04 | HEAD |
+| ✅ Done | 2026-10-04 | 2026-10-04 | 2289bc6 |
 
 - [x] 1.23.1 Permission matrix test (every endpoint × role)
 - [x] 1.23.2 Isolation sweep for every detail endpoint
