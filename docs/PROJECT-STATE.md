@@ -527,21 +527,29 @@
   - **Spike B (IMEI Scanning & Luhn Algorithm):** Mathematical 15-digit Luhn check-digit verification in backend and frontend with Vitest tests passing 5/5. Redo on real hardware in 0.8.
 
 ## In progress
-- (none - Subphase 0.6 complete)
+- **Subphase 1.25: Live pilot at your shop and Phase 1 exit**
+  - Tracking daily operations in `docs/pilot-log.md`.
+  - 100% of new workshop jobs, customer tracking, and cash/UPI receipts going through FixPro.
+  - Sentry and daily backup checks active.
 
 ## Next
-1. ROADMAP 0.7: Tenancy and permissions repair (models, resolve_shop_context, permissions, views, roles).
-2. ROADMAP 0.8: Redo hardware spikes on real devices.
-3. ROADMAP 0.9: Frontend foundation (design tokens, offline store, query provider, envelope client).
-Track progress in COMPLETION.md.
+1. Complete 7 consecutive days of live workshop jobs without blockers.
+2. Complete CA review of GST invoices and financial totals.
+3. Validate Phase 1 Exit checklist in `COMPLETION.md`.
+4. Begin Phase 2 (Stock, POS, Khata, Staff) starting with Subphase 2.1 (Inventory data model & stock ledger).
+
+## Mandatory Rules & Constraints
+- **VPS-before-second-shop rule:** Before onboarding any **second** repair shop onto FixPro, Phase 3.1 (Migration to a paid dedicated VPS with hardened Redis, automated backups, and uptime monitoring) **MUST** be completed. Free tier development hosting (Render/Neon free) is strictly for the single-shop pilot only.
+- **Tenant isolation:** Every query must be scoped to the active `shop`.
+- **Issued invoices immutable:** No editing or deletion of issued tax invoices.
+- **Integer paise:** All currency amounts stored as `BigIntegerField` in paise.
 
 ## Blocked / waiting on
-- DLT registration (external approval for commercial SMS in India)
+- Commercial TRAI DLT template registration approval for live SMS sender headers in India (dev/console SMS provider active for pilot and test accounts).
 
 ## Known issues
-- Any shop member (even Engineer) can edit their shop via `/api/v1/shops/{id}/` (fix: 0.7).
-- Front Desk can suspend or delete the Owner's membership; `POST /staff/` returns 201 without saving (fix: 0.7).
-- Hardware spike results in `docs/printers.md` and `docs/decisions.md` are not backed by any device test (fix: 0.8).
+- No blocking code issues in Phase 1 MVP.
+- Real Bluetooth thermal printing requires Android runtime location/nearby permission grant on first pair.
 
 ## Lessons / notes
 - SimpleJWT `token_blacklist` requires Django migrations to be applied before token rotation works.
@@ -552,13 +560,12 @@ Track progress in COMPLETION.md.
 ## Verification log
 | Date | Command | Result |
 |---|---|---|
-| 2026-10-02 | `backend/.venv/bin/ruff check .` | All checks passed! (0 errors) |
-| 2026-10-02 | `backend/.venv/bin/ruff format --check .` | 40 files already formatted |
-| 2026-10-02 | `backend/.venv/bin/python manage.py makemigrations --check --dry-run` | No changes detected |
-| 2026-10-02 | `backend/.venv/bin/pytest` | 18 passed in 3.81s (PostgreSQL 16) |
-| 2026-10-02 | `backend/.venv/bin/python manage.py check --deploy` | 0 issues (1 silenced) |
-| 2026-10-02 | `backend/.venv/bin/pip-audit -r requirements.txt` | No known vulnerabilities found |
-| 2026-10-02 | `pnpm --dir frontend lint` | No ESLint warnings or errors |
-| 2026-10-02 | `pnpm --dir frontend typecheck` | Passed with zero errors (`tsc --noEmit`) |
-| 2026-10-02 | `pnpm --dir frontend test` | Vitest passed 5/5 tests in 3.04s |
-| 2026-10-02 | `pnpm --dir frontend build` | Static export generated in frontend/out/ |
+| 2026-10-04 | `backend/.venv/bin/pytest -q` | 391 passed in 18.2s (PostgreSQL 16) |
+| 2026-10-04 | `backend/.venv/bin/ruff check .` | All checks passed! (0 errors across 198 files) |
+| 2026-10-04 | `backend/.venv/bin/ruff format --check .` | 198 files already formatted |
+| 2026-10-04 | `backend/.venv/bin/python manage.py makemigrations --check --dry-run` | No changes detected |
+| 2026-10-04 | `backend/.venv/bin/python manage.py seed_demo_data --reviewer` | Seeded 25 jobs for reviewer (+919999999999, OTP 123456) |
+| 2026-10-04 | `pnpm --dir frontend lint` | 0 ESLint warnings/errors; i18n OK: 1053 keys in 3 locales |
+| 2026-10-04 | `pnpm --dir frontend typecheck` | Passed with zero errors (`tsc --noEmit`) |
+| 2026-10-04 | `pnpm --dir frontend test` | Vitest passed 138/138 tests |
+| 2026-10-04 | `pnpm --dir frontend build` | Static export generated in frontend/out/ (37/37 pages) |
