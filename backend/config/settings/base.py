@@ -61,6 +61,7 @@ LOCAL_APPS = [
     "apps.documents.apps.DocumentsConfig",
     "apps.tracking.apps.TrackingConfig",
     "apps.messaging.apps.MessagingConfig",
+    "apps.inventory.apps.InventoryConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

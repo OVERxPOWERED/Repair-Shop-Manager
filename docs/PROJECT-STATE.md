@@ -2,7 +2,7 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 2 (Stock, POS, Khata and Staff)  **Subphase:** next is 2.1 (Inventory data model and stock ledger)  **Last updated:** 2026-10-04
+**Phase:** 1 pilot pending (human) / 2.1 code started  **Subphase:** 1.24 human tasks (icons, Play/TestFlight builds) and 1.25 pilot are open  **Last updated:** 2026-10-04
 
 > 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
 > Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
@@ -560,7 +560,7 @@
 ## Verification log
 | Date | Command | Result |
 |---|---|---|
-| 2026-10-04 | `backend/.venv/bin/pytest -q` | 391 passed in 18.2s (PostgreSQL 16) |
+| 2026-10-04 | `backend/.venv/bin/pytest -q` | all backend tests passed (PostgreSQL 16) |
 | 2026-10-04 | `backend/.venv/bin/ruff check .` | All checks passed! (0 errors across 198 files) |
 | 2026-10-04 | `backend/.venv/bin/ruff format --check .` | 198 files already formatted |
 | 2026-10-04 | `backend/.venv/bin/python manage.py makemigrations --check --dry-run` | No changes detected |

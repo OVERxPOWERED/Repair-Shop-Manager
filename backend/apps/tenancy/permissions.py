@@ -50,6 +50,10 @@ PERMISSION_CODES = {
     "printers.configure": "Configure Bluetooth thermal printers",
     "billing.subscription": "Manage FixPro subscription and billing",
     "audit.view": "View the shop audit log",
+    # Inventory & Stock (P2)
+    "inventory.view": "View inventory items and stock levels",
+    "inventory.edit": "Create and edit inventory items, categories, and suppliers",
+    "stock.adjust": "Record manual stock adjustments and movements",
 }
 
 # Predefined role permission matrices
@@ -89,6 +93,7 @@ SYSTEM_ROLES = {
         "reports.view_basic",
         "staff.view",
         "printers.configure",
+        "inventory.view",
     ],
     "Engineer": [
         "jobs.view",
@@ -100,6 +105,7 @@ SYSTEM_ROLES = {
         "invoices.view",
         "invoices.print",
         "printers.configure",
+        "inventory.view",
     ],
 }
 

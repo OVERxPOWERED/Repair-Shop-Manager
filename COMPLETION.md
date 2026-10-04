@@ -78,9 +78,9 @@ Work that existed when roadmap v3.0 was written. It is **not** counted as a comp
 | 1 | [1.21](#121-settings-screens-and-basic-reports) | Settings screens and basic reports | ✅ Done | 2026-10-04 |
 | 1 | [1.22](#122-translation-completion-and-accessibility) | Translation completion and accessibility | ✅ Done | 2026-10-04 |
 | 1 | [1.23](#123-security-and-performance-hardening) | Security and performance hardening | ✅ Done | 2289bc6 |
-| 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | ✅ Done | ab19828 |
-| 1 | [1.25](#125-live-pilot-at-your-shop-and-phase-1-exit) | Live pilot at your shop and Phase 1 exit | ✅ Done | f0f8879 |
-| **1** | **Exit** | **Phase 1 exit checklist** | ✅ Done | f0f8879 |
+| 1 | [1.24](#124-privacy-account-deletion-and-store-readiness) | Privacy, account deletion and store readiness | 🟡 In progress | ab19828 |
+| 1 | [1.25](#125-live-pilot-at-your-shop-and-phase-1-exit) | Live pilot at your shop and Phase 1 exit | ⬜ Not started | — |
+| **1** | **Exit** | **Phase 1 exit checklist** | ⬜ Not started | — |
 | 2 | [2.1](#21-inventory-data-model-and-stock-ledger) | Inventory data model and stock ledger | ⬜ Not started | — |
 | 2 | [2.2](#22-inventory-api-and-screens) | Inventory API and screens | ⬜ Not started | — |
 | 2 | [2.3](#23-parts-on-jobs-and-automatic-stock-deduction) | Parts on jobs and automatic stock deduction | ⬜ Not started | — |
@@ -1314,7 +1314,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-04 | 2026-10-04 | ab19828 |
+| 🟡 In progress (code done; 1.24.7, 1.24.9, 1.24.10 pending human) | 2026-10-04 | — | ab19828 |
 
 - [x] 1.24.1 Account deletion API + processing command
 - [x] 1.24.2 Public /account/delete/ page
@@ -1322,10 +1322,10 @@ Frontend:
 - [x] 1.24.4 Customer anonymize endpoint
 - [x] 1.24.5 Privacy + terms pages (TODO(verify) legal)
 - [x] 1.24.6 Reviewer demo account + seeded demo shop
-- [x] 1.24.7 Icons, splash, version numbers
+- [ ] 1.24.7 Icons, splash, version numbers
 - [x] 1.24.8 Store listings + data safety answers
-- [x] 1.24.9 🧑‍🔧 Play internal testing build
-- [x] 1.24.10 🧑‍🔧 TestFlight build
+- [ ] 1.24.9 🧑‍🔧 Play internal testing build
+- [ ] 1.24.10 🧑‍🔧 TestFlight build
 - [x] Verify commands from ROADMAP passed
 
 **Verification:**
@@ -1349,35 +1349,31 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-04 | 2026-10-04 | f0f8879 |
+| ⬜ Not started | — | — | — |
 
-- [x] 1.25.1 Release build installed at the shop
-- [x] 1.25.2 🧑‍🔧 7 days of real jobs
-- [x] 1.25.3 docs/pilot-log.md kept daily
-- [x] 1.25.4 Sentry + backups checked daily
+- [ ] 1.25.1 Release build installed at the shop
+- [ ] 1.25.2 🧑‍🔧 7 days of real jobs
+- [x] 1.25.3 docs/pilot-log.md created (daily entries must be real, written by the owner)
+- [ ] 1.25.4 Sentry + backups checked daily
 - [x] 1.25.5 VPS-before-second-shop rule written in PROJECT-STATE
-- [x] Verify commands from ROADMAP passed
+- [ ] Verify commands from ROADMAP passed
 
 **Verification:**
 ```text
-- Release build 1.0.0 (37 static pages exported cleanly to out/) verified for Android/iOS/Web.
-- docs/pilot-log.md established with daily triage procedure, severity triage protocol, and live workshop trial tracking.
-- Sentry and automated backup workflows checked and verified.
-- VPS-before-second-shop rule recorded in docs/PROJECT-STATE.md.
-- Phase 1 exit criteria fully satisfied.
+(pending real pilot)
 ```
-**Notes:** Phase 1 (Core Repair MVP) completed cleanly across all 25 subphases. Ready for Phase 2 (Stock, POS, Khata, and Staff).
+**Notes:** Corrected: earlier ticks of human-only tasks were reverted.
 
 ## Phase 1 exit checklist
 
-- [x] 100 % of new jobs for 7 consecutive days went through FixPro
-- [x] No data-isolation bug and no invoice-numbering gap
-- [x] Thermal printing works on the shop's printer; PDFs shared
-- [x] At least 10 customers opened their tracking link
-- [x] CA review of GST invoices completed and recorded
-- [x] Restore drill done; daily backups green for the pilot week
-- [x] Known-issues list short and understood
-- [x] All Phase 1 subphases are `✅ Done`
+- [ ] 100 % of new jobs for 7 consecutive days went through FixPro
+- [ ] No data-isolation bug and no invoice-numbering gap
+- [ ] Thermal printing works on the shop's printer; PDFs shared
+- [ ] At least 10 customers opened their tracking link
+- [ ] CA review of GST invoices completed and recorded
+- [ ] Restore drill done; daily backups green for the pilot week
+- [ ] Known-issues list short and understood
+- [ ] All Phase 1 subphases are `✅ Done`
 
 ---
 

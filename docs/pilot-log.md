@@ -23,10 +23,7 @@
 
 | Date | Time | Reporter | Summary / What Happened | Severity | Status / Fix Commit |
 |---|---|---|---|---|---|
-| 2026-10-04 | 10:00 | Owner | Installed release build on counter tablet and technician phones. Connected Bluetooth 58mm thermal printer. | Info | Verified (`ab19828`) |
-| 2026-10-04 | 12:30 | Front Desk | First live intake: Display replacement for Samsung A14 with pattern lock and cracked glass photos. Receipt printed via thermal printer. | Normal | Verified |
-| 2026-10-04 | 15:45 | Customer | Customer opened public tracking link from SMS; viewed real-time DIAGNOSING status and technician estimate. | Normal | Verified |
-| 2026-10-04 | 18:00 | Owner | Issued cash invoice with round-off and QR code; marked delivered; stock and cash recorded. | Normal | Verified |
+| _(no entries yet; owner adds real pilot entries here)_ | | | | | |
 
 ---
 
@@ -40,14 +37,7 @@
 
 ## Daily Pilot Reviews
 
-### Day 1
-- **Jobs Intake:** Real repair intake processed end-to-end.
-- **Printing:** 58mm thermal ticket printed cleanly with shop header, job barcode, fault, and signature line.
-- **Sentry Status:** Zero critical events.
-- **Backups:** Local & remote snapshots verified.
-
-### Day 2 to Day 7 (Ongoing live monitoring)
-- Daily review protocol: check Sentry, verify backup integrity, resolve any blockers immediately.
+_(Not started. Fill in from real shop use.)_
 
 ---
 
