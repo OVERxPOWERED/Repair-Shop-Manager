@@ -1189,7 +1189,7 @@ Frontend:
 
 | Status | Started | Completed | Commit |
 |---|---|---|---|
-| ✅ Done | 2026-10-03 | 2026-10-03 | 473a2df |
+| ✅ Done | 2026-10-03 | 2026-10-03 | a9fdcd1 |
 
 - [x] 1.20.1 Trash in `ShopScopedViewSet`
 - [x] 1.20.2 Purge job
