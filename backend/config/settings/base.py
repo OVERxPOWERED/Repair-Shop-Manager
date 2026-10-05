@@ -182,6 +182,9 @@ CORS_ALLOWED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.pages\.dev$",  # Cloudflare Pages deployments
+]
 CORS_ALLOW_CREDENTIALS = False  # we use Authorization headers, not cookies
 CORS_ALLOW_HEADERS = (
     *default_headers,
