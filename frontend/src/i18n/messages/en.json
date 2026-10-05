@@ -955,6 +955,19 @@
       "markAsPaid": "Mark as Paid",
       "buttonLabel": "UPI QR"
     },
+    "testUpiQr": {
+      "button": "Test QR Code",
+      "title": "Test Your UPI QR Code",
+      "subtitle": "Scan with your phone to verify your registered name",
+      "step1": "Open Google Pay, PhonePe, or Paytm on your mobile phone.",
+      "step2": "Scan this QR code and verify your shop or bank name appears.",
+      "step3": "No payment needed! If your name appears, your UPI ID is 100% correct.",
+      "done": "Looks Good / Close"
+    },
+    "gstVerification": {
+      "verifyButton": "Verify on GST Portal ↗",
+      "verifyDesc": "Check active registration on the official Government portal"
+    },
     "advance": {
       "intakeLabel": "Advance Payment Received (₹)",
       "intakeHint": "Optional advance paid by customer at intake"

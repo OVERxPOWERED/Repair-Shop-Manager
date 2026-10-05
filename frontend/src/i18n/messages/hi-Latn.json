@@ -955,6 +955,19 @@
       "markAsPaid": "Paid mark karein",
       "buttonLabel": "UPI QR"
     },
+    "testUpiQr": {
+      "button": "QR Code Test Karein",
+      "title": "Apna UPI QR Code Test Karein",
+      "subtitle": "Apna registered name verify karne ke liye phone se scan karein",
+      "step1": "Apne phone par Google Pay, PhonePe ya Paytm kholein.",
+      "step2": "Is QR code ko scan karein aur check karein ki shop/bank name dikh raha hai.",
+      "step3": "Payment karne ki zarurat nahi hai! Name dikhte hi confirm ho jayega ki UPI ID sahi hai.",
+      "done": "Looks Good / Band Karein"
+    },
+    "gstVerification": {
+      "verifyButton": "GST Portal par Check Karein ↗",
+      "verifyDesc": "Official Government portal par active registration verify karein"
+    },
     "advance": {
       "intakeLabel": "Advance Payment (₹)",
       "intakeHint": "Intake ke samay customer se liya gaya advance"

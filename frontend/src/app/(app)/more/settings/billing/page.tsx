@@ -11,6 +11,7 @@ import {
   AlertCircle,
   AlertTriangle,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +29,8 @@ import {
 } from "@/components/ui/select";
 import { usePermission } from "@/lib/auth/store";
 import { ApiError } from "@/lib/api/client";
+import { isValidUpiId } from "@/lib/validation/upi";
+import { UpiTestQrModal } from "@/features/billing/UpiTestQrModal";
 import {
   useShopSettings,
   useUpdateShopSettings,
@@ -36,11 +39,13 @@ import {
 export default function BillingSettingsPage() {
   const router = useRouter();
   const t = useTranslations("settings");
+  const tBilling = useTranslations("billing");
   const canEdit = usePermission("shop.settings");
 
   const { data: shop, isLoading, error, refetch } = useShopSettings();
   const updateMutation = useUpdateShopSettings();
 
+  const [testQrOpen, setTestQrOpen] = useState(false);
   const [formData, setFormData] = useState({
     gst_enabled: false,
     gstin: "",
@@ -232,6 +237,19 @@ export default function BillingSettingsPage() {
                   {fieldErrors.gstin && (
                     <p className="text-xs text-rose-500 font-medium">{fieldErrors.gstin}</p>
                   )}
+                  {formData.gstin.trim().length === 15 && (
+                    <div className="pt-1">
+                      <a
+                        href="https://services.gst.gov.in/services/searchtp"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>{tBilling("gstVerification.verifyButton")}</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {/* Registration Type */}
@@ -314,14 +332,26 @@ export default function BillingSettingsPage() {
               <Label htmlFor="upi_id" className="text-xs font-semibold text-neutral-700">
                 Shop UPI VPA ID
               </Label>
-              <Input
-                id="upi_id"
-                value={formData.upi_id}
-                onChange={(e) => setFormData({ ...formData, upi_id: e.target.value })}
-                disabled={!canEdit || updateMutation.isPending}
-                placeholder="e.g. mobilehub@okaxis or shopname@upi"
-                className="h-11 rounded-xl"
-              />
+              <div className="relative">
+                <Input
+                  id="upi_id"
+                  value={formData.upi_id}
+                  onChange={(e) => setFormData({ ...formData, upi_id: e.target.value })}
+                  disabled={!canEdit || updateMutation.isPending}
+                  placeholder="e.g. mobilehub@okaxis or shopname@upi"
+                  className={formData.upi_id && isValidUpiId(formData.upi_id) ? "h-11 rounded-xl pr-32" : "h-11 rounded-xl"}
+                />
+                {Boolean(formData.upi_id && isValidUpiId(formData.upi_id)) && (
+                  <button
+                    type="button"
+                    onClick={() => setTestQrOpen(true)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    <QrCode className="h-3.5 w-3.5" />
+                    <span>{tBilling("testUpiQr.button")}</span>
+                  </button>
+                )}
+              </div>
               <p className="text-[11px] text-neutral-400">
                 Used to generate BharatPe/UPI dynamic QR codes on thermal and PDF bills.
               </p>
@@ -375,6 +405,13 @@ export default function BillingSettingsPage() {
           )}
         </form>
       </main>
+
+      <UpiTestQrModal
+        open={testQrOpen}
+        onOpenChange={setTestQrOpen}
+        shopName={shop?.name || ""}
+        upiId={formData.upi_id}
+      />
     </div>
   );
 }

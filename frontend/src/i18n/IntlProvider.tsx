@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useEffect } from "react";
 import { NextIntlClientProvider } from "next-intl";
-import { useEffect } from "react";
 import en from "./messages/en.json";
 import hi from "./messages/hi.json";
 import hiLatn from "./messages/hi-Latn.json";

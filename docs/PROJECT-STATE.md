@@ -5,6 +5,16 @@
 **Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **UPI Verification Modal & GST Portal Deep-Link (Subphase 1.25+):**
+  - UPI Payee Name Verification Modal:
+    - Built reusable `UpiTestQrModal` (`frontend/src/features/billing/UpiTestQrModal.tsx`) and integrated it into both Shop Onboarding (`/onboarding/`) and Settings (`/more/settings/billing/`).
+    - Dynamically generates an NPCI-compliant `upi://pay` QR code with a ₹1 test amount and shop name so shopkeepers can scan it with PhonePe, Google Pay, or Paytm on their phone and immediately verify the bank-registered payee name prior to collecting payments from customers.
+  - Official GST Portal Verification Link:
+    - Added live "Verify on GST Portal ↗" link (`services.gst.gov.in/services/searchtp`) when 15 characters are entered, allowing zero-cost verification of business name, composition status, and active filing status on the official Government portal.
+  - Testing & Localization:
+    - Added test suite `UpiTestQrModal.test.tsx` (140/140 vitest tests passing). Added `afterEach(cleanup)` in `vitest.setup.ts`.
+    - Added i18n keys for all three locales (`en`, `hi`, `hi-Latn`), fully verified by `check-i18n.mjs` (1,069 keys).
+    - `pnpm lint`, `pnpm typecheck`, and `pnpm build` (37/37 static export pages) 100% clean.
 - **Google OAuth Production Fix & Error Resilience (Subphase 1.25+):**
   - Backend Production Dependency Fix:
     - Added `requests>=2.31` to `backend/requirements.txt` to fulfill the `requests` transport requirement of `google.auth.transport.requests.Request`. In production Docker builds without `requests`, `POST /api/v1/auth/google/` was raising an unhandled `ImportError` resulting in HTTP 500.

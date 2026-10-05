@@ -87,8 +87,14 @@ Before tapping "Continue with Google" on your live site, Google Cloud must recog
   * **Step 3 - Billing & GST**:
     * **GST Registered Toggle**:
       * Leave OFF for simple bill mode, OR
-      * Turn ON and enter a valid 15-character GSTIN (e.g. `08AAAAA0000A1Z5`). Notice live validation!
-    * **UPI ID (VPA)**: Enter `ramesh@okhdfcbank` (used for customer QR code payments).
+      * Turn ON and enter a valid 15-character GSTIN (e.g. `08AAAAA0000A1Z5`). Notice live Luhn Mod-36 checksum validation!
+      * Tap **"Verify on GST Portal ↗"**: verify it opens the official GST portal (`services.gst.gov.in/services/searchtp`) in a new tab so you can confirm the legal business name and filing status.
+    * **UPI ID (VPA)**:
+      * Enter your UPI ID (e.g., `ramesh@okhdfcbank`).
+      * Tap **"Test QR Code"** button:
+        * Verify the popup dialog opens with your Shop Name, UPI ID, and a scannable test QR code.
+        * Open PhonePe / Google Pay / Paytm on your phone and scan the QR code: verify your registered bank account / merchant name appears on your banking app!
+        * Tap **"Looks Good, Done"** to close.
     * Tap **Next**.
   * **Step 4 - Review & Create**:
     * Review shop details. Tap **"Create My Shop"**.
@@ -267,18 +273,22 @@ Open Job #1 from the Jobs list:
   * Add a new brand: `OnePlus` (Category: Mobile).
   * Add a new accessory: `Stylus Pen`.
   * Start a new job intake and verify both new options appear in the wizard!
-* [ ] **10.4 WhatsApp Messaging Template (`More > Settings > Messaging`)**:
+* [ ] **10.4 Billing & Taxes Settings (`More > Settings > Billing & Taxes`)**:
+  * View current GST and UPI configuration.
+  * Test updating UPI ID and tapping **"Test QR Code"** to preview dynamic payment QR.
+  * Verify the **"Verify on GST Portal ↗"** link opens with current GSTIN.
+* [ ] **10.5 WhatsApp Messaging Template (`More > Settings > Messaging`)**:
   * Edit WhatsApp template: add custom text with chips like `{customer_name}` and `{job_no}`.
   * Verify the live preview reflects your custom message.
-* [ ] **10.5 Trash & Restore (`More > Data > Trash`)**:
+* [ ] **10.6 Trash & Restore (`More > Data > Trash`)**:
   * Soft-delete a test customer or job.
   * Open Trash tab -> Tap **"Restore"**: verify record returns to active list.
   * Permanent Delete: Attempt to permanently purge a job with payments -> Verify system prevents deletion (`trash.has_financial_records`).
-* [ ] **10.6 Excel Data Export (`More > Data > Export`)**:
+* [ ] **10.7 Excel Data Export (`More > Data > Export`)**:
   * Tap **"Export Jobs"** or **"Export Customers"**.
   * Download the `.xlsx` file.
   * Open in Excel / Google Sheets: verify timestamps are in IST (`Asia/Kolkata`) and money amounts are in Rupees (not paise).
-* [ ] **10.7 Devices & Account Deletion (`More > Account & Security`)**:
+* [ ] **10.8 Devices & Account Deletion (`More > Account & Security`)**:
   * View active devices & sessions; test revoking a session.
   * Tap **"Delete Account"**: verify 7-day grace period notice appears with pending cancellation status.
   * Tap **"Cancel Deletion Request"**: verify account is restored to active status.

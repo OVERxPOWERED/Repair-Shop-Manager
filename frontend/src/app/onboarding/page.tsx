@@ -21,6 +21,7 @@ import {
   MapPin,
   Receipt,
   QrCode,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,8 @@ import {
   type ShopType,
 } from "@/features/onboarding/schema";
 import { GST_STATES, GST_STATE_MAP } from "@/lib/constants/gst-states";
+import { isValidUpiId } from "@/lib/validation/upi";
+import { UpiTestQrModal } from "@/features/billing/UpiTestQrModal";
 import { api, ApiError, newIdempotencyKey } from "@/lib/api/client";
 import { useAuthStore, type MyShop } from "@/lib/auth/store";
 import { errorMessage } from "@/i18n/config";
@@ -48,11 +51,13 @@ import { cn } from "@/lib/utils";
 export default function OnboardingPage() {
   const router = useRouter();
   const t = useTranslations("onboarding");
+  const tBilling = useTranslations("billing");
   const tErrors = useTranslations("errors");
   const { user, setSession, selectShop } = useAuthStore();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [loading, setLoading] = useState(false);
+  const [testQrOpen, setTestQrOpen] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [createdShopName, setCreatedShopName] = useState("");
   const [idempotencyKey] = useState(() => newIdempotencyKey());
@@ -470,6 +475,19 @@ export default function OnboardingPage() {
                         ✓ State auto-set to: {GST_STATE_MAP[stateCode]} ({stateCode})
                       </p>
                     )}
+                    {watch("gstin")?.trim().length === 15 && (
+                      <div className="pt-1.5 flex items-center justify-between">
+                        <a
+                          href="https://services.gst.gov.in/services/searchtp"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span>{tBilling("gstVerification.verifyButton")}</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -488,8 +506,21 @@ export default function OnboardingPage() {
                     id="upi-id"
                     {...register("upi_id")}
                     placeholder={t("upiPlaceholder")}
-                    className="pl-10 h-12 rounded-2xl border-neutral-200 text-sm"
+                    className={cn(
+                      "pl-10 h-12 rounded-2xl border-neutral-200 text-sm",
+                      Boolean(watch("upi_id") && isValidUpiId(watch("upi_id") || "")) && "pr-32"
+                    )}
                   />
+                  {Boolean(watch("upi_id") && isValidUpiId(watch("upi_id") || "")) && (
+                    <button
+                      type="button"
+                      onClick={() => setTestQrOpen(true)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold flex items-center gap-1 transition-colors"
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                      <span>{tBilling("testUpiQr.button")}</span>
+                    </button>
+                  )}
                 </div>
                 <p className="text-[11px] text-neutral-500 flex items-center gap-1">
                   <HelpCircle className="h-3.5 w-3.5 text-neutral-400" />
@@ -562,6 +593,13 @@ export default function OnboardingPage() {
           </Button>
         )}
       </div>
+
+      <UpiTestQrModal
+        open={testQrOpen}
+        onOpenChange={setTestQrOpen}
+        shopName={watch("name")}
+        upiId={watch("upi_id") || ""}
+      />
     </div>
   );
 }
