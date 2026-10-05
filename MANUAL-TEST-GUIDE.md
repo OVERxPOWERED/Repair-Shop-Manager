@@ -59,8 +59,10 @@ Before tapping "Continue with Google" on your live site, Google Cloud must recog
   * Tap the official **"Continue with Google"** button (or One-Tap prompt if shown).
   * Select your Google account.
   * Expected: Google validates credentials, backend issues JWT tokens, and redirects new users to `/profile-setup/` or existing users to `/home/`.
-* [ ] **2.2 Phone Login Notice**:
-  * Notice the Phone Login option displays a "(Coming Soon)" badge or dev notice explaining that SMS OTP is undergoing TRAI DLT registration.
+* [ ] **2.2 Phone Login "Coming Soon" Toast Check**:
+  * Tap **"Continue with Phone"** (with the *Coming Soon* badge).
+  * Expected: No form opens. A toast notification appears: *"Phone login will be available soon. Please continue with Google."* (localized in your active language).
+  * Direct browser visits to `/login` automatically redirect back to `/welcome/`. (Developers can access the dev route at `/login?dev=true` or via the dev spikes page at `/dev/spikes/`).
 
 ---
 
