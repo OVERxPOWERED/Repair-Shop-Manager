@@ -3,7 +3,7 @@ import { getPref, setPref } from "@/native/preferences";
 import { getSecret, removeSecret, setSecret } from "@/native/secure-storage";
 
 export type Tokens = { access: string; refresh: string };
-export type User = { id: string; phone: string; name: string; email: string | null; preferred_locale: string };
+export type User = { id: string; phone: string | null; name: string; email: string | null; preferred_locale: string };
 export type MyShop = {
   membership_id: string;
   shop_id: string;

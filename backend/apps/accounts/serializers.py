@@ -48,6 +48,15 @@ class VerifyOTPSerializer(serializers.Serializer):
         return cleaned
 
 
+class GoogleAuthSerializer(serializers.Serializer):
+    id_token = serializers.CharField()
+    device_id = serializers.CharField(max_length=128)
+    platform = serializers.ChoiceField(
+        choices=UserDevice.PlatformChoices.choices, default=UserDevice.PlatformChoices.WEB
+    )
+    app_version = serializers.CharField(max_length=32, required=False, allow_blank=True, default="")
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -62,19 +71,30 @@ class UserSerializer(serializers.ModelSerializer):
             "last_login_at",
             "created_at",
         )
-        read_only_fields = ("id", "phone", "is_active", "is_platform_admin", "last_login_at", "created_at")
+        read_only_fields = ("id", "is_active", "is_platform_admin", "last_login_at", "created_at")
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = User
-        fields = ("name", "email", "preferred_locale")
+        fields = ("name", "email", "phone", "preferred_locale")
 
     def validate_name(self, value):
         value = value.strip()
         if not value:
             raise serializers.ValidationError("Name is required.")
         return value
+
+    def validate_phone(self, value):
+        if not value:
+            return None
+        normalized = normalize_phone(value)
+        user = self.instance
+        if User.objects.filter(phone=normalized).exclude(pk=user.pk if user else None).exists():
+            raise serializers.ValidationError("A user with this phone number already exists.")
+        return normalized
 
 
 class MyShopSerializer(serializers.Serializer):

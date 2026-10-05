@@ -10,6 +10,7 @@ from apps.accounts.serializers import (
     AccountDeletionRequestSerializer,
     CreateAccountDeletionRequestSerializer,
     DeviceSerializer,
+    GoogleAuthSerializer,
     ProfileUpdateSerializer,
     SendOTPSerializer,
     UserSerializer,
@@ -19,6 +20,7 @@ from apps.accounts.serializers import (
 from apps.accounts.services import (
     OTP_COOLDOWN_SECONDS,
     cancel_account_deletion,
+    login_or_register_with_google,
     logout_everywhere,
     request_account_deletion,
     revoke_device,
@@ -76,6 +78,43 @@ class VerifyOTPView(APIView):
                 actor=user,
                 shop=None,
                 after={"platform": device.platform, "device_id": device.device_id},
+            )
+        pending = pending_invites_for_phone(user.phone).count()
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "tokens": tokens,
+                "shops": my_shops(user),
+                "pending_invites": pending,
+            }
+        )
+
+
+class GoogleAuthView(APIView):
+    permission_classes = (permissions.AllowAny,)
+    authentication_classes = ()
+    throttle_classes = (ScopedRateThrottle,)
+    throttle_scope = "otp_verify"
+
+    @extend_schema(request=GoogleAuthSerializer, responses={200: dict}, summary="Sign in or register with Google")
+    def post(self, request):
+        s = GoogleAuthSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        d = s.validated_data
+        user, device, tokens, is_new_device = login_or_register_with_google(
+            id_token=d["id_token"],
+            device_id=d["device_id"],
+            platform=d["platform"],
+            app_version=d.get("app_version", ""),
+        )
+        if is_new_device:
+            record_audit(
+                action="auth.new_device_login",
+                entity=device,
+                request=request,
+                actor=user,
+                shop=None,
+                after={"platform": device.platform, "device_id": device.device_id, "provider": "google"},
             )
         pending = pending_invites_for_phone(user.phone).count()
         return Response(

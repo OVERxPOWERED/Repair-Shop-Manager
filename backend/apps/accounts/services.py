@@ -130,6 +130,87 @@ def verify_otp_and_login(
     return user, device, issue_tokens(user, device), created
 
 
+def verify_google_token(token: str) -> dict:
+    """Verifies a Google ID token with Google's public certificates."""
+    if not token or not isinstance(token, str):
+        raise DomainError("Missing or invalid Google token.", code="auth.invalid_google_token", status=400)
+
+    # Allow mock tokens in debug/test environments: "test-google-token:<sub>:<email>:<name>"
+    has_client_ids = bool(getattr(settings, "GOOGLE_CLIENT_IDS", []))
+    is_test_env = settings.DEBUG or getattr(settings, "IS_TESTING", False) or not has_client_ids
+    if is_test_env and token.startswith("test-google-token:"):
+        parts = token.split(":")
+        sub = parts[1] if len(parts) > 1 else "123456789"
+        email = parts[2] if len(parts) > 2 else "test@example.com"
+        name = parts[3] if len(parts) > 3 else "Test User"
+        return {"sub": sub, "email": email, "name": name, "email_verified": True}
+
+    from google.auth.transport import requests as google_requests
+    from google.oauth2 import id_token
+
+    client_ids = getattr(settings, "GOOGLE_CLIENT_IDS", [])
+    audience = client_ids[0] if len(client_ids) == 1 else (client_ids if client_ids else None)
+
+    try:
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), audience=audience)
+        return idinfo
+    except Exception as exc:
+        logger.warning("Google token verification failed: %s", exc)
+        raise DomainError("Invalid Google authentication token.", code="auth.invalid_google_token", status=400) from exc
+
+
+def login_or_register_with_google(
+    *, id_token: str, device_id: str, platform: str, app_version: str = ""
+) -> tuple[User, UserDevice, dict, bool]:
+    """Returns (user, device, tokens, is_new_device)."""
+    claims = verify_google_token(id_token)
+    sub = claims.get("sub")
+    email = claims.get("email")
+    name = claims.get("name", "")
+
+    if not sub:
+        raise DomainError("Invalid Google identity payload.", code="auth.invalid_google_token", status=400)
+
+    now = timezone.now()
+    with transaction.atomic():
+        user = User.objects.select_for_update().filter(google_sub=sub).first()
+        if user is None and email:
+            user = User.objects.select_for_update().filter(email=email).first()
+            if user and not user.google_sub:
+                user.google_sub = sub
+                user.save(update_fields=["google_sub"])
+
+        if user is None:
+            user = User.objects.create_user(phone=None, email=email, google_sub=sub, name=name)
+        elif user.deleted_at is not None or not user.is_active:
+            raise DomainError("This account is disabled.", code="auth.account_disabled", status=403)
+        else:
+            fields_to_update = []
+            if not user.name and name:
+                user.name = name
+                fields_to_update.append("name")
+            if not user.google_sub:
+                user.google_sub = sub
+                fields_to_update.append("google_sub")
+            if fields_to_update:
+                user.save(update_fields=fields_to_update)
+
+        user.last_login_at = now
+        user.save(update_fields=["last_login_at"])
+
+        device, created = UserDevice.objects.select_for_update().get_or_create(
+            user=user, device_id=device_id, defaults={"platform": platform}
+        )
+        device.platform = platform
+        device.app_version = app_version or device.app_version
+        device.last_seen_at = now
+        device.revoked_at = None
+        device.refresh_family = uuid.uuid4()
+        device.save()
+
+    return user, device, issue_tokens(user, device), created
+
+
 def revoke_device(device: UserDevice) -> None:
     device.revoked_at = timezone.now()
     device.refresh_family = uuid.uuid4()

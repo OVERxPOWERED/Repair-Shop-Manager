@@ -38,6 +38,7 @@ export default function ProfileSetupPage() {
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",
+      phone: user?.phone?.replace("+91", "") || "",
       preferred_locale: (user?.preferred_locale as "en" | "hi" | "hi-Latn") || locale || "en",
     },
   });
@@ -47,11 +48,14 @@ export default function ProfileSetupPage() {
     setGlobalError(null);
 
     try {
-      const payload = {
+      const payload: Record<string, string | null> = {
         name: values.name.trim(),
         email: values.email?.trim() ? values.email.trim() : null,
         preferred_locale: locale,
       };
+      if (values.phone?.trim()) {
+        payload.phone = values.phone.trim();
+      }
 
       const res = await api<{ user: User; shops: MyShop[] }>("/auth/me/", {
         method: "PATCH",
@@ -78,6 +82,9 @@ export default function ProfileSetupPage() {
           }
           if (err.fields.email) {
             setError("email", { message: err.fields.email[0] });
+          }
+          if (err.fields.phone) {
+            setError("phone", { message: err.fields.phone[0] });
           }
         }
         setGlobalError(errorMessage(tErrors, err.code) || err.message);
@@ -168,6 +175,38 @@ export default function ProfileSetupPage() {
               </p>
             )}
           </div>
+
+          {/* Phone Field (for Google users without phone) */}
+          {!user?.phone && (
+            <div className="space-y-1.5">
+              <Label htmlFor="phone" className="text-xs font-semibold text-neutral-800">
+                {t("phoneOptional")}
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-neutral-500">
+                  +91
+                </span>
+                <Input
+                  id="phone"
+                  type="tel"
+                  {...register("phone")}
+                  placeholder="98765 43210"
+                  className="pl-12 h-12 rounded-2xl border-neutral-200 focus-visible:ring-primary/20 text-base"
+                  disabled={loading}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-xs font-semibold text-rose-600 flex items-center gap-1 mt-1 animate-in fade-in">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span>
+                    {errors.phone.message?.startsWith("auth.")
+                      ? t(errors.phone.message.replace("auth.", "") as Parameters<typeof t>[0])
+                      : errors.phone.message}
+                  </span>
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Global error banner */}
           {globalError && (

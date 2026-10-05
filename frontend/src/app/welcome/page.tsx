@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Smartphone, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
+import { GoogleSignInButton } from "@/features/auth/GoogleSignInButton";
 
 export default function WelcomePage() {
   const t = useTranslations("auth");
@@ -42,11 +43,27 @@ export default function WelcomePage() {
       </div>
 
       {/* Action Footer */}
-      <div className="w-full pb-6 pt-4">
-        <Button asChild className="w-full text-base font-semibold group flex items-center justify-center gap-2">
+      <div className="w-full pb-6 pt-4 space-y-3">
+        <GoogleSignInButton />
+
+        <div className="relative flex items-center justify-center py-1">
+          <div className="border-t border-neutral-200 w-full" />
+          <span className="bg-background px-2 text-xs text-neutral-600 font-bold uppercase tracking-wider absolute">
+            {t("orDivider")}
+          </span>
+        </div>
+
+        <Button
+          asChild
+          variant="outline"
+          className="w-full text-base font-semibold group flex items-center justify-center gap-2 h-12 rounded-2xl border-neutral-200"
+        >
           <Link href="/login/">
+            <Smartphone className="h-4 w-4 text-neutral-500" />
             <span>{t("continuePhone")}</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 ml-1">
+              {t("comingSoonBadge")}
+            </span>
           </Link>
         </Button>
       </div>

@@ -2,12 +2,32 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 pilot pending (human) / 2.1 code started  **Subphase:** 1.24 human tasks (icons, Play/TestFlight builds) and 1.25 pilot are open  **Last updated:** 2026-10-04
-
-> 2026-10-02: ROADMAP.md rewritten as v3.0 (phases → subphases with step-by-step instructions) and COMPLETION.md added.
-> Phase 0 (Subphases 0.1 through 0.18) completed and verified on PostgreSQL 16 & Next.js 14 / Capacitor 8.
+**Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 pilot testing & manual checklist  **Last updated:** 2026-10-05
 
 ## Done
+- **Google Authentication & Zero-Cost Signup (Subphase 1.24+):**
+  - Backend Google Identity & Lifecycle:
+    - User Model & Migration: Added `google_sub = models.CharField(unique=True, null=True, blank=True)` and made `phone` nullable and blankable (`0003_user_google_sub_alter_user_email_alter_user_phone.py`).
+    - Updated `UserManager.create_user` to allow user provisioning via Google identity or email when phone is omitted.
+    - Updated `Membership.__str__`, `UserDevice.__str__`, and `User.__str__` to safely fall back to email or UUID when phone is null.
+    - Implemented `verify_google_token` (using `google-auth` token verification) and `login_or_register_with_google` in `apps/accounts/services.py`: validates Google ID token, finds or provisions `User`, links existing users by email or `google_sub`, registers active device session, and issues SimpleJWT family.
+    - Implemented `GoogleAuthView` (`POST /api/v1/auth/google/`).
+    - Extended `ProfileUpdateSerializer` in `apps/accounts/serializers.py` to allow Google users to link/update their phone number with uniqueness validation.
+    - Updated `pending_invites_for_phone` in `apps/tenancy/invites.py` to safely return `Invite.objects.none()` when phone is null or empty.
+    - Comprehensive unit tests in `apps/accounts/tests/test_google_auth.py` (6 tests: signup, existing login, email linking, disabled accounts, invalid token, profile phone linking).
+  - Frontend Google Sign-In & Onboarding:
+    - Implemented `frontend/src/native/google-auth.ts` providing Google Identity Services (GIS) integration on web with Capacitor mobile support and dev testing fallback.
+    - Created reusable `GoogleSignInButton` component (`frontend/src/features/auth/GoogleSignInButton.tsx`) with Google SVG branding and loading spinner.
+    - Welcome Screen (`welcome/page.tsx`): Made Google Sign-In the primary action, added "Or" divider, and added "(Coming Soon)" badge to "Continue with Phone".
+    - Login Screen (`login/page.tsx`): Added dev notice explaining that SMS OTP is in development mode and recommending Google Sign-In, with an embedded 1-tap Google Sign-In button.
+    - Profile Setup (`profile-setup/page.tsx`): Prompts Google users for an optional phone number for future SMS notifications.
+    - i18n: Added 6 new translation keys across `en.json`, `hi.json`, and `hi-Latn.json` (1,059/1,059 keys verified by `pnpm i18n:check`).
+  - Verification:
+    - 397/397 backend pytest tests passing (+6 new Google auth tests).
+    - `ruff check .` and `ruff format --check .` 100% clean across 209 files.
+    - `python manage.py makemigrations --check --dry-run` clean (0 pending changes).
+    - 138/138 frontend vitest tests passing, 0 ESLint warnings/errors, TypeScript clean (`tsc --noEmit`), 37/37 static pages exported to `out/`.
+    - Capacitor synced cleanly (`npx cap sync`).
 - **Privacy, Account Deletion and Store Readiness (Subphase 1.24):**
   - Account Deletion Backend Lifecycle:
     - Extended `OTPChallenge.PurposeChoices` with `DELETE_ACCOUNT = "delete_account"` and applied database migration `0002_alter_otpchallenge_purpose.py`.

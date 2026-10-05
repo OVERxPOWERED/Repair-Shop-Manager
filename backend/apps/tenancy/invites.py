@@ -13,7 +13,9 @@ from apps.tenancy.models import Invite, Membership
 INVITE_TTL = timedelta(days=7)
 
 
-def pending_invites_for_phone(phone: str):
+def pending_invites_for_phone(phone: str | None):
+    if not phone:
+        return Invite.objects.none()
     return Invite.objects.filter(
         phone=phone,
         accepted_at__isnull=True,
@@ -51,6 +53,11 @@ def create_invite(*, actor: Membership, phone: str, role) -> Invite:
 
 @transaction.atomic
 def accept_invite(*, user, invite_id) -> Membership:
+    if not user.phone:
+        raise DomainError(
+            "Please add your phone number in profile before accepting invites.",
+            code="invite.phone_required",
+        )
     # select_related(None): Postgres refuses FOR UPDATE across the nullable invited_by outer join.
     invite = pending_invites_for_phone(user.phone).select_related(None).select_for_update().filter(pk=invite_id).first()
     if invite is None:

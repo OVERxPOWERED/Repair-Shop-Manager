@@ -34,6 +34,8 @@ services:
         sync: false          # pilot only: owner's number with a NON-trivial code until DLT SMS works
       - key: FIELD_ENCRYPTION_KEYS
         sync: false          # comma-separated 32-byte Fernet keys
+      - key: GOOGLE_CLIENT_IDS
+        sync: false
       - key: MEDIA_BUCKET
         sync: false
       - key: MEDIA_S3_ENDPOINT

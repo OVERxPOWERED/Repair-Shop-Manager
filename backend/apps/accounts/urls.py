@@ -5,6 +5,7 @@ from apps.accounts import views
 urlpatterns = [
     path("auth/otp/send/", views.SendOTPView.as_view(), name="auth-otp-send"),
     path("auth/otp/verify/", views.VerifyOTPView.as_view(), name="auth-otp-verify"),
+    path("auth/google/", views.GoogleAuthView.as_view(), name="auth-google"),
     path("auth/token/refresh/", views.RefreshView.as_view(), name="auth-token-refresh"),
     path("auth/me/", views.MeView.as_view(), name="auth-me"),
     path("auth/logout/", views.LogoutView.as_view(), name="auth-logout"),

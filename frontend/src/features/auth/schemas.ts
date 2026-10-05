@@ -31,6 +31,13 @@ export const profileSchema = z.object({
     .or(z.literal(""))
     .nullable()
     .optional(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[6-9]\d{9}$/, "auth.invalidPhone")
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
   preferred_locale: z.enum(["en", "hi", "hi-Latn"]),
 });
 

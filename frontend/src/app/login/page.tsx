@@ -10,6 +10,7 @@ import { NumericKeypad } from "@/components/forms/NumericKeypad";
 import { api, ApiError } from "@/lib/api/client";
 import { getDeviceId } from "@/native/device";
 import { errorMessage } from "@/i18n/config";
+import { GoogleSignInButton } from "@/features/auth/GoogleSignInButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -92,8 +93,17 @@ export default function LoginPage() {
           <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t("phoneSubtitle")}</p>
         </div>
 
+        {/* SMS notice banner */}
+        <div className="mt-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+          <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="space-y-2 flex-1">
+            <span>{t("smsDevNotice")}</span>
+            <GoogleSignInButton className="h-9 text-xs font-semibold py-1 mt-1" />
+          </div>
+        </div>
+
         {/* Phone Display Box */}
-        <div className="mt-8 flex flex-col items-center">
+        <div className="mt-6 flex flex-col items-center">
           <div className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl border-2 border-neutral-200 bg-neutral-50/50">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-neutral-200 text-sm font-bold text-neutral-900 shadow-sm">
               <span>🇮🇳</span>

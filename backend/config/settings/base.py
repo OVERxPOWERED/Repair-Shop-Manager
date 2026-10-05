@@ -220,6 +220,7 @@ def _parse_otp_test_numbers(raw: str) -> dict[str, str]:
 
 
 OTP_TEST_NUMBERS = _parse_otp_test_numbers(os.environ.get("OTP_TEST_NUMBERS", ""))
+GOOGLE_CLIENT_IDS = [cid.strip() for cid in os.environ.get("GOOGLE_CLIENT_IDS", "").split(",") if cid.strip()]
 
 LOGGING = {
     "version": 1,

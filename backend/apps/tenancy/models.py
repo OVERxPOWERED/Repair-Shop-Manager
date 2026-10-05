@@ -176,7 +176,8 @@ class Membership(UUIDModel, TimeStampedModel):
         return self.status == self.StatusChoices.ACTIVE and code in (self.role.permissions or [])
 
     def __str__(self):
-        return f"{self.user.phone} @ {self.shop.name} ({self.role.name})"
+        user_ident = self.user.phone or self.user.email or "User"
+        return f"{user_ident} @ {self.shop.name} ({self.role.name})"
 
 
 class Invite(UUIDModel, TimeStampedModel):

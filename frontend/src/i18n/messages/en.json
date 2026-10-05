@@ -144,7 +144,13 @@
     "pillJobSheets": "Instant Job Sheets",
     "pillThermal": "Thermal Printing",
     "pillWhatsApp": "WhatsApp Updates",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "continueGoogle": "Continue with Google",
+    "googleFailed": "Google sign-in failed. Please try again.",
+    "phoneOptional": "Mobile number (optional / for SMS updates)",
+    "comingSoonBadge": "Coming Soon",
+    "orDivider": "Or",
+    "smsDevNotice": "SMS OTP is in development mode. For real zero-cost login, please use Google Sign-In."
   },
   "onboarding": {
     "title": "Setup Your Repair Shop",

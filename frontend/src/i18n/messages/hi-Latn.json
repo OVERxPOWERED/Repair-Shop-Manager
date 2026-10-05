@@ -144,7 +144,13 @@
     "pillJobSheets": "Instant Job Sheets",
     "pillThermal": "Thermal Printing",
     "pillWhatsApp": "WhatsApp Updates",
-    "logout": "Log Out Karein"
+    "logout": "Log Out Karein",
+    "continueGoogle": "Google ke sath aage badhein",
+    "googleFailed": "Google sign-in fail ho gaya. Kripya dobara try karein.",
+    "phoneOptional": "Mobile number (optional / SMS updates ke liye)",
+    "comingSoonBadge": "Soon",
+    "orDivider": "Ya",
+    "smsDevNotice": "SMS OTP abhi test mode me hai. Direct login ke liye Google use karein."
   },
   "onboarding": {
     "title": "Apni Repair Shop Setup Karein",

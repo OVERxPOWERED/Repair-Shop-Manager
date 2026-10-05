@@ -18,12 +18,13 @@ from apps.core.models import SoftDeletableModel, TimeStampedModel, UUIDModel
 
 
 class UserManager(BaseUserManager):
-    """Custom manager using phone number as unique username identifier."""
+    """Custom manager using phone number or Google ID as identifier."""
 
-    def create_user(self, phone, password=None, **extra_fields):
-        if not phone:
-            raise ValueError(_("The phone number must be provided"))
-        phone = phone.strip()
+    def create_user(self, phone=None, password=None, **extra_fields):
+        if not phone and not extra_fields.get("google_sub") and not extra_fields.get("email"):
+            raise ValueError(_("Phone number, email or Google identity must be provided"))
+        if phone:
+            phone = phone.strip()
         user = self.model(phone=phone, **extra_fields)
         if password:
             user.set_password(password)
@@ -48,7 +49,7 @@ class UserManager(BaseUserManager):
 class User(UUIDModel, TimeStampedModel, SoftDeletableModel, AbstractBaseUser, PermissionsMixin):
     """
     Global user identity. Identifies technicians, front-desk staff, managers, and shop owners.
-    Identified primarily by E.164 phone number.
+    Identified by E.164 phone number and/or Google OAuth2 subject.
     """
 
     class LocaleChoices(models.TextChoices):
@@ -56,9 +57,14 @@ class User(UUIDModel, TimeStampedModel, SoftDeletableModel, AbstractBaseUser, Pe
         HINDI = "hi", _("Hindi")
         HINGLISH = "hi-Latn", _("Hinglish")
 
-    phone = models.CharField(max_length=16, unique=True, db_index=True, help_text="E.164 phone number")
+    phone = models.CharField(
+        max_length=16, unique=True, null=True, blank=True, db_index=True, help_text="E.164 phone number"
+    )
+    google_sub = models.CharField(
+        max_length=255, unique=True, null=True, blank=True, db_index=True, help_text="Google OAuth2 subject identifier"
+    )
     name = models.CharField(max_length=120, blank=True, default="")
-    email = models.EmailField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True, db_index=True)
     preferred_locale = models.CharField(
         max_length=8, choices=LocaleChoices.choices, default=LocaleChoices.ENGLISH, help_text="UI language preference"
     )
@@ -78,7 +84,8 @@ class User(UUIDModel, TimeStampedModel, SoftDeletableModel, AbstractBaseUser, Pe
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.name or 'User'} ({self.phone})"
+        ident = self.phone or self.email or str(self.pk)[:8]
+        return f"{self.name or 'User'} ({ident})"
 
 
 class OTPChallenge(UUIDModel):
@@ -153,7 +160,8 @@ class UserDevice(UUIDModel):
         ]
 
     def __str__(self):
-        return f"{self.user.phone} - {self.platform} ({self.device_id[:8]})"
+        ident = self.user.phone or self.user.email or "User"
+        return f"{ident} - {self.platform} ({self.device_id[:8]})"
 
 
 class AccountDeletionRequest(UUIDModel):
