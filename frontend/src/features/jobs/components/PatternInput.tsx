@@ -135,14 +135,14 @@ export function PatternInput({ value = "", onChange, error, disabled = false }: 
   };
 
   return (
-    <div className="flex flex-col items-center select-none touch-none">
+    <div className="flex flex-col items-center select-none">
       <div
         ref={containerRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className={`relative w-[280px] h-[280px] sm:w-[300px] sm:h-[300px] bg-neutral-900/5 dark:bg-neutral-800/40 rounded-3xl p-2 border ${
+        className={`relative w-[240px] h-[240px] sm:w-[260px] sm:h-[260px] touch-none select-none bg-neutral-900/5 dark:bg-neutral-800/40 rounded-3xl p-2 border ${
           error
             ? "border-red-500 shadow-sm shadow-red-500/10"
             : "border-neutral-200 dark:border-neutral-800"
@@ -241,7 +241,7 @@ export function PatternInput({ value = "", onChange, error, disabled = false }: 
         </svg>
       </div>
 
-      <div className="flex items-center justify-between w-full max-w-[300px] mt-3 px-1">
+      <div className="flex items-center justify-between w-full max-w-[260px] mt-2.5 px-1">
         <span className="text-xs text-neutral-500 font-medium">
           {selectedNodes.length > 0
             ? t("patternConnected", { count: selectedNodes.length })

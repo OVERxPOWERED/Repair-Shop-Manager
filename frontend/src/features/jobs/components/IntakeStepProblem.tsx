@@ -30,6 +30,7 @@ export function IntakeStepProblem({ errors, onNext }: IntakeStepProblemProps) {
   const updateDraft = useIntakeStore((s) => s.updateDraft);
 
   const [showPassword, setShowPassword] = useState(false);
+  const patternRef = React.useRef<HTMLDivElement>(null);
 
   const handleChipClick = (chipKey: string) => {
     const chipText = t(`faultChips.${chipKey}`);
@@ -43,6 +44,11 @@ export function IntakeStepProblem({ errors, onNext }: IntakeStepProblemProps) {
 
   const handleLockTypeChange = (type: "none" | "pin" | "pattern" | "password") => {
     updateDraft({ lockType: type, lockValue: "" });
+    if (type === "pattern") {
+      setTimeout(() => {
+        patternRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+    }
   };
 
   return (
@@ -150,7 +156,7 @@ export function IntakeStepProblem({ errors, onNext }: IntakeStepProblemProps) {
         )}
 
         {draft.lockType === "pattern" && (
-          <div className="pt-2">
+          <div ref={patternRef} className="pt-2 animate-in fade-in duration-200">
             <PatternInput
               value={draft.lockValue || ""}
               onChange={(val) => updateDraft({ lockValue: val })}

@@ -5,6 +5,16 @@
 **Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **Pattern Lock 3x3 Visibility & Mobile Viewport Sizing (Subphase 1.25+):**
+  - Pattern Grid Viewport Optimization:
+    - Root cause analysis: In Step 5 of the Job Creation wizard, the Pattern lock canvas was sized at 280px–300px. On mobile screens, this pushed the bottom row of dots (nodes 7, 8, 9 at y=250) under the fixed bottom navigation bar (`Peeche` / `Aage >`). Additionally, `touch-none` on the outer wrapper blocked touch scrolling on and around the pattern area.
+    - Resized `PatternInput` to a compact `240px x 240px` (`sm:w-[260px] sm:h-[260px]`), ensuring all 9 nodes fit cleanly within standard mobile viewports.
+    - Isolated `touch-none` strictly to the pattern drawing canvas (`<div ref={containerRef}>`), allowing users to smoothly scroll the page by swiping outside or around the pattern box on mobile browsers and the Android APK.
+    - Added automatic smooth scroll (`scrollIntoView`) in `IntakeStepProblem.tsx` when the "Pattern" lock type is tapped, centering the 3x3 grid in view.
+    - Increased bottom page padding on `/jobs/new/` from `pb-28` to `pb-44` (176px), guaranteeing generous scroll clearance above the fixed bottom footer.
+  - Testing & Verification:
+    - Added unit test suite `frontend/src/features/jobs/components/PatternInput.test.tsx` verifying that all 9 nodes render in the 3x3 grid, step badges display when nodes connect, and clear button resets the pattern (150/150 frontend tests passing across 25 test files).
+    - `pnpm lint`, `pnpm typecheck`, and static export build (`pnpm build`) 100% clean.
 - **Session Hydration & Persistent Profile Reload Fix (Subphase 1.25+):**
   - Session Hydration & Preference Caching:
     - Root cause analysis: On page reload (or Android app cold restart), `useAuthStore.boot()` was restoring auth tokens and setting `status: "signedIn"` before `/auth/me/` returned the user profile. Because `user` was temporarily `null`, route guards saw `hasName === false` and prematurely redirected to `/profile-setup/`.

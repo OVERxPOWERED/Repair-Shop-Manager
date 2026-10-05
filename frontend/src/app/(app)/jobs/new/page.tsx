@@ -267,7 +267,7 @@ export default function NewJobPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-white dark:bg-neutral-950 pb-28">
+    <div className="flex-1 flex flex-col min-h-screen bg-white dark:bg-neutral-950 pb-44">
       {/* Top Header */}
       <header className="sticky top-0 z-30 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
         <div className="flex items-center justify-between">
