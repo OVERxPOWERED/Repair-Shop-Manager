@@ -23,12 +23,14 @@ export function GoogleSignInButton({ className = "", onError }: GoogleSignInButt
   const t = useTranslations("auth");
   const setSession = useAuthStore((s) => s.setSession);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [gisRendered, setGisRendered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const processGoogleCredential = useCallback(
     async (credentials: GoogleUserCredentials) => {
       if (loading) return;
+      setErrorMessage(null);
       setLoading(true);
 
       try {
@@ -67,10 +69,15 @@ export function GoogleSignInButton({ className = "", onError }: GoogleSignInButt
 
         router.replace(target ?? "/home/");
       } catch (err: any) {
-        if (err instanceof ApiError) {
-          onError?.(err.message || t("googleFailed"));
-        } else if (err?.message !== "Sign in cancelled") {
-          onError?.(err?.message || t("googleFailed"));
+        const msg =
+          err instanceof ApiError
+            ? err.message || t("googleFailed")
+            : err?.message !== "Sign in cancelled"
+            ? err?.message || t("googleFailed")
+            : null;
+        if (msg) {
+          setErrorMessage(msg);
+          onError?.(msg);
         }
       } finally {
         setLoading(false);
@@ -107,20 +114,21 @@ export function GoogleSignInButton({ className = "", onError }: GoogleSignInButt
 
   const handleCustomClick = async () => {
     if (loading) return;
+    setErrorMessage(null);
     try {
       const credentials = await signInWithGoogle();
       await processGoogleCredential(credentials);
     } catch (err: any) {
-      if (err instanceof ApiError) {
-        onError?.(err.message || t("googleFailed"));
-      } else if (err?.message !== "Sign in cancelled") {
-        onError?.(err?.message || t("googleFailed"));
+      if (err?.message !== "Sign in cancelled") {
+        const msg = err instanceof ApiError ? err.message : (err?.message || t("googleFailed"));
+        setErrorMessage(msg);
+        onError?.(msg);
       }
     }
   };
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full space-y-2.5 ${className}`}>
       {/* Official GIS Button container */}
       <div
         ref={containerRef}
@@ -158,8 +166,17 @@ export function GoogleSignInButton({ className = "", onError }: GoogleSignInButt
               />
             </svg>
           )}
-          <span>{t("continueGoogle")}</span>
+          <span>{loading ? t("verifying") : t("continueGoogle")}</span>
         </Button>
+      )}
+
+      {errorMessage && (
+        <div
+          role="alert"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-center text-xs text-destructive font-medium animate-in fade-in"
+        >
+          {errorMessage}
+        </div>
       )}
     </div>
   );

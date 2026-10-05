@@ -2,9 +2,21 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-05
+**Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **Google OAuth Production Fix & Error Resilience (Subphase 1.25+):**
+  - Backend Production Dependency Fix:
+    - Added `requests>=2.31` to `backend/requirements.txt` to fulfill the `requests` transport requirement of `google.auth.transport.requests.Request`. In production Docker builds without `requests`, `POST /api/v1/auth/google/` was raising an unhandled `ImportError` resulting in HTTP 500.
+    - Wrapped imports in `verify_google_token` (`apps/accounts/services.py`) with try-except to gracefully log and return 503 `auth.google_not_configured` in case of transport issues rather than an unhandled 500.
+  - Frontend Error Surfacing & Server Wake Visibility:
+    - Added local `errorMessage` state and a clear visual error alert banner in `GoogleSignInButton.tsx` so API or network errors are directly shown to the user on mobile instead of being silently swallowed.
+    - Mounted `<ServerWakeBanner />` globally in `frontend/src/app/providers.tsx` so cold start wake-up notices ("Waking up the server… this can take up to a minute") are visible across all screens including welcome and login screens.
+  - Verification:
+    - 408/408 backend pytest tests passing (100%).
+    - `ruff check .` and `ruff format --check .` 100% clean across 209 files.
+    - 138/138 frontend vitest tests passing (100%), TypeScript clean (`tsc --noEmit`), ESLint clean (0 errors/warnings).
+    - Next.js static export build (`pnpm build`) succeeds with all 37/37 static pages generated.
 - **Deployment, Live Cloud Infrastructure & Full Audit (Subphase 1.25):**
   - Zero-Cost Live Backend & Database:
     - Neon PostgreSQL provisioned in Singapore (`ap-southeast-1`), migrated to head, and seeded with system roles.

@@ -8,6 +8,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ApiError } from "@/lib/api/client";
 import { initMonitoring } from "@/lib/monitoring";
 
+import { ServerWakeBanner } from "@/components/states/ServerWakeBanner";
+
 initMonitoring();
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -28,6 +30,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <IntlProvider>
         <SessionBoot>
+          <ServerWakeBanner />
           {children}
           <Toaster />
         </SessionBoot>

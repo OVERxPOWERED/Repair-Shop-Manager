@@ -144,8 +144,16 @@ def verify_google_token(token: str) -> dict:
         name = parts[3] if len(parts) > 3 else "Test User"
         return {"sub": sub, "email": email, "name": name, "email_verified": True}
 
-    from google.auth.transport import requests as google_requests
-    from google.oauth2 import id_token
+    try:
+        from google.auth.transport import requests as google_requests
+        from google.oauth2 import id_token
+    except ImportError as exc:
+        logger.exception("Google auth library or requests transport missing: %s", exc)
+        raise DomainError(
+            "Google sign-in is temporarily unavailable on this server.",
+            code="auth.google_not_configured",
+            status=503,
+        ) from exc
 
     client_ids = getattr(settings, "GOOGLE_CLIENT_IDS", [])
     if not client_ids:
