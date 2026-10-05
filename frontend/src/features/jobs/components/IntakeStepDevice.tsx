@@ -13,6 +13,7 @@ import { useIntakeStore } from "../intake-store";
 
 interface IntakeStepDeviceProps {
   errors?: Record<string, string>;
+  onNext?: () => void;
 }
 
 const CATEGORIES = [
@@ -22,10 +23,12 @@ const CATEGORIES = [
   { id: "other", icon: Sparkles },
 ] as const;
 
-export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
+export function IntakeStepDevice({ errors, onNext }: IntakeStepDeviceProps) {
   const t = useTranslations("intake");
   const draft = useIntakeStore((s) => s.draft);
   const updateDevice = useIntakeStore((s) => s.updateDevice);
+  const modelInputRef = React.useRef<HTMLInputElement>(null);
+  const colorInputRef = React.useRef<HTMLInputElement>(null);
 
   const { data: customerDevices, isPending: isLoadingDevices } = useDevices(
     draft.customer.id
@@ -284,6 +287,13 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
                 placeholder={t("specifyBrandPlaceholder")}
                 value={draft.device.brandText || ""}
                 onChange={(e) => updateDevice({ brandText: e.target.value })}
+                enterKeyHint="next"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    modelInputRef.current?.focus();
+                  }
+                }}
                 className={`h-11 text-sm rounded-xl ${errors?.brandId ? "border-red-500" : ""}`}
               />
             )}
@@ -299,10 +309,18 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
                 {t("deviceModel")} *
               </label>
               <Input
+                ref={modelInputRef}
                 type="text"
                 placeholder="iPhone 13"
                 value={draft.device.model}
                 onChange={(e) => updateDevice({ model: e.target.value })}
+                enterKeyHint="next"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    colorInputRef.current?.focus();
+                  }
+                }}
                 className={`h-11 text-sm rounded-xl ${errors?.model ? "border-red-500" : ""}`}
               />
               {errors?.model && (
@@ -315,10 +333,18 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
                 {t("deviceColor")}
               </label>
               <Input
+                ref={colorInputRef}
                 type="text"
                 placeholder="Black"
                 value={draft.device.color}
                 onChange={(e) => updateDevice({ color: e.target.value })}
+                enterKeyHint="next"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    document.getElementById("intake-imei-1")?.focus();
+                  }
+                }}
                 className="h-11 text-sm rounded-xl"
               />
             </div>
@@ -333,6 +359,13 @@ export function IntakeStepDevice({ errors }: IntakeStepDeviceProps) {
             confirmInvalid={isConfirmInvalid}
             onConfirmInvalidChange={handleToggleConfirmInvalid}
             onChange={(val, source) => handleImeiChange(val, source)}
+            enterKeyHint="go"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onNext?.();
+              }
+            }}
             error={errors?.["identifiers.0.value"]}
           />
         </div>

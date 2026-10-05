@@ -10,12 +10,14 @@ import { useIntakeStore } from "../intake-store";
 
 interface IntakeStepCustomerProps {
   errors?: Record<string, string>;
+  onNext?: () => void;
 }
 
-export function IntakeStepCustomer({ errors }: IntakeStepCustomerProps) {
+export function IntakeStepCustomer({ errors, onNext }: IntakeStepCustomerProps) {
   const t = useTranslations("intake");
   const draft = useIntakeStore((s) => s.draft);
   const updateCustomer = useIntakeStore((s) => s.updateCustomer);
+  const phoneInputRef = React.useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<"search" | "new">(() =>
     draft.customer.id ? "search" : draft.customer.name ? "new" : "search"
@@ -179,6 +181,13 @@ export function IntakeStepCustomer({ errors }: IntakeStepCustomerProps) {
                     placeholder={t("customerNamePlaceholder")}
                     value={draft.customer.name}
                     onChange={(e) => updateCustomer({ name: e.target.value })}
+                    enterKeyHint="next"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        phoneInputRef.current?.focus();
+                      }
+                    }}
                     className={`pl-9 h-11 text-sm rounded-xl ${
                       errors?.name ? "border-red-500" : ""
                     }`}
@@ -198,11 +207,19 @@ export function IntakeStepCustomer({ errors }: IntakeStepCustomerProps) {
                 <div className="relative">
                   <Phone className="w-4 h-4 text-neutral-400 absolute left-3 top-3.5" />
                   <Input
+                    ref={phoneInputRef}
                     type="tel"
                     inputMode="tel"
                     placeholder="9876543210"
                     value={draft.customer.phone}
                     onChange={(e) => updateCustomer({ phone: e.target.value })}
+                    enterKeyHint="go"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        onNext?.();
+                      }
+                    }}
                     className={`pl-9 h-11 text-sm font-mono rounded-xl ${
                       errors?.phone ? "border-red-500" : ""
                     }`}

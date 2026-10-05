@@ -69,12 +69,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const isFullScreenWizard = pathname?.startsWith("/jobs/new");
+
   return (
     <div className="min-h-screen w-full max-w-md mx-auto flex flex-col bg-background text-foreground">
-      <AppHeader />
+      {!isFullScreenWizard && <AppHeader />}
       <OfflineBanner />
-      <main className="flex-1 pb-20">{children}</main>
-      <BottomNav />
+      <main className={`flex-1 ${isFullScreenWizard ? "" : "pb-20"}`}>{children}</main>
+      {!isFullScreenWizard && <BottomNav />}
     </div>
   );
 }

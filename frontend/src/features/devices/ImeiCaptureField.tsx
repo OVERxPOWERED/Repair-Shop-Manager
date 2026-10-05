@@ -43,6 +43,8 @@ export interface ImeiCaptureFieldProps {
   disabled?: boolean;
   className?: string;
   id?: string;
+  enterKeyHint?: "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export function ImeiCaptureField({
@@ -57,6 +59,8 @@ export function ImeiCaptureField({
   disabled = false,
   className = "",
   id = "imei-input",
+  enterKeyHint,
+  onKeyDown,
 }: ImeiCaptureFieldProps) {
   const t = useTranslations("devices");
   const tCommon = useTranslations("common");
@@ -206,6 +210,8 @@ export function ImeiCaptureField({
             value={cleanDigits}
             onChange={handleTextChange}
             disabled={disabled}
+            enterKeyHint={enterKeyHint}
+            onKeyDown={onKeyDown}
             className={`h-11 text-sm font-mono tracking-wider rounded-xl pr-9 ${
               isLuhnValid === false && !confirmInvalid
                 ? "border-amber-500"

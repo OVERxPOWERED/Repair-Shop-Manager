@@ -10,9 +10,10 @@ import { useIntakeStore } from "../intake-store";
 
 interface IntakeStepEstimateProps {
   errors?: Record<string, string>;
+  onNext?: () => void;
 }
 
-export function IntakeStepEstimate({ errors }: IntakeStepEstimateProps) {
+export function IntakeStepEstimate({ errors, onNext }: IntakeStepEstimateProps) {
   const t = useTranslations("intake");
   const tBilling = useTranslations("billing");
   const draft = useIntakeStore((s) => s.draft);
@@ -37,10 +38,18 @@ export function IntakeStepEstimate({ errors }: IntakeStepEstimateProps) {
           {t("estimatedRepairCost")}
         </label>
         <MoneyInput
+          id="intake-estimate-cost"
           value={draft.estimatePaise || 0}
           onChange={(paise) => updateDraft({ estimatePaise: paise })}
           placeholder="0.00"
           error={errors?.estimatePaise}
+          enterKeyHint="next"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              document.getElementById("intake-advance-amount")?.focus();
+            }
+          }}
         />
         <p className="text-[11px] text-neutral-400 mt-1">
           {t("estimateHint")}
@@ -54,9 +63,17 @@ export function IntakeStepEstimate({ errors }: IntakeStepEstimateProps) {
             {tBilling("advance.intakeLabel")}
           </label>
           <MoneyInput
+            id="intake-advance-amount"
             value={draft.advancePaise || 0}
             onChange={(paise) => updateDraft({ advancePaise: paise })}
             placeholder="0.00"
+            enterKeyHint="next"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("intake-expected-date")?.focus();
+              }
+            }}
           />
           <p className="text-[11px] text-neutral-400 mt-1">
             {tBilling("advance.intakeHint")}
@@ -116,10 +133,18 @@ export function IntakeStepEstimate({ errors }: IntakeStepEstimateProps) {
         <div className="relative">
           <Calendar className="w-4 h-4 text-neutral-400 absolute left-3 top-3.5" />
           <Input
+            id="intake-expected-date"
             type="date"
             min={minDate}
             value={draft.expectedDate || ""}
             onChange={(e) => updateDraft({ expectedDate: e.target.value || null })}
+            enterKeyHint="go"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onNext?.();
+              }
+            }}
             className={`pl-9 h-12 text-sm rounded-2xl ${
               errors?.expectedDate ? "border-red-500" : ""
             }`}

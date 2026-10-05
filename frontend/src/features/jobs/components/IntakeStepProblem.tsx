@@ -10,6 +10,7 @@ import { useIntakeStore } from "../intake-store";
 
 interface IntakeStepProblemProps {
   errors?: Record<string, string>;
+  onNext?: () => void;
 }
 
 const FAULT_CHIPS = [
@@ -23,7 +24,7 @@ const FAULT_CHIPS = [
   "no_power",
 ] as const;
 
-export function IntakeStepProblem({ errors }: IntakeStepProblemProps) {
+export function IntakeStepProblem({ errors, onNext }: IntakeStepProblemProps) {
   const t = useTranslations("intake");
   const draft = useIntakeStore((s) => s.draft);
   const updateDraft = useIntakeStore((s) => s.updateDraft);
@@ -131,6 +132,13 @@ export function IntakeStepProblem({ errors }: IntakeStepProblemProps) {
               onChange={(e) =>
                 updateDraft({ lockValue: e.target.value.replace(/\D/g, "").slice(0, 16) })
               }
+              enterKeyHint="go"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onNext?.();
+                }
+              }}
               className={`h-11 font-mono tracking-widest text-center text-lg rounded-xl ${
                 errors?.lockValue ? "border-red-500" : ""
               }`}
@@ -158,6 +166,13 @@ export function IntakeStepProblem({ errors }: IntakeStepProblemProps) {
               placeholder={t("passwordPlaceholder")}
               value={draft.lockValue || ""}
               onChange={(e) => updateDraft({ lockValue: e.target.value })}
+              enterKeyHint="go"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onNext?.();
+                }
+              }}
               className={`h-11 text-sm rounded-xl pr-10 ${
                 errors?.lockValue ? "border-red-500" : ""
               }`}

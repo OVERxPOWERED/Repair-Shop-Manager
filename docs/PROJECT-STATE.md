@@ -5,6 +5,20 @@
 **Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **Job Creation Full-Screen Wizard & Enter Key Navigation (Subphase 1.25+):**
+  - Full-Screen Wizard Shell on `/jobs/new`:
+    - Updated `frontend/src/app/(app)/layout.tsx` to conditionally hide shell `AppHeader` and `BottomNav` on `/jobs/new/`, preventing the bottom tab navigation bar from obscuring the wizard's action footer.
+    - Updated wizard footer in `frontend/src/app/(app)/jobs/new/page.tsx` with `z-50`, `max-w-md mx-auto`, and safe-area padding (`pb-[calc(1rem+env(safe-area-inset-bottom,0px))]`), making the "Next", "Back", and "Create Job Sheet" buttons fully visible and unobstructed.
+  - Enter Key & Mobile Keyboard Navigation:
+    - Implemented field-to-field and step-to-step Enter key navigation across intake wizard steps:
+      - Step 1 (Customer): Enter on Customer Name advances focus to Phone input (`enterKeyHint="next"`); Enter on Phone input validates and triggers `handleNext()` (`enterKeyHint="go"`).
+      - Step 2 (Device): Enter on Custom Brand moves focus to Model; Enter on Model moves focus to Color; Enter on Color moves to IMEI; Enter on IMEI validates and triggers `handleNext()`.
+      - Step 5 (Problem): Multi-line paragraph `Textarea` (Fault Description, Internal Notes) preserves standard Enter newline behavior; single-line PIN/Password inputs trigger `handleNext()` on Enter.
+      - Step 6 (Estimate): Enter on Estimate Cost moves focus to Advance Amount; Enter on Advance Amount moves to Expected Date; Enter on Expected Date validates and triggers `handleNext()`.
+    - Extended `ImeiCaptureField` and `MoneyInput` with `enterKeyHint` and `onKeyDown` support.
+  - Verification:
+    - Added unit test suite `IntakeStepCustomer.test.tsx` verifying field focus navigation and `onNext` invocation on Enter key (142/142 frontend tests passing across 23 test files).
+    - `pnpm lint`, `pnpm typecheck`, and `pnpm build` (37/37 static export pages) 100% clean.
 - **UPI Verification Modal & GST Portal Deep-Link (Subphase 1.25+):**
   - UPI Payee Name Verification Modal:
     - Built reusable `UpiTestQrModal` (`frontend/src/features/billing/UpiTestQrModal.tsx`) and integrated it into both Shop Onboarding (`/onboarding/`) and Settings (`/more/settings/billing/`).

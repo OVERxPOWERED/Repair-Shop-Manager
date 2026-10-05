@@ -12,6 +12,8 @@ export interface MoneyInputProps {
   className?: string;
   error?: string;
   id?: string;
+  enterKeyHint?: "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export function MoneyInput({
@@ -22,6 +24,8 @@ export function MoneyInput({
   className = "",
   error: externalError,
   id,
+  enterKeyHint,
+  onKeyDown,
 }: MoneyInputProps) {
   const [text, setText] = useState(() => (value > 0 ? paiseToRupeesInput(value) : ""));
   const [isFocused, setIsFocused] = useState(false);
@@ -96,6 +100,8 @@ export function MoneyInput({
         onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
+        enterKeyHint={enterKeyHint}
+        onKeyDown={onKeyDown}
         className={`pl-8 h-12 text-base font-semibold ${
           displayError ? "border-red-500 focus-visible:ring-red-500" : ""
         } ${className}`}

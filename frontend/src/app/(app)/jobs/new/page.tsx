@@ -352,19 +352,19 @@ export default function NewJobPage() {
 
       {/* Step Content Container */}
       <main className="flex-1 px-4 pt-5 max-w-lg mx-auto w-full">
-        {currentStep === 0 && <IntakeStepCustomer errors={stepErrors} />}
-        {currentStep === 1 && <IntakeStepDevice errors={stepErrors} />}
+        {currentStep === 0 && <IntakeStepCustomer errors={stepErrors} onNext={handleNext} />}
+        {currentStep === 1 && <IntakeStepDevice errors={stepErrors} onNext={handleNext} />}
         {currentStep === 2 && <IntakeStepCondition />}
         {currentStep === 3 && <IntakeStepAccessories />}
-        {currentStep === 4 && <IntakeStepProblem errors={stepErrors} />}
-        {currentStep === 5 && <IntakeStepEstimate errors={stepErrors} />}
+        {currentStep === 4 && <IntakeStepProblem errors={stepErrors} onNext={handleNext} />}
+        {currentStep === 5 && <IntakeStepEstimate errors={stepErrors} onNext={handleNext} />}
         {currentStep === 6 && <IntakeStepAssignment />}
         {currentStep === 7 && <IntakeStepConfirmation />}
       </main>
 
       {/* Sticky Bottom Actions Bar */}
-      <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 p-4 safe-area-bottom">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+        <div className="max-w-md mx-auto flex items-center gap-3">
           {currentStep > 0 && currentStep < TOTAL_STEPS - 1 && (
             <Button
               type="button"
