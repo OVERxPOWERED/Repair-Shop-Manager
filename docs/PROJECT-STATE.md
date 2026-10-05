@@ -12,6 +12,9 @@
   - Frontend Error Surfacing & Server Wake Visibility:
     - Added local `errorMessage` state and a clear visual error alert banner in `GoogleSignInButton.tsx` so API or network errors are directly shown to the user on mobile instead of being silently swallowed.
     - Mounted `<ServerWakeBanner />` globally in `frontend/src/app/providers.tsx` so cold start wake-up notices ("Waking up the server… this can take up to a minute") are visible across all screens including welcome and login screens.
+  - Phone Login Coming Soon Toast & Dev Route Protection:
+    - Replaced navigation link on "Continue with Phone" button on the Welcome screen with an in-place localized toast (`phoneComingSoonToast` in `en`, `hi`, `hi-Latn`): "Phone login will be available soon. Please continue with Google."
+    - Direct access to `/login/` without `?dev=true` automatically redirects to `/welcome/`. Added dev shortcut on `/dev/spikes/` linking to `/login/?dev=true`.
   - Verification:
     - 408/408 backend pytest tests passing (100%).
     - `ruff check .` and `ruff format --check .` 100% clean across 209 files.

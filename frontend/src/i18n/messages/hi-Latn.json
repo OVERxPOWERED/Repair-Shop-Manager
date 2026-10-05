@@ -150,6 +150,7 @@
     "phoneOptional": "Mobile number (optional / SMS updates ke liye)",
     "comingSoonBadge": "Soon",
     "orDivider": "Ya",
+    "phoneComingSoonToast": "Phone login jaldi hi available hoga. Kripya Google se continue karein.",
     "smsDevNotice": "SMS OTP abhi test mode me hai. Direct login ke liye Google use karein."
   },
   "onboarding": {

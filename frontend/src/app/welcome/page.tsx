@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Smartphone, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,17 +54,18 @@ export default function WelcomePage() {
         </div>
 
         <Button
-          asChild
+          type="button"
           variant="outline"
+          onClick={() => {
+            toast.info(t("phoneComingSoonToast"));
+          }}
           className="w-full text-base font-semibold group flex items-center justify-center gap-2 h-12 rounded-2xl border-neutral-200"
         >
-          <Link href="/login/">
-            <Smartphone className="h-4 w-4 text-neutral-500" />
-            <span>{t("continuePhone")}</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 ml-1">
-              {t("comingSoonBadge")}
-            </span>
-          </Link>
+          <Smartphone className="h-4 w-4 text-neutral-500" />
+          <span>{t("continuePhone")}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 ml-1">
+            {t("comingSoonBadge")}
+          </span>
         </Button>
       </div>
     </div>

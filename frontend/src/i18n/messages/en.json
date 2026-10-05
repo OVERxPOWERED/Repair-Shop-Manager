@@ -150,6 +150,7 @@
     "phoneOptional": "Mobile number (optional / for SMS updates)",
     "comingSoonBadge": "Coming Soon",
     "orDivider": "Or",
+    "phoneComingSoonToast": "Phone login will be available soon. Please continue with Google.",
     "smsDevNotice": "SMS OTP is in development mode. For real zero-cost login, please use Google Sign-In."
   },
   "onboarding": {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -17,9 +17,30 @@ export default function LoginPage() {
   const t = useTranslations("auth");
   const tErrors = useTranslations("errors");
 
+  const [isDev, setIsDev] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("dev") === "true") {
+        setIsDev(true);
+      } else {
+        router.replace("/welcome/");
+      }
+    }
+  }, [router]);
+
   const [digits, setDigits] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  if (isDev !== true) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const isValid = /^[6-9]\d{9}$/.test(digits);
 
