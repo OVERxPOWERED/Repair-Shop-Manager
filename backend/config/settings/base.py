@@ -234,7 +234,9 @@ CRON_SECRET = os.environ.get("CRON_SECRET", "dev-cron-secret")
 
 FIELD_ENCRYPTION_KEYS = [k.strip() for k in os.environ.get("FIELD_ENCRYPTION_KEYS", "").split(",") if k.strip()]
 
-PUBLIC_TRACKING_BASE_URL = os.environ.get("PUBLIC_TRACKING_BASE_URL", "https://track.fixpro.in")
+PUBLIC_TRACKING_BASE_URL = (
+    os.environ.get("PUBLIC_TRACKING_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "https://track.fixpro.in"
+)
 
 # Request size limits: 2.5 MB explicitly to prevent memory exhaustion from oversized JSON
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440

@@ -135,9 +135,8 @@ def verify_google_token(token: str) -> dict:
     if not token or not isinstance(token, str):
         raise DomainError("Missing or invalid Google token.", code="auth.invalid_google_token", status=400)
 
-    # Allow mock tokens in debug/test environments: "test-google-token:<sub>:<email>:<name>"
-    has_client_ids = bool(getattr(settings, "GOOGLE_CLIENT_IDS", []))
-    is_test_env = settings.DEBUG or getattr(settings, "IS_TESTING", False) or not has_client_ids
+    # Allow mock tokens strictly in debug or automated test environments: "test-google-token:<sub>:<email>:<name>"
+    is_test_env = bool(settings.DEBUG or getattr(settings, "IS_TESTING", False))
     if is_test_env and token.startswith("test-google-token:"):
         parts = token.split(":")
         sub = parts[1] if len(parts) > 1 else "123456789"
@@ -149,7 +148,13 @@ def verify_google_token(token: str) -> dict:
     from google.oauth2 import id_token
 
     client_ids = getattr(settings, "GOOGLE_CLIENT_IDS", [])
-    audience = client_ids[0] if len(client_ids) == 1 else (client_ids if client_ids else None)
+    if not client_ids:
+        logger.error("GOOGLE_CLIENT_IDS is not configured in settings.")
+        raise DomainError(
+            "Google sign-in is not configured on this server.", code="auth.google_not_configured", status=503
+        )
+
+    audience = client_ids[0] if len(client_ids) == 1 else client_ids
 
     try:
         idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), audience=audience)
@@ -167,6 +172,7 @@ def login_or_register_with_google(
     sub = claims.get("sub")
     email = claims.get("email")
     name = claims.get("name", "")
+    email_verified = claims.get("email_verified") is True
 
     if not sub:
         raise DomainError("Invalid Google identity payload.", code="auth.invalid_google_token", status=400)
@@ -174,7 +180,7 @@ def login_or_register_with_google(
     now = timezone.now()
     with transaction.atomic():
         user = User.objects.select_for_update().filter(google_sub=sub).first()
-        if user is None and email:
+        if user is None and email and email_verified:
             user = User.objects.select_for_update().filter(email=email).first()
             if user and not user.google_sub:
                 user.google_sub = sub

@@ -61,7 +61,7 @@ function loadGisScript(): Promise<void> {
 export async function signInWithGoogle(): Promise<GoogleUserCredentials> {
   const clientId = env.googleClientId;
 
-  // Development / Test fallback when Google Client ID is not yet configured
+  // Development / Test fallback when Google Client ID is not configured
   if (!clientId) {
     if (typeof window !== "undefined") {
       const email = prompt("Google Sign-In (Dev Mode)\nEnter email to test with:", "owner@example.com");
@@ -89,13 +89,10 @@ export async function signInWithGoogle(): Promise<GoogleUserCredentials> {
       return;
     }
 
-    let resolved = false;
-
     google.accounts.id.initialize({
       client_id: clientId,
       callback: (response: any) => {
         if (response?.credential) {
-          resolved = true;
           resolve({
             idToken: response.credential,
           });
@@ -107,32 +104,75 @@ export async function signInWithGoogle(): Promise<GoogleUserCredentials> {
       cancel_on_tap_outside: true,
     });
 
-    // Prompt user with Google One Tap or modal
+    // Prompt user with Google One Tap
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        if (!resolved) {
-          // Fallback to OAuth popup flow if One Tap is dismissed or suppressed
-          try {
-            const client = google.accounts.oauth2.initTokenClient({
-              client_id: clientId,
-              scope: "email profile openid",
-              callback: (tokenResponse: any) => {
-                if (tokenResponse?.access_token) {
-                  // If access_token received from tokenClient, construct payload or resolve
-                  resolve({
-                    idToken: tokenResponse.id_token || tokenResponse.access_token,
-                  });
-                } else if (!resolved) {
-                  reject(new Error("Google sign-in was not completed"));
-                }
-              },
-            });
-            client.requestAccessToken();
-          } catch (e) {
-            reject(new Error("Google sign-in prompt was skipped"));
-          }
-        }
+        reject(new Error("Google One Tap was not displayed"));
       }
     });
   });
+}
+
+/**
+ * Renders the official Google Sign-In button into a DOM container element.
+ * Guarantees a signed ID token (JWT) via Google's official popup without pop-up blocking issues.
+ */
+export async function renderGoogleButton(
+  container: HTMLElement,
+  onCredential: (cred: GoogleUserCredentials) => void,
+  onError?: (err: Error) => void
+): Promise<boolean> {
+  const clientId = env.googleClientId;
+  if (!clientId || typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    await loadGisScript();
+    const google = (window as any).google;
+    if (!google?.accounts?.id) {
+      onError?.(new Error("Google Identity Services failed to load"));
+      return false;
+    }
+
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: (response: any) => {
+        if (response?.credential) {
+          onCredential({
+            idToken: response.credential,
+          });
+        } else {
+          onError?.(new Error("No credential returned by Google"));
+        }
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+
+    // Clear previous children if any
+    container.innerHTML = "";
+
+    google.accounts.id.renderButton(container, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "continue_with",
+      shape: "rectangular",
+      logo_alignment: "left",
+      width: Math.min(Math.max(container.clientWidth || 320, 240), 400),
+    });
+
+    // Also trigger One Tap prompt for users already signed into Google in their browser
+    try {
+      google.accounts.id.prompt();
+    } catch {
+      // Ignored if prompt is suppressed
+    }
+
+    return true;
+  } catch (err: any) {
+    onError?.(err instanceof Error ? err : new Error(String(err)));
+    return false;
+  }
 }
