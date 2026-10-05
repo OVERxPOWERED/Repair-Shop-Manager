@@ -1,0 +1,30 @@
+name: Render Keep-Awake Ping
+
+# Pings Render free tier service during Indian shop operating hours (8:30 AM to 10:30 PM IST)
+# 8:30 AM - 10:30 PM IST = 03:00 - 17:00 UTC (14 hours / day = ~434 hrs / month, well within Render's 750 free hours)
+# Keeps backend awake to eliminate cold starts without exceeding free monthly limits.
+
+on:
+  schedule:
+    # Run every 10 minutes between 03:00 UTC and 16:59 UTC
+    - cron: "*/10 3-16 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend Health Endpoint
+        run: |
+          API_URL="${{ secrets.API_BASE_URL }}"
+          if [ -z "$API_URL" ]; then
+            API_URL="https://fixpro-api.onrender.com/api/v1"
+          fi
+          echo "Pinging ${API_URL}/health/ ..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "${API_URL}/health/")
+          echo "Received HTTP status: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Warning: Health endpoint returned $STATUS"
+          else
+            echo "Render backend is alive and healthy."
+          fi

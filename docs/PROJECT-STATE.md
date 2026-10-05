@@ -2,9 +2,28 @@
 
 > Live status file. The agent updates this at the end of every task. Keep it short and factual.
 
-**Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 pilot testing & manual checklist  **Last updated:** 2026-10-05
+**Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-05
 
 ## Done
+- **Deployment, Live Cloud Infrastructure & Full Audit (Subphase 1.25):**
+  - Zero-Cost Live Backend & Database:
+    - Neon PostgreSQL provisioned in Singapore (`ap-southeast-1`), migrated to head, and seeded with system roles.
+    - Render Web Service deployed and **LIVE** at `https://fixpro-api.onrender.com/api/v1/health/` returning healthy status.
+    - Container initialization managed via `backend/start.sh` executing migrations, role seeding, and Gunicorn.
+    - Fallback for `PUBLIC_TRACKING_BASE_URL` dynamically points to `RENDER_EXTERNAL_URL` (`https://fixpro-api.onrender.com`).
+  - Render Free Tier Keep-Awake Strategy:
+    - Added `.github/workflows/keep-awake.yml` pinging `/health/` every 10 minutes during Indian shop operating hours (8:30 AM to 10:30 PM IST = 03:00 to 17:00 UTC).
+    - Consumes 434 hours/month (58% of Render's 750 free hours), preventing 50-second cold starts with zero costs.
+  - Google OAuth Hardening & Official GIS Integration:
+    - Backend security: Restricted mock token bypass strictly to `DEBUG=True` or `IS_TESTING=True`. Required `claims.get("email_verified") is True` when linking accounts by email.
+    - Frontend GIS integration: Updated `google-auth.ts` and `GoogleSignInButton.tsx` to mount Google's official iframe button (`renderButton`) with One Tap prompt support and robust dev fallbacks.
+  - End-to-End Code Audit vs User Manual:
+    - Audited all 15 sections of `docs/user-manual-hinglish.md`: Intake wizard (8 steps), 15-digit Luhn IMEI check, Sanchar Saathi lookup, optimistic locking, status transitions (terminal states and reopening), billing/invoicing immutability and credit notes, WeasyPrint PDFs with embedded Noto fonts, tracking token privacy (zero leak of phone, IMEI, technician, or lock pattern), reports profit gating, trash/restore, and Excel exports.
+    - Verified all 397 backend tests pass (100%), ruff clean.
+    - Verified all 138 frontend tests pass (100%), typecheck clean, lint clean.
+    - Next.js static export generated 37/37 static HTML pages into `frontend/out/`.
+  - Manual Test Checklist:
+    - Created exhaustive step-by-step checklist artifact (`manual-test-checklist.md`) mapping every user-facing flow to concrete test inputs and expected outputs.
 - **Google Authentication & Zero-Cost Signup (Subphase 1.24+):**
   - Backend Google Identity & Lifecycle:
     - User Model & Migration: Added `google_sub = models.CharField(unique=True, null=True, blank=True)` and made `phone` nullable and blankable (`0003_user_google_sub_alter_user_email_alter_user_phone.py`).
