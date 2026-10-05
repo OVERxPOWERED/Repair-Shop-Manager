@@ -22,8 +22,7 @@ export default function ProfileSetupPage() {
   const t = useTranslations("auth");
   const tErrors = useTranslations("errors");
   const locale = useLocaleStore((s) => s.locale);
-  const user = useAuthStore((s) => s.user);
-  const setSession = useAuthStore((s) => s.setSession);
+  const { status, user, shops, pendingInvites, setSession } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -32,6 +31,7 @@ export default function ProfileSetupPage() {
     register,
     handleSubmit,
     setError,
+    reset,
     formState: { errors },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -42,6 +42,31 @@ export default function ProfileSetupPage() {
       preferred_locale: (user?.preferred_locale as "en" | "hi" | "hi-Latn") || locale || "en",
     },
   });
+
+  // Guard: If the user already has a name, do not ask again — redirect to destination immediately!
+  React.useEffect(() => {
+    if (status === "signedIn" && user?.name && user.name.trim().length >= 2) {
+      const target = nextRoute({
+        status: "signedIn",
+        hasName: true,
+        shopCount: shops.length,
+        pendingInvites,
+      });
+      router.replace(target ?? "/home/");
+    }
+  }, [status, user, shops, pendingInvites, router]);
+
+  // Sync form default values if user updates asynchronously
+  React.useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone?.replace("+91", "") || "",
+        preferred_locale: (user.preferred_locale as "en" | "hi" | "hi-Latn") || locale || "en",
+      });
+    }
+  }, [user, reset, locale]);
 
   const onSubmit = async (values: ProfileFormValues) => {
     setLoading(true);

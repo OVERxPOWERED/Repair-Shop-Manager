@@ -36,12 +36,21 @@ export function SessionBoot({ children }: { children: React.ReactNode }) {
               setLocale(loc);
             }
           }
-        } catch {
+        } catch (err: any) {
           if (!mounted) return;
-          if (useAuthStore.getState().status === "booting") {
+          if (err?.status === 401) {
             await signOut();
+          } else {
+            const currentUser = useAuthStore.getState().user;
+            if (currentUser && currentUser.name?.trim().length >= 2) {
+              useAuthStore.setState({ status: "signedIn" });
+            } else {
+              await signOut();
+            }
           }
         }
+      } else {
+        useAuthStore.setState({ status: "signedOut" });
       }
     }
 

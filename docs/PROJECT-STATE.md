@@ -5,6 +5,17 @@
 **Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **Session Hydration & Persistent Profile Reload Fix (Subphase 1.25+):**
+  - Session Hydration & Preference Caching:
+    - Root cause analysis: On page reload (or Android app cold restart), `useAuthStore.boot()` was restoring auth tokens and setting `status: "signedIn"` before `/auth/me/` returned the user profile. Because `user` was temporarily `null`, route guards saw `hasName === false` and prematurely redirected to `/profile-setup/`.
+    - Persisted `user` and `shops` into Capacitor Preferences (`@capacitor/preferences` on native Android/iOS, `localStorage` on web).
+    - Updated `boot()` to restore cached user and shops immediately: if a cached user with a valid name is present, it transitions to `status: "signedIn"` with zero lag; if not, it stays in `status: "booting"` so `nextRoute()` returns `null` and prevents premature redirects while `/auth/me/` fetches from the server.
+    - Updated `signOut()` to purge all user, shop, and token storage keys.
+  - Profile Setup Route Guard:
+    - Added an automatic redirect guard on `ProfileSetupPage`: if the user already has a valid name (`user.name.length >= 2`), they are immediately forwarded to their appropriate screen (`/home/` or `/onboarding/`) rather than being shown the name input again.
+  - Testing & Verification:
+    - Added unit test suite `frontend/src/lib/auth/store.test.ts` verifying session persistence, cached boot hydration, booting status retention, and sign-out storage purging (147/147 frontend tests passing across 24 test files).
+    - `pnpm lint`, `pnpm typecheck`, and static export build (`pnpm build`) 100% clean.
 - **Job Creation Full-Screen Wizard & Enter Key Navigation (Subphase 1.25+):**
   - Full-Screen Wizard Shell on `/jobs/new`:
     - Updated `frontend/src/app/(app)/layout.tsx` to conditionally hide shell `AppHeader` and `BottomNav` on `/jobs/new/`, preventing the bottom tab navigation bar from obscuring the wizard's action footer.
