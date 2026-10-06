@@ -105,10 +105,21 @@ class Shop(UUIDModel, TimeStampedModel, SoftDeletableModel):
     )
     version = models.PositiveIntegerField(default=1)
 
+    # Master Join Code configuration
+    join_code = models.CharField(max_length=12, blank=True, null=True, unique=True, db_index=True)
+    join_code_expires_at = models.DateTimeField(null=True, blank=True)
+    join_code_enabled = models.BooleanField(default=True)
+
     class Meta:
         verbose_name = _("Shop")
         verbose_name_plural = _("Shops")
         ordering = ["-created_at"]
+
+    @property
+    def is_join_code_valid(self) -> bool:
+        if not self.join_code or not self.join_code_enabled:
+            return False
+        return not (self.join_code_expires_at and timezone.now() >= self.join_code_expires_at)
 
     def __str__(self):
         return f"{self.name} ({self.city or 'Main'})"
@@ -148,10 +159,11 @@ class Membership(UUIDModel, TimeStampedModel):
         ACTIVE = "active", _("Active")
         SUSPENDED = "suspended", _("Suspended")
         REMOVED = "removed", _("Removed")
+        REQUESTED = "requested", _("Requested")
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="memberships")
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="memberships")
-    role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name="memberships")
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, null=True, blank=True, related_name="memberships")
     status = models.CharField(max_length=20, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
     display_name = models.CharField(max_length=120, blank=True, default="")
     pin_hash = models.CharField(max_length=128, null=True, blank=True)
@@ -173,11 +185,14 @@ class Membership(UUIDModel, TimeStampedModel):
         ]
 
     def has_perm(self, code: str) -> bool:
-        return self.status == self.StatusChoices.ACTIVE and code in (self.role.permissions or [])
+        if self.status != self.StatusChoices.ACTIVE or not self.role:
+            return False
+        return code in (self.role.permissions or [])
 
     def __str__(self):
         user_ident = self.user.phone or self.user.email or "User"
-        return f"{user_ident} @ {self.shop.name} ({self.role.name})"
+        role_name = self.role.name if self.role else self.get_status_display()
+        return f"{user_ident} @ {self.shop.name} ({role_name})"
 
 
 class Invite(UUIDModel, TimeStampedModel):

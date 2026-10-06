@@ -98,16 +98,31 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class MyShopSerializer(serializers.Serializer):
-    """One entry per active membership. Drives the shop switcher and client-side permission checks."""
+    """
+    One entry per active or pending requested membership.
+    Drives the shop switcher and client-side permission checks.
+    """
 
     membership_id = serializers.UUIDField(source="id")
     shop_id = serializers.UUIDField(source="shop.id")
     shop_name = serializers.CharField(source="shop.name")
     shop_type = serializers.CharField(source="shop.shop_type")
     city = serializers.CharField(source="shop.city")
-    role_id = serializers.UUIDField(source="role.id")
-    role_name = serializers.CharField(source="role.name")
-    permissions = serializers.ListField(source="role.permissions", child=serializers.CharField())
+    status = serializers.CharField()
+    role_id = serializers.SerializerMethodField()
+    role_name = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    def get_role_id(self, obj):
+        return str(obj.role.id) if obj.role else None
+
+    def get_role_name(self, obj):
+        return obj.role.name if obj.role else "Pending Approval"
+
+    def get_permissions(self, obj):
+        if obj.status == "requested" or not obj.role:
+            return []
+        return obj.role.permissions or []
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -129,7 +144,11 @@ def my_shops(user):
     from apps.tenancy.models import Membership
 
     memberships = (
-        Membership.objects.filter(user=user, status=Membership.StatusChoices.ACTIVE, shop__deleted_at__isnull=True)
+        Membership.objects.filter(
+            user=user,
+            status__in=[Membership.StatusChoices.ACTIVE, Membership.StatusChoices.REQUESTED],
+            shop__deleted_at__isnull=True,
+        )
         .select_related("shop", "role")
         .order_by("shop__name")
     )

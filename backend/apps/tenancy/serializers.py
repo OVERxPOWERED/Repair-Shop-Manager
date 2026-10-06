@@ -262,3 +262,56 @@ class MyInviteSerializer(serializers.ModelSerializer):
         if obj.invited_by:
             return obj.invited_by.name or obj.invited_by.phone
         return "Shop Owner"
+
+
+class ShopJoinCodeSerializer(serializers.Serializer):
+    join_code = serializers.CharField(read_only=True)
+    expires_at = serializers.DateTimeField(source="join_code_expires_at", read_only=True, allow_null=True)
+    enabled = serializers.BooleanField(source="join_code_enabled", read_only=True)
+    is_expired = serializers.SerializerMethodField()
+
+    def get_is_expired(self, obj) -> bool:
+        return not obj.is_join_code_valid
+
+
+class ConfigureJoinCodeSerializer(serializers.Serializer):
+    duration = serializers.ChoiceField(choices=["24h", "2d", "5d", "7d", "never", "custom"], default="7d")
+    custom_days = serializers.IntegerField(required=False, allow_null=True, min_value=1, max_value=365)
+    regenerate = serializers.BooleanField(default=False)
+    enabled = serializers.BooleanField(default=True)
+
+
+class JoinShopRequestSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=16)
+
+
+class JoinShopResponseSerializer(serializers.Serializer):
+    shop_id = serializers.UUIDField(source="shop.id")
+    shop_name = serializers.CharField(source="shop.name")
+    membership_id = serializers.UUIDField(source="id")
+    status = serializers.CharField()
+
+
+class JoinRequestItemSerializer(serializers.ModelSerializer):
+    user_id = serializers.UUIDField(source="user.id", read_only=True)
+    user_name = serializers.CharField(source="user.name", read_only=True)
+    user_email = serializers.CharField(source="user.email", read_only=True, allow_null=True)
+    user_phone = serializers.CharField(source="user.phone", read_only=True, allow_null=True)
+
+    class Meta:
+        model = Membership
+        fields = (
+            "id",
+            "user_id",
+            "user_name",
+            "user_email",
+            "user_phone",
+            "display_name",
+            "status",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class ApproveJoinRequestSerializer(serializers.Serializer):
+    role_id = serializers.UUIDField()

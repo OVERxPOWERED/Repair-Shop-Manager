@@ -9,6 +9,8 @@ import { setAppStatusBar } from "@/native/status-bar";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { OfflineBanner } from "@/components/states/OfflineBanner";
+import { JoinRequestBanner } from "@/features/staff/JoinRequestBanner";
+import { JoinRequestsModal } from "@/features/staff/JoinRequestsModal";
 import { Loader2 } from "lucide-react";
 
 const TAB_ROOTS = [
@@ -74,9 +76,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full max-w-md mx-auto flex flex-col bg-background text-foreground">
       {!isFullScreenWizard && <AppHeader />}
+      <JoinRequestBanner />
       <OfflineBanner />
       <main className={`flex-1 ${isFullScreenWizard ? "" : "pb-20"}`}>{children}</main>
       {!isFullScreenWizard && <BottomNav />}
+      <JoinRequestsModal />
     </div>
   );
 }

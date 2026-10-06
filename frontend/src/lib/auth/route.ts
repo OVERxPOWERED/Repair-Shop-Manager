@@ -10,6 +10,6 @@ export function nextRoute(s: RouteInput): string | null {
   if (s.status === "booting") return null;
   if (s.status === "signedOut") return "/welcome/";
   if (!s.hasName) return "/profile-setup/";
-  if (s.shopCount === 0) return s.pendingInvites > 0 ? "/invites/" : "/onboarding/";
+  if (s.shopCount === 0) return s.pendingInvites > 0 ? "/invites/" : "/onboarding/choice/";
   return "/home/";
 }

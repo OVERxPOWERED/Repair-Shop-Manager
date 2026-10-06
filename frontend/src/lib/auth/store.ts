@@ -10,7 +10,8 @@ export type MyShop = {
   shop_name: string;
   shop_type: string;
   city: string;
-  role_id: string;
+  status?: string;
+  role_id: string | null;
   role_name: string;
   permissions: string[];
 };

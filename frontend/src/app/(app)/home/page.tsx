@@ -17,12 +17,14 @@ import {
   Mail,
   RefreshCw,
   Coins,
+  Users,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuthStore, usePermission } from "@/lib/auth/store";
 import { todayIst } from "@/lib/format/date";
 import { formatPaise } from "@/lib/format/money";
 import { useDashboardSummary, useJobs } from "@/features/jobs/api";
+import { usePendingJoinRequests } from "@/features/staff/api";
 import { JobCard } from "@/features/jobs/components/JobCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,8 @@ export default function HomePage() {
   const t = useTranslations("home");
   const { user, pendingInvites } = useAuthStore();
   const canViewReports = usePermission("reports.view_basic");
+  const canManageStaff = usePermission("staff.manage");
+  const { data: pendingStaffRequests = [] } = usePendingJoinRequests();
   const [stolenCheckOpen, setStolenCheckOpen] = React.useState(false);
 
   const today = todayIst();
@@ -127,6 +131,29 @@ export default function HomePage() {
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
+        </Link>
+      )}
+
+      {/* Pending Staff Join Requests Banner */}
+      {canManageStaff && pendingStaffRequests.length > 0 && (
+        <Link
+          href="/more/staff/"
+          className="flex items-center justify-between p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-950 dark:text-blue-200 transition-colors hover:bg-blue-500/15"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shrink-0">
+              <Users className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold leading-tight">
+                {pendingStaffRequests.length} Pending Staff Join Request{pendingStaffRequests.length > 1 ? "s" : ""}
+              </p>
+              <p className="text-[11px] text-blue-800/80 dark:text-blue-300/80">
+                Review applicants and assign roles in Staff & Team.
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0" />
         </Link>
       )}
 

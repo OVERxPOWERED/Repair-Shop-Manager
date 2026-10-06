@@ -5,6 +5,32 @@
 **Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **Master Join Code, Staff Onboarding & Approval Workflow (Subphase 1.25+):**
+  - Shop Master Join Code (`backend/apps/tenancy/models.py`, `join_code.py`):
+    - Added `Shop.join_code`, `Shop.join_code_expires_at`, and `Shop.join_code_enabled` with unambiguous 7-character code generation (`FX-XXXX`).
+    - Added configurable validity options (24h, 2d, 5d, 7d, never, custom days) and regeneration.
+    - Endpoints: `GET/POST /api/v1/shops/current/join-code/`, `POST /api/v1/shops/join/`, and `GET/POST /api/v1/staff/requests/`.
+  - Onboarding Role Fork & Welcome Choice (`frontend/src/app/onboarding/choice/page.tsx`):
+    - Added role choice gateway for newly registered users with 0 shops:
+      - Card 1: "I own a repair shop" -> routes to 5-step shop onboarding wizard (`/onboarding/`).
+      - Card 2: "I work at a repair shop" -> enters Master Join Code (`FX-XXXX`) to request joining without creating an unwanted shop.
+    - Updated `route.ts` to forward users without shops to `/onboarding/choice/`.
+  - Restricted Read-Only Preview & Rejection Banner (`JoinRequestBanner.tsx`):
+    - Added `REQUESTED = "requested"` membership status. Unapproved members are scoped to the shop with empty permissions (`[]`) and blocked from all mutations.
+    - Persistent top banner in app shell displays: "Join Request Pending — Waiting for shop owner to assign your role."
+    - If rejected or expired, displays prominent top alert with "Enter New Join Code" dialog.
+  - Owner App Launch Modal & Alerts (`JoinRequestsModal.tsx`, `HomePage.tsx`):
+    - On app launch, owners with pending requests see an actionable modal with applicant details, role selector (Technician, Front Desk, Manager), Approve and Decline buttons, plus a "Do not show again on launch" preference checkbox.
+    - Added persistent alert banner on the Home dashboard for owners/managers when staff join requests are pending.
+    - Added Master Join Code card with Copy, WhatsApp share, and validity configuration dialog, plus pending requests list in `More > Staff` (`frontend/src/app/(app)/more/staff/page.tsx`).
+  - Step 7 Job Creation Quick-Share Integration (`QuickShareCodeSheet.tsx`, `IntakeStepAssignment.tsx`):
+    - Added `+ Invite Technician / Share Shop Code` button on Step 7 (Technician & Priority) of the Job Creation form.
+    - Opens a quick bottom sheet displaying the shop's Master Join Code and a 1-tap "Share on WhatsApp" button without leaving the form or losing job draft data.
+  - Verification & Localization:
+    - Added comprehensive backend test suite `backend/apps/tenancy/tests/test_join_code.py` (5/5 tests passing).
+    - All backend pytest suites pass 100%. `ruff check .` and `ruff format --check .` 100% clean.
+    - All 150 vitest frontend tests pass across 25 suites. `pnpm lint` and `pnpm i18n:check` pass (1,116 keys across en, hi, hi-Latn).
+    - Static export build (`pnpm build`) compiles 38/38 pages cleanly.
 - **Pattern Lock 3x3 Visibility & Mobile Viewport Sizing (Subphase 1.25+):**
   - Pattern Grid Viewport Optimization:
     - Root cause analysis: In Step 5 of the Job Creation wizard, the Pattern lock canvas was sized at 280px–300px. On mobile screens, this pushed the bottom row of dots (nodes 7, 8, 9 at y=250) under the fixed bottom navigation bar (`Peeche` / `Aage >`). Additionally, `touch-none` on the outer wrapper blocked touch scrolling on and around the pattern area.

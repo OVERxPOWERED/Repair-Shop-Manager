@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useTranslations } from "next-intl";
-import { UserCheck, ShieldAlert, Clock, Flame } from "lucide-react";
+import { UserCheck, ShieldAlert, Clock, Flame, UserPlus } from "lucide-react";
 import { useAssignableStaff } from "@/features/staff/api";
+import { QuickShareCodeSheet } from "@/features/staff/QuickShareCodeSheet";
+import { Button } from "@/components/ui/button";
 import { useIntakeStore } from "../intake-store";
 
 const PRIORITIES = [
@@ -14,8 +16,10 @@ const PRIORITIES = [
 
 export function IntakeStepAssignment() {
   const t = useTranslations("intake");
+  const tStaff = useTranslations("staff");
   const draft = useIntakeStore((s) => s.draft);
   const updateDraft = useIntakeStore((s) => s.updateDraft);
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
 
   const { data: staffList = [], isPending } = useAssignableStaff();
 
@@ -126,6 +130,21 @@ export function IntakeStepAssignment() {
             })}
           </div>
         )}
+
+        {/* Quick Invite / Share Code Button */}
+        <div className="pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShareSheetOpen(true)}
+            className="w-full h-11 rounded-2xl border-dashed border-neutral-300 dark:border-neutral-700 text-xs font-semibold gap-2 text-neutral-600 dark:text-neutral-300 hover:text-primary hover:border-primary"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>{tStaff("inviteTechnicianBtn")}</span>
+          </Button>
+        </div>
+
+        <QuickShareCodeSheet open={shareSheetOpen} onOpenChange={setShareSheetOpen} />
       </div>
     </div>
   );

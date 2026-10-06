@@ -26,10 +26,10 @@ describe("nextRoute", () => {
     ).toBe("/profile-setup/");
   });
 
-  it("returns /onboarding/ when signed in with name, no shops, and no pending invites", () => {
+  it("returns /onboarding/choice/ when signed in with name, no shops, and no pending invites", () => {
     expect(
       nextRoute({ status: "signedIn", hasName: true, shopCount: 0, pendingInvites: 0 })
-    ).toBe("/onboarding/");
+    ).toBe("/onboarding/choice/");
   });
 
   it("returns /invites/ when signed in with name, no shops, but pending invites exist", () => {

@@ -1,15 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { usePermission } from "@/lib/auth/store";
-import { useStaffList, useInvitesList, useRevokeInvite, type StaffMember, type InviteItem } from "@/features/staff/api";
+import {
+  useStaffList,
+  useInvitesList,
+  useRevokeInvite,
+  useShopJoinCode,
+  useConfigureJoinCode,
+  usePendingJoinRequests,
+  useApproveJoinRequest,
+  useRejectJoinRequest,
+  useRolesList,
+  type StaffMember,
+  type InviteItem,
+  type JoinRequestItem,
+} from "@/features/staff/api";
 import { InviteSheet } from "@/features/staff/InviteSheet";
 import { PermissionDenied, ListSkeleton, EmptyState } from "@/components/states";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, UserPlus, Users, Clock, Trash2, ChevronRight, Shield, ShieldAlert } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ArrowLeft,
+  UserPlus,
+  Users,
+  Clock,
+  Trash2,
+  ChevronRight,
+  ShieldAlert,
+  KeyRound,
+  Copy,
+  Check,
+  Share2,
+  Settings2,
+  X,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { errorMessage } from "@/i18n/errorMessage";
 
@@ -43,10 +86,40 @@ export default function StaffPage() {
   const canManage = usePermission("staff.manage");
 
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [validityModalOpen, setValidityModalOpen] = useState(false);
+  const [validityChoice, setValidityChoice] = useState<"24h" | "2d" | "5d" | "7d" | "never" | "custom">("7d");
+  const [customDays, setCustomDays] = useState(14);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
+  const [processingReqId, setProcessingReqId] = useState<string | null>(null);
 
-  const { data: staff = [], isLoading: isLoadingStaff, error: staffError } = useStaffList();
+  const { data: staff = [], isLoading: isLoadingStaff } = useStaffList();
   const { data: invites = [], isLoading: isLoadingInvites } = useInvitesList();
+  const { data: joinCodeData } = useShopJoinCode();
+  const { data: pendingRequests = [] } = usePendingJoinRequests();
+  const { data: roles = [] } = useRolesList();
+  const assignableRoles = roles.filter((r) => r.name.toLowerCase() !== "owner");
+
   const revokeInviteMutation = useRevokeInvite();
+  const configureCodeMutation = useConfigureJoinCode();
+  const approveMutation = useApproveJoinRequest();
+  const rejectMutation = useRejectJoinRequest();
+
+  // Set default selected role for pending requests
+  useEffect(() => {
+    if (assignableRoles.length > 0 && pendingRequests.length > 0) {
+      const defaultRole = assignableRoles.find((r) => r.name === "Engineer") || assignableRoles[0];
+      setSelectedRoles((prev) => {
+        const next = { ...prev };
+        pendingRequests.forEach((req) => {
+          if (!next[req.id]) {
+            next[req.id] = defaultRole.id;
+          }
+        });
+        return next;
+      });
+    }
+  }, [assignableRoles, pendingRequests]);
 
   if (!canView) {
     return <PermissionDenied />;
@@ -61,6 +134,73 @@ export default function StaffPage() {
       toast.error(errorMessage(err));
     }
   };
+
+  const handleCopyCode = () => {
+    if (!joinCodeData?.join_code) return;
+    navigator.clipboard.writeText(joinCodeData.join_code);
+    setCodeCopied(true);
+    toast.success(t("codeCopied"));
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!joinCodeData?.join_code) return;
+    const msg = t("whatsAppShareMessage", { code: joinCodeData.join_code });
+    const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  };
+
+  const handleSaveValidity = async (regenerate = false) => {
+    try {
+      await configureCodeMutation.mutateAsync({
+        duration: validityChoice,
+        custom_days: validityChoice === "custom" ? customDays : undefined,
+        regenerate,
+      });
+      toast.success(t("masterCodeTitle") + " " + tCommon("save"));
+      setValidityModalOpen(false);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
+  };
+
+  const handleApproveRequest = async (req: JoinRequestItem) => {
+    const roleId = selectedRoles[req.id];
+    if (!roleId) {
+      toast.error(t("selectRoleError"));
+      return;
+    }
+    const roleObj = assignableRoles.find((r) => r.id === roleId);
+
+    try {
+      setProcessingReqId(req.id);
+      await approveMutation.mutateAsync({ requestId: req.id, roleId });
+      toast.success(
+        t("requestApprovedSuccess", {
+          name: req.user_name,
+          role: roleObj?.name || "Staff",
+        })
+      );
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setProcessingReqId(null);
+    }
+  };
+
+  const handleRejectRequest = async (req: JoinRequestItem) => {
+    try {
+      setProcessingReqId(req.id);
+      await rejectMutation.mutateAsync(req.id);
+      toast.success(t("requestRejectedSuccess"));
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setProcessingReqId(null);
+    }
+  };
+
+  const joinCode = joinCodeData?.join_code || "FX-XXXX";
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
@@ -85,8 +225,148 @@ export default function StaffPage() {
         )}
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-6 space-y-8">
-        {/* Active Staff List */}
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        {/* 1. Master Join Code Card (for owners/managers) */}
+        {canManage && (
+          <section className="p-5 rounded-3xl bg-neutral-900 text-white dark:bg-neutral-950 border border-neutral-800 space-y-4 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-neutral-800 flex items-center justify-center text-primary">
+                  <KeyRound className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    {t("masterCodeTitle")}
+                  </h2>
+                  <div className="text-2xl font-mono font-black tracking-widest text-white mt-0.5">
+                    {joinCode}
+                  </div>
+                </div>
+              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                {joinCodeData?.is_expired ? t("codeExpired") : t("codeActive")}
+              </span>
+            </div>
+
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              {t("masterCodeDesc")}
+            </p>
+
+            <div className="pt-1 flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyCode}
+                className="flex-1 h-9 rounded-xl text-xs font-bold gap-1.5 border-neutral-700 bg-neutral-800 text-white hover:bg-neutral-700"
+              >
+                {codeCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{t("copyCode")}</span>
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={handleWhatsAppShare}
+                className="flex-1 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-1.5 shadow-sm"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>{t("shareWhatsApp")}</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setValidityModalOpen(true)}
+                className="h-9 w-9 rounded-xl border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 shrink-0"
+              >
+                <Settings2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {/* 2. Pending Join Requests Section */}
+        {canManage && pendingRequests.length > 0 && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                <span>{t("pendingRequestsTitle")}</span>
+              </h2>
+              <span className="text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                {pendingRequests.length}
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {pendingRequests.map((req) => {
+                const isProcessing = processingReqId === req.id;
+                return (
+                  <div
+                    key={req.id}
+                    className="p-4 rounded-2xl border border-blue-200 dark:border-blue-900 bg-blue-50/40 dark:bg-blue-950/20 space-y-3"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">
+                          {req.user_name}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground">
+                          {req.user_email || req.user_phone || req.display_name}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={selectedRoles[req.id] || ""}
+                        onValueChange={(val) =>
+                          setSelectedRoles((prev) => ({ ...prev, [req.id]: val }))
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-xs rounded-xl flex-1 bg-background">
+                          <SelectValue placeholder={t("selectRoleToAssign")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {assignableRoles.map((r) => (
+                            <SelectItem key={r.id} value={r.id} className="text-xs">
+                              {r.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Button
+                        size="sm"
+                        disabled={isProcessing}
+                        onClick={() => handleApproveRequest(req)}
+                        className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-1 shrink-0"
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5" />
+                        )}
+                        <span>{tCommon("confirm")}</span>
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={isProcessing}
+                        onClick={() => handleRejectRequest(req)}
+                        className="h-9 px-2 rounded-xl text-neutral-500 hover:text-red-600 shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* 3. Active Staff List */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -155,7 +435,7 @@ export default function StaffPage() {
           )}
         </section>
 
-        {/* Pending Invites List */}
+        {/* 4. Pending Invites List */}
         {invites.length > 0 && (
           <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
@@ -205,7 +485,93 @@ export default function StaffPage() {
         )}
       </div>
 
-      {/* Invite Sheet */}
+      {/* Code Validity & Reset Modal */}
+      <Dialog open={validityModalOpen} onOpenChange={setValidityModalOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {t("codeValidity")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              {t("masterCodeDesc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                {t("codeValidity")}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { id: "24h", label: t("validity24h") },
+                    { id: "2d", label: t("validity2d") },
+                    { id: "5d", label: t("validity5d") },
+                    { id: "7d", label: t("validity7d") },
+                    { id: "never", label: t("validityNever") },
+                    { id: "custom", label: t("validityCustom") },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setValidityChoice(opt.id)}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                      validityChoice === opt.id
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {validityChoice === "custom" && (
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t("validityCustom")}
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={customDays}
+                  onChange={(e) => setCustomDays(parseInt(e.target.value) || 1)}
+                  className="h-10 text-xs rounded-xl"
+                />
+              </div>
+            )}
+
+            <div className="pt-2 flex flex-col gap-2">
+              <Button
+                onClick={() => handleSaveValidity(false)}
+                disabled={configureCodeMutation.isPending}
+                className="w-full h-11 rounded-xl text-xs font-bold"
+              >
+                {configureCodeMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  tCommon("save")
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => handleSaveValidity(true)}
+                disabled={configureCodeMutation.isPending}
+                className="w-full h-11 rounded-xl text-xs font-bold text-muted-foreground"
+              >
+                {t("generateCodeBtn")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Direct Phone Invite Sheet */}
       <InviteSheet open={inviteOpen} onOpenChange={setInviteOpen} />
     </div>
   );

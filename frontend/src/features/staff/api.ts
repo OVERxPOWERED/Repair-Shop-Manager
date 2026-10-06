@@ -182,3 +182,109 @@ export function useDeclineInvite() {
     },
   });
 }
+
+export type ShopJoinCode = {
+  join_code: string;
+  expires_at: string | null;
+  enabled: boolean;
+  is_expired: boolean;
+};
+
+export type ConfigureJoinCodePayload = {
+  duration?: "24h" | "2d" | "5d" | "7d" | "never" | "custom";
+  custom_days?: number;
+  regenerate?: boolean;
+  enabled?: boolean;
+};
+
+export type JoinRequestItem = {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string | null;
+  user_phone: string | null;
+  display_name: string;
+  status: string;
+  created_at: string;
+};
+
+export type JoinShopResponse = {
+  shop_id: string;
+  shop_name: string;
+  membership_id: string;
+  status: string;
+};
+
+export function useShopJoinCode() {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: ["shop-join-code", shopId],
+    queryFn: () => api<ShopJoinCode>("/shops/current/join-code/"),
+    enabled: Boolean(shopId),
+  });
+}
+
+export function useConfigureJoinCode() {
+  const queryClient = useQueryClient();
+  const shopId = useAuthStore((s) => s.shopId);
+  return useMutation({
+    mutationFn: (payload: ConfigureJoinCodePayload) =>
+      api<ShopJoinCode>("/shops/current/join-code/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["shop-join-code", shopId], data);
+    },
+  });
+}
+
+export function useJoinShopWithCode() {
+  return useMutation({
+    mutationFn: (code: string) =>
+      api<JoinShopResponse>("/shops/join/", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+        shop: false,
+      }),
+  });
+}
+
+export function usePendingJoinRequests() {
+  const shopId = useAuthStore((s) => s.shopId);
+  return useQuery({
+    queryKey: ["staff-requests", shopId],
+    queryFn: () => api<JoinRequestItem[]>("/staff/requests/"),
+    enabled: Boolean(shopId),
+  });
+}
+
+export function useApproveJoinRequest() {
+  const queryClient = useQueryClient();
+  const shopId = useAuthStore((s) => s.shopId);
+  return useMutation({
+    mutationFn: ({ requestId, roleId }: { requestId: string; roleId: string }) =>
+      api<JoinRequestItem>(`/staff/requests/${requestId}/approve/`, {
+        method: "POST",
+        body: JSON.stringify({ role_id: roleId }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff-requests", shopId] });
+      queryClient.invalidateQueries({ queryKey: ["staff", shopId] });
+    },
+  });
+}
+
+export function useRejectJoinRequest() {
+  const queryClient = useQueryClient();
+  const shopId = useAuthStore((s) => s.shopId);
+  return useMutation({
+    mutationFn: (requestId: string) =>
+      api(`/staff/requests/${requestId}/reject/`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff-requests", shopId] });
+    },
+  });
+}

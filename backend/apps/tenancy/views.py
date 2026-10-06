@@ -18,20 +18,27 @@ from apps.core.api.errors import DomainError, NotFoundError
 from apps.core.api.idempotency import idempotent
 from apps.core.images import normalise_photo
 from apps.tenancy import invites as invite_service
+from apps.tenancy import join_code as join_code_service
 from apps.tenancy import staff as staff_service
 from apps.tenancy.models import AccessoryOption, Invite, Membership, Role, ShopBrand
 from apps.tenancy.permissions import ANY_MEMBER
 from apps.tenancy.serializers import (
     AccessoryOptionSerializer,
+    ApproveJoinRequestSerializer,
     AssignableStaffSerializer,
     ChangeRoleSerializer,
+    ConfigureJoinCodeSerializer,
     CreateInviteSerializer,
     InviteSerializer,
+    JoinRequestItemSerializer,
+    JoinShopRequestSerializer,
+    JoinShopResponseSerializer,
     MembershipSerializer,
     MyInviteSerializer,
     OnboardShopSerializer,
     RoleSerializer,
     ShopBrandSerializer,
+    ShopJoinCodeSerializer,
     ShopSerializer,
 )
 from apps.tenancy.services import create_organization_and_shop
@@ -381,4 +388,111 @@ class DeclineInviteView(APIView):
     @extend_schema(responses={204: None}, summary="Decline a shop invite")
     def post(self, request, id):
         invite_service.decline_invite(user=request.user, invite_id=id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ShopJoinCodeView(ShopScopedAPIView):
+    permission_map = {"get": "staff.manage", "post": "staff.manage"}
+
+    @extend_schema(responses={200: ShopJoinCodeSerializer}, summary="Get shop master join code")
+    def get(self, request):
+        if not request.shop.join_code:
+            join_code_service.configure_join_code(request.shop, duration="7d")
+        return Response(ShopJoinCodeSerializer(request.shop).data)
+
+    @extend_schema(
+        request=ConfigureJoinCodeSerializer,
+        responses={200: ShopJoinCodeSerializer},
+        summary="Configure master join code",
+    )
+    def post(self, request):
+        s = ConfigureJoinCodeSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        shop = join_code_service.configure_join_code(request.shop, **s.validated_data)
+        record_audit(
+            action="staff.join_code_updated",
+            entity=shop,
+            request=request,
+            actor=request.user,
+            shop=request.shop,
+            after={"join_code": shop.join_code, "expires_at": str(shop.join_code_expires_at)},
+        )
+        return Response(ShopJoinCodeSerializer(shop).data)
+
+
+class JoinShopView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(
+        request=JoinShopRequestSerializer,
+        responses={201: JoinShopResponseSerializer},
+        summary="Request to join shop via join code",
+    )
+    def post(self, request):
+        s = JoinShopRequestSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        membership = join_code_service.request_join_with_code(request.user, s.validated_data["code"])
+        record_audit(
+            action="staff.join_requested",
+            entity=membership,
+            request=request,
+            actor=request.user,
+            shop=membership.shop,
+            after={"code": s.validated_data["code"].upper()},
+        )
+        return Response(JoinShopResponseSerializer(membership).data, status=status.HTTP_201_CREATED)
+
+
+class JoinRequestsViewSet(ShopScopedMixin, viewsets.GenericViewSet):
+    permission_map = {
+        "list": "staff.manage",
+        "approve": "staff.manage",
+        "reject": "staff.manage",
+    }
+
+    @extend_schema(responses={200: JoinRequestItemSerializer(many=True)}, summary="List pending join requests")
+    def list(self, request):
+        qs = (
+            Membership.objects.filter(shop=request.shop, status=Membership.StatusChoices.REQUESTED)
+            .select_related("user")
+            .order_by("-created_at")
+        )
+        return Response(JoinRequestItemSerializer(qs, many=True).data)
+
+    @extend_schema(
+        request=ApproveJoinRequestSerializer,
+        responses={200: JoinRequestItemSerializer},
+        summary="Approve join request and assign role",
+    )
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        s = ApproveJoinRequestSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        membership = join_code_service.approve_join_request(
+            actor=request.membership,
+            membership_id=pk,
+            role_id=s.validated_data["role_id"],
+        )
+        record_audit(
+            action="staff.request_approved",
+            entity=membership,
+            request=request,
+            actor=request.user,
+            shop=request.shop,
+            after={"role_id": str(membership.role_id), "user_id": str(membership.user_id)},
+        )
+        return Response(JoinRequestItemSerializer(membership).data)
+
+    @extend_schema(responses={204: None}, summary="Reject join request")
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        membership = join_code_service.reject_join_request(actor=request.membership, membership_id=pk)
+        record_audit(
+            action="staff.request_rejected",
+            entity=membership,
+            request=request,
+            actor=request.user,
+            shop=request.shop,
+            after={"user_id": str(membership.user_id)},
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
