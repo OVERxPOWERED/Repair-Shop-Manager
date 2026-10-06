@@ -5,6 +5,21 @@
 **Phase:** 1 pilot ready / Google Auth implemented  **Subphase:** 1.25 deployment & audit complete  **Last updated:** 2026-10-06
 
 ## Done
+- **Render Keep-Awake, Cold-Start Optimization & External Ping Setup (Subphase 1.25+):**
+  - Root Cause Analysis:
+    - Identified why initial app launch and data loading were slow: Render free tier spins down web services after 15 minutes of inactivity; spinning up a cold container takes 50–90 seconds (Docker provisioning + Django startup + Neon serverless PostgreSQL compute reactivation).
+    - Identified why `.github/workflows/keep-awake.yml` was failing: `curl` was configured with `--max-time 60`, which timed out on cold boots (curl exit code 28), causing `bash -e` to kill the workflow with a failure (`X`). Additionally, GitHub Actions free scheduled crons experience jitter/queue delays of 20–50 minutes, causing Render to sleep between runs.
+  - GitHub Actions Workflow Hardening (`.github/workflows/keep-awake.yml`):
+    - Increased curl timeout to 120s with `--connect-timeout 25` and up to 2 retries with 10s backoff.
+    - Added error trapping (`|| echo "curl_timeout"`) so exit code 28 does not terminate the workflow.
+    - Updated operating hours schedule to `*/10 2-17 * * *` (7:30 AM to 11:30 PM IST), utilizing ~496 hours/month (well within Render's 750 free hours).
+  - Frontend Cold-Start UX Transparency (`SessionBoot.tsx`, `en.json`, `hi.json`, `hi-Latn.json`):
+    - Subscribed `SessionBoot.tsx` splash screen to `useServerWakeStore`. When the backend takes >4s, the splash screen displays an animated loader and friendly status message: "Waking up the server… this can take up to a minute" with a reassuring description explaining the cloud server spin-up.
+    - Added `states.serverWakingDesc` across all 3 locales (`en`, `hi`, `hi-Latn`).
+  - Documentation & External Pinger Runbook (`docs/runbooks/keep-awake.md`):
+    - Authored comprehensive guide detailing root causes, GitHub Actions schedule characteristics, and step-by-step setup for free external pingers (UptimeRobot for 24/7 warmth; cron-job.org for shop-hours-only warmth).
+  - Verification:
+    - All 150 vitest unit tests passing across 25 suites. `pnpm lint`, `pnpm typecheck`, and static export build (`pnpm build`) 100% clean (38/38 pages generated).
 - **Master Join Code, Staff Onboarding & Approval Workflow (Subphase 1.25+):**
   - Shop Master Join Code (`backend/apps/tenancy/models.py`, `join_code.py`):
     - Added `Shop.join_code`, `Shop.join_code_expires_at`, and `Shop.join_code_enabled` with unambiguous 7-character code generation (`FX-XXXX`).

@@ -1,13 +1,13 @@
 name: Render Keep-Awake Ping
 
-# Pings Render free tier service during Indian shop operating hours (8:30 AM to 10:30 PM IST)
-# 8:30 AM - 10:30 PM IST = 03:00 - 17:00 UTC (14 hours / day = ~434 hrs / month, well within Render's 750 free hours)
+# Pings Render free tier service during Indian shop operating hours (7:30 AM to 11:30 PM IST)
+# 7:30 AM - 11:30 PM IST = 02:00 - 18:00 UTC (16 hours / day = ~496 hrs / month, well within Render's 750 free hours)
 # Keeps backend awake to eliminate cold starts without exceeding free monthly limits.
 
 on:
   schedule:
-    # Run every 10 minutes between 03:00 UTC and 16:59 UTC
-    - cron: "*/10 3-16 * * *"
+    # Run every 10 minutes between 02:00 UTC and 17:59 UTC
+    - cron: "*/10 2-17 * * *"
   workflow_dispatch:
 
 jobs:
@@ -20,11 +20,28 @@ jobs:
           if [ -z "$API_URL" ]; then
             API_URL="https://fixpro-api.onrender.com/api/v1"
           fi
-          echo "Pinging ${API_URL}/health/ ..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "${API_URL}/health/")
-          echo "Received HTTP status: $STATUS"
-          if [ "$STATUS" -ne 200 ]; then
-            echo "Warning: Health endpoint returned $STATUS"
-          else
-            echo "Render backend is alive and healthy."
-          fi
+          HEALTH_URL="${API_URL}/health/"
+          echo "Pinging ${HEALTH_URL} to keep service warm..."
+
+          MAX_ATTEMPTS=2
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $i of $MAX_ATTEMPTS..."
+            START_TIME=$(date +%s)
+
+            # Allow up to 120s for cold boot; catch timeout/errors so bash -e does not kill the step
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 --connect-timeout 25 "$HEALTH_URL" || echo "curl_timeout")
+            END_TIME=$(date +%s)
+            ELAPSED=$((END_TIME - START_TIME))
+            echo "Response in ${ELAPSED}s | HTTP Status: $STATUS"
+
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Render backend is warm and healthy."
+              exit 0
+            fi
+
+            echo "⚠️ Attempt $i returned status '$STATUS'. Retrying in 10s..."
+            sleep 10
+          done
+
+          echo "⚠️ Render backend wake request was sent, but did not confirm 200 within limits."
+

@@ -25,7 +25,8 @@
     "error": "Something went wrong",
     "offline": "You are currently offline",
     "permissionDenied": "Access Denied",
-    "serverWaking": "Waking up the server… this can take up to a minute"
+    "serverWaking": "Waking up the server… this can take up to a minute",
+    "serverWakingDesc": "The cloud server is starting up after idle time. This usually takes 30–60 seconds."
   },
   "errors": {
     "generic": "An unexpected error occurred. Please try again.",

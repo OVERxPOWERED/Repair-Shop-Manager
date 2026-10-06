@@ -25,7 +25,8 @@
     "error": "Kuch galat ho gaya",
     "offline": "Aap abhi offline hain",
     "permissionDenied": "Access Denied",
-    "serverWaking": "Server wake ho raha hai… isme 1 minute tak lag sakta hai"
+    "serverWaking": "Server wake ho raha hai… isme 1 minute tak lag sakta hai",
+    "serverWakingDesc": "Idle hone ke baad cloud server start ho raha hai. Isme aamtaur par 30-60 seconds lagte hain."
   },
   "errors": {
     "generic": "Ek unexpected error aayi. Kripya dobara try karein.",
